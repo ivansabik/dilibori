@@ -7,19 +7,18 @@ namespace Dilibori\Cdp;
 use Dilibori\Cdp\Contracts\EventClient;
 use Dilibori\Cdp\Http\Middleware\InjectAnalyticsSnippet;
 use Dilibori\Cdp\Listeners\RegisterAnalyticsListeners;
-use Dilibori\Cdp\Support\Analytics;
-use Dilibori\Cdp\Support\ErrorFingerprint;
 use Dilibori\Cdp\Support\EventClientFactory;
-use Dilibori\Cdp\Support\Events;
+use Dilibori\Cdp\Support\ReportApplicationError;
 use Dilibori\Cdp\Support\Snippet;
 use Igniter\Admin\Facades\Template;
+use Igniter\Flame\Exception\AjaxException;
+use Igniter\Flame\Exception\ApplicationException;
 use Igniter\Flame\Support\Facades\Igniter;
 use Igniter\System\Classes\BaseExtension;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\View\View;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Event;
 use Override;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
 
 class Extension extends BaseExtension
@@ -55,38 +54,27 @@ class Extension extends BaseExtension
 
     private function registerErrorReporter(): void
     {
+        // Igniter marks ApplicationException / AjaxException as dontReport and returns
+        // false from its reportable callback, so later reportables never run. Hook
+        // exception.beforeReport (dispatched inside Igniter's handler) instead.
+        Event::listen('exception.beforeReport', function (Throwable $e): void {
+            if ($e instanceof ApplicationException || $e instanceof AjaxException) {
+                ReportApplicationError::fromThrowable($e);
+            }
+        });
+
         $this->app->afterResolving(ExceptionHandler::class, function (ExceptionHandler $handler): void {
             if (! method_exists($handler, 'reportable')) {
                 return;
             }
 
             $handler->reportable(function (Throwable $e): void {
-                if (Igniter::runningInAdmin()) {
+                // Handled via exception.beforeReport (Igniter stops the reportable chain).
+                if ($e instanceof ApplicationException || $e instanceof AjaxException) {
                     return;
                 }
 
-                if ($e instanceof NotFoundHttpException || $e instanceof ValidationException) {
-                    return;
-                }
-
-                try {
-                    $file = $e->getFile();
-                    $message = mb_substr($e->getMessage(), 0, 500);
-
-                    Analytics::track(Events::APPLICATION_ERROR, array_filter([
-                        'error_id' => ErrorFingerprint::fromThrowable($e),
-                        'error_source' => 'php',
-                        'error_type' => $e::class,
-                        'error_message' => $message,
-                        'error_file' => $file,
-                        'error_line' => $e->getLine(),
-                        'path' => request()->path(),
-                        'url' => request()->fullUrl(),
-                        'status_code' => method_exists($e, 'getStatusCode') ? $e->getStatusCode() : null,
-                    ], static fn ($v) => $v !== null && $v !== ''));
-                } catch (Throwable) {
-                    // Never break exception reporting.
-                }
+                ReportApplicationError::fromThrowable($e);
             });
         });
     }

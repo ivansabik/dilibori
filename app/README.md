@@ -126,6 +126,24 @@ Watch http://127.0.0.1:8090 while you use the store:
 
 More detail: [`../cdp/README.md`](../cdp/README.md).
 
+### Troubleshooting: “X is currently out of stock”
+
+That is an `ApplicationException` from Igniter stock checks (not a CDP wiring failure). With `APP_DEBUG=true` you get a full error page. You should still see **Application Error** in the CDP inspector (`error_source=php`).
+
+1. Note the Livewire `menuId` from the request body.
+2. Inspect stock:
+
+```sh
+docker compose exec -T db mariadb -utastyigniter -ptastyigniter tastyigniter -e "
+SELECT m.menu_id, m.menu_name, s.quantity, s.is_tracked
+FROM menus m
+LEFT JOIN stocks s ON s.stockable_type='menus' AND s.stockable_id=m.menu_id
+WHERE m.menu_id = 9;
+"
+```
+
+3. Tracked + `quantity` NULL/`<= 0` → out of stock. Full write-up: [`extensions/dilibori/cdp/EVENTS.md`](extensions/dilibori/cdp/EVENTS.md#debugging-storefront-exceptions).
+
 ## Layout
 
 ```

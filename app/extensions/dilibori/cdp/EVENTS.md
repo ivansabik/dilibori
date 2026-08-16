@@ -344,11 +344,13 @@ Source of truth for storefront analytics. Canonical names are Proper Case, objec
 |--|--|
 | **Constant** | `Events::APPLICATION_ERROR` |
 | **Producer** | Backend (PHP) and frontend (JS) |
-| **Hook** | Laravel `ExceptionHandler::reportable` (skip admin, 404, validation); JS `error`, `unhandledrejection`, `fetch` status >= 500 |
+| **Hook** | PHP: Igniter `exception.beforeReport` for `ApplicationException` / `AjaxException` (Igniter marks these dontReport, so Laravel `reportable` never sees them); Laravel `reportable` for other throwables (skip admin, 404, validation). JS: `error`, `unhandledrejection`, Livewire `request` fail, `fetch` status >= 500 (non-Livewire) |
 | **Properties** | `error_id`, `error_source` (`php` or `js`), `error_type`, `error_message`, `error_file`, `error_line`, `status_code`, `path`, `url` |
-| **Question** | Who hit bug X? (see below) |
+| **Question** | Who hit failure X (bug or storefront UX)? |
 
 JS dedupes by `error_id` once per browser session (`sessionStorage`).
+
+TastyIgniter UX failures (e.g. “Horchata is currently out of stock”) **do** emit `Application Error` with `error_type` = `Igniter\Flame\Exception\ApplicationException`. Filter on that (or `error_message`) to separate UX from unexpected bugs. A Livewire fail may also emit a JS event (`error_source=js`, `error_type=livewire`) for the same click.
 
 ### Audience example: email everyone who hit bug X
 
@@ -358,7 +360,67 @@ Events do **not** send email. They attach `userId` / `anonymousId` (and `identif
 2. Join to `Account Logged In` (or `identify`) between times T1–T2 if needed
 3. Export distinct `email` / `userId` for outreach
 
-Fingerprint: PHP = hash of exception class + file + line; JS = hash of message + source + line.
+Fingerprint: PHP bugs = hash of exception class + file + line; PHP `ApplicationException` / `AjaxException` also include the message; JS = hash of message + source + line.
+
+---
+
+## Debugging storefront exceptions
+
+Igniter throws `Igniter\Flame\Exception\ApplicationException` for many customer-facing checks (stock, closed location, invalid coupon). With `APP_DEBUG=true` Laravel shows a full error page; that does **not** mean CDP or Livewire is broken.
+
+### 1. Confirm it is UX, not a bug
+
+| Signal | Meaning |
+|--------|---------|
+| Exception class `ApplicationException` | Expected business rule |
+| Message like “… is currently out of stock” | Stock check failed |
+| Livewire call `cart-box:add-item` + `menuId` | Which menu item was added |
+| Query log includes `from stocks where stockable_id = N` | Stock lookup for that item |
+| Inspector `Application Error` with that `error_type` / message | CDP captured the failure |
+
+### 2. Map `menuId` → name + stock
+
+From `app/`:
+
+```sh
+docker compose exec -T db mariadb -utastyigniter -ptastyigniter tastyigniter -e "
+SELECT m.menu_id, m.menu_name, s.id AS stock_id, s.location_id,
+       s.quantity, s.is_tracked, s.low_stock_threshold
+FROM menus m
+LEFT JOIN stocks s
+  ON s.stockable_type = 'menus' AND s.stockable_id = m.menu_id
+WHERE m.menu_id = 9;
+"
+```
+
+Tracked with `quantity` NULL or `<= 0` → out of stock (`Stock::outOfStock()` / `checkStock()`).
+
+### 3. Common local cause: seeded quantity never stuck
+
+`Igniter\Cart\Models\Stock` **guards** `quantity`. Mass assignment (`Stock::create(['quantity' => 50, …])`) silently drops it. Seed must use `updateStock($qty, Stock::STATE_RECOUNT)` after create (see `app/seed/el-taconazo.php`).
+
+Quick fix without full re-seed (example: set all tracked rows to 50):
+
+```sh
+docker compose exec -T db mariadb -utastyigniter -ptastyigniter tastyigniter -e "
+UPDATE stocks SET quantity = 50 WHERE is_tracked = 1 AND (quantity IS NULL OR quantity <= 0);
+"
+```
+
+Or re-seed after the seeder fix: `make seed`.
+
+### 4. Admin UI
+
+`Admin → Kitchen → Stocks` (or Menu item → stock) — confirm **Track stock** and quantity for that location.
+
+### 5. CDP / Livewire red herrings
+
+| Symptom | Check |
+|---------|--------|
+| Exception page on add-to-cart | Stock / mealtime / location rules first |
+| No `Product Added` in inspector | Expected when add fails before cart update |
+| `Application Error` on OOS / closed | Expected; filter `error_type` / `error_message` |
+| No `Application Error` on OOS | Restart app so extension copy updates (`docker compose up -d --force-recreate app`); confirm `CDP_ENABLED` |
 
 ---
 

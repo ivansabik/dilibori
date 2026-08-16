@@ -88,6 +88,58 @@
     window.diliboriAnalytics.track('Application Error', props);
   }
 
+  function messageFromFailHtml(content, status) {
+    if (!content || typeof content !== 'string') {
+      return 'Livewire HTTP ' + status;
+    }
+    var title = content.match(/<title[^>]*>([^<]+)<\/title>/i);
+    if (title && title[1]) {
+      return title[1].replace(/\s+/g, ' ').trim().slice(0, 500);
+    }
+    return 'Livewire HTTP ' + status;
+  }
+
+  function isLivewireRequest(url, init) {
+    var u = String(url || '');
+    if (/livewire/i.test(u)) return true;
+    try {
+      var headers = (init && init.headers) || {};
+      if (typeof Headers !== 'undefined' && headers instanceof Headers) {
+        return headers.has('X-Livewire');
+      }
+      if (headers['X-Livewire'] != null || headers['x-livewire'] != null) return true;
+    } catch (e) {}
+    return false;
+  }
+
+  function bindLivewireErrorTracking() {
+    var attach = function () {
+      if (!window.Livewire || typeof Livewire.hook !== 'function') return;
+      Livewire.hook('request', function (args) {
+        if (!args || typeof args.fail !== 'function') return;
+        args.fail(function (fail) {
+          var status = (fail && fail.status) || 0;
+          var content = fail && fail.content;
+          var msg = messageFromFailHtml(content, status);
+          trackApplicationError({
+            error_id: jsErrorId(msg, 'livewire', status),
+            error_source: 'js',
+            error_type: 'livewire',
+            error_message: msg,
+            status_code: status || undefined,
+            path: location.pathname,
+            url: location.href
+          });
+        });
+      });
+    };
+    if (window.Livewire) {
+      attach();
+    } else {
+      document.addEventListener('livewire:init', attach);
+    }
+  }
+
   function bindErrorTracking() {
     window.addEventListener('error', function (ev) {
       var msg = ev.message || (ev.error && ev.error.message) || 'Error';
@@ -118,11 +170,16 @@
       });
     });
 
+    bindLivewireErrorTracking();
+
     if (typeof window.fetch === 'function') {
       var origFetch = window.fetch;
-      window.fetch = function () {
+      window.fetch = function (input, init) {
+        var url = typeof input === 'string' ? input : (input && input.url) || '';
+        var skipHttpTrack = isLivewireRequest(url, init);
         return origFetch.apply(this, arguments).then(function (res) {
-          if (res && res.status >= 500) {
+          // Livewire failures use Livewire.hook('request') so we get the exception title.
+          if (!skipHttpTrack && res && res.status >= 500) {
             trackApplicationError({
               error_id: jsErrorId('http_' + res.status + '_' + (res.url || ''), 'fetch', 0),
               error_source: 'js',
