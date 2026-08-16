@@ -1,0 +1,162 @@
+{
+  "enableMetrics": false,
+  "workspaceId": "dilibori-local-workspace",
+  "sources": [
+    {
+      "config": {},
+      "id": "src_js_dilibori_local",
+      "name": "TastyIgniter JS",
+      "writeKey": "dilibori_js_write_key_local",
+      "enabled": true,
+      "sourceDefinitionId": "srcdef_javascript",
+      "workspaceId": "dilibori-local-workspace",
+      "deleted": false,
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z",
+      "sourceDefinition": {
+        "id": "srcdef_javascript",
+        "name": "Javascript",
+        "displayName": "Javascript",
+        "category": null,
+        "createdAt": "2026-01-01T00:00:00.000Z",
+        "updatedAt": "2026-01-01T00:00:00.000Z"
+      },
+      "destinations": [
+        {
+          "config": {
+            "webhookUrl": "http://event-sink:8090/rudder",
+            "webhookMethod": "POST"
+          },
+          "secretConfig": {},
+          "id": "dest_webhook_js_local",
+          "name": "Local Event Inspector (JS)",
+          "enabled": true,
+          "workspaceId": "dilibori-local-workspace",
+          "deleted": false,
+          "createdAt": "2026-01-01T00:00:00.000Z",
+          "updatedAt": "2026-01-01T00:00:00.000Z",
+          "transformations": [],
+          "destinationDefinition": {
+            "config": {
+              "destConfig": {
+                "defaultConfig": ["webhookUrl", "webhookMethod", "headers"]
+              },
+              "secretKeys": [],
+              "excludeKeys": [],
+              "includeKeys": [],
+              "transformAt": "processor",
+              "transformAtV1": "processor",
+              "supportedSourceTypes": [
+                "android",
+                "ios",
+                "web",
+                "unity",
+                "amp",
+                "cloud",
+                "warehouse",
+                "reactnative",
+                "flutter",
+                "cordova"
+              ],
+              "supportedMessageTypes": [
+                "alias",
+                "group",
+                "identify",
+                "page",
+                "screen",
+                "track"
+              ],
+              "saveDestinationResponse": false
+            },
+            "id": "destdef_webhook",
+            "name": "WEBHOOK",
+            "displayName": "Webhook",
+            "category": null,
+            "createdAt": "2026-01-01T00:00:00.000Z",
+            "updatedAt": "2026-01-01T00:00:00.000Z"
+          },
+          "isConnectionEnabled": true,
+          "isProcessorEnabled": true
+        }
+      ]
+    },
+    {
+      "config": {},
+      "id": "src_http_dilibori_local",
+      "name": "TastyIgniter HTTP",
+      "writeKey": "dilibori_http_write_key_local",
+      "enabled": true,
+      "sourceDefinitionId": "srcdef_http",
+      "workspaceId": "dilibori-local-workspace",
+      "deleted": false,
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z",
+      "sourceDefinition": {
+        "id": "srcdef_http",
+        "name": "HTTP",
+        "displayName": "HTTP",
+        "category": "",
+        "createdAt": "2026-01-01T00:00:00.000Z",
+        "updatedAt": "2026-01-01T00:00:00.000Z"
+      },
+      "destinations": [
+        {
+          "config": {
+            "webhookUrl": "http://event-sink:8090/rudder",
+            "webhookMethod": "POST"
+          },
+          "secretConfig": {},
+          "id": "dest_webhook_http_local",
+          "name": "Local Event Inspector (HTTP)",
+          "enabled": true,
+          "workspaceId": "dilibori-local-workspace",
+          "deleted": false,
+          "createdAt": "2026-01-01T00:00:00.000Z",
+          "updatedAt": "2026-01-01T00:00:00.000Z",
+          "transformations": [],
+          "destinationDefinition": {
+            "config": {
+              "destConfig": {
+                "defaultConfig": ["webhookUrl", "webhookMethod", "headers"]
+              },
+              "secretKeys": [],
+              "excludeKeys": [],
+              "includeKeys": [],
+              "transformAt": "processor",
+              "transformAtV1": "processor",
+              "supportedSourceTypes": [
+                "android",
+                "ios",
+                "web",
+                "unity",
+                "amp",
+                "cloud",
+                "warehouse",
+                "reactnative",
+                "flutter",
+                "cordova"
+              ],
+              "supportedMessageTypes": [
+                "alias",
+                "group",
+                "identify",
+                "page",
+                "screen",
+                "track"
+              ],
+              "saveDestinationResponse": false
+            },
+            "id": "destdef_webhook",
+            "name": "WEBHOOK",
+            "displayName": "Webhook",
+            "category": null,
+            "createdAt": "2026-01-01T00:00:00.000Z",
+            "updatedAt": "2026-01-01T00:00:00.000Z"
+          },
+          "isConnectionEnabled": true,
+          "isProcessorEnabled": true
+        }
+      ]
+    }
+  ]
+}
