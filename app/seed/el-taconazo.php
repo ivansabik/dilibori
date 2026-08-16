@@ -1147,15 +1147,16 @@ $seedMenusForLocation = function (
         }
 
         if ($stockQty !== null) {
-            Stock::query()->create([
+            // quantity is guarded on Stock — set it via updateStock, not create().
+            $stock = Stock::query()->create([
                 'location_id' => $forLocationId,
                 'stockable_id' => $menu->getKey(),
                 'stockable_type' => 'menus',
-                'quantity' => $stockQty,
                 'low_stock_alert' => 1,
                 'low_stock_threshold' => 10,
                 'is_tracked' => 1,
             ]);
+            $stock->updateStock((int) $stockQty, Stock::STATE_RECOUNT);
         }
 
         $enName = is_array($data['menu_name'] ?? null)
