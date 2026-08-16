@@ -61,7 +61,7 @@ function say(string $msg): void
 }
 
 /**
- * Attach a storefront thumb and ensure the original lands on the persistent media volume.
+ * Attach a media thumb and ensure the original lands on the persistent media volume.
  * TI can leave DB rows / placeholder thumbs when the attachment file is missing on disk.
  */
 function attachLocationPhoto($model, string $sourcePath, string $tag = 'thumb'): void
@@ -363,6 +363,10 @@ foreach ([
     if (Schema::hasTable($table)) {
         DB::table($table)->truncate();
     }
+}
+// Truncating menus leaves media_attachments rows pointing at reused menu IDs.
+if (Schema::hasTable('media_attachments')) {
+    DB::table('media_attachments')->where('attachment_type', 'menus')->delete();
 }
 DB::table('locationables')
     ->whereIn('locationable_type', ['menus', 'categories', 'menu_options', 'mealtimes', 'ingredients', 'coupons'])
@@ -822,6 +826,7 @@ $menuDefs = [
         'special' => null,
         'special_mxn' => null,
         'stock' => 40,
+        'photo' => '/opt/seed/images/pambazo.png',
     ],
     [
         'menu_name' => 'Torta de Chilaquil',
@@ -839,6 +844,7 @@ $menuDefs = [
         'special' => null,
         'special_mxn' => null,
         'stock' => 35,
+        'photo' => '/opt/seed/images/torta-de-chilaquil.png',
     ],
     [
         'menu_name' => 'Taco de Suadero',
@@ -856,6 +862,7 @@ $menuDefs = [
         'special' => null,
         'special_mxn' => null,
         'stock' => null,
+        'photo' => '/opt/seed/images/taco-de-suadero.png',
     ],
     [
         'menu_name' => t('Taco al Pastor (trompo)', 'Taco al pastor (trompo)'),
@@ -873,6 +880,7 @@ $menuDefs = [
         'special' => ['type' => 'P', 'special_price' => 15, 'validity' => 'forever'],
         'special_mxn' => ['type' => 'P', 'special_price' => 15, 'validity' => 'forever'],
         'stock' => 200,
+        'photo' => '/opt/seed/images/taco-al-pastor.jpg',
     ],
     [
         'menu_name' => 'Taco de Cabeza',
@@ -890,6 +898,7 @@ $menuDefs = [
         'special' => null,
         'special_mxn' => null,
         'stock' => null,
+        'photo' => '/opt/seed/images/taco-de-cabeza.png',
     ],
     [
         'menu_name' => 'Taco de Costilla',
@@ -907,6 +916,7 @@ $menuDefs = [
         'special' => ['type' => 'F', 'special_price' => 3.75, 'validity' => 'period'],
         'special_mxn' => ['type' => 'F', 'special_price' => 38, 'validity' => 'period'],
         'stock' => 80,
+        'photo' => '/opt/seed/images/taco-de-costilla.png',
     ],
     [
         'menu_name' => t('3 Tacos mix & match', 'Orden de 3 tacos'),
@@ -924,6 +934,7 @@ $menuDefs = [
         'special' => null,
         'special_mxn' => null,
         'stock' => null,
+        'photo' => '/opt/seed/images/3-tacos-mix-match.png',
     ],
     [
         'menu_name' => 'Plato Taconazo',
@@ -941,6 +952,7 @@ $menuDefs = [
         'special' => null,
         'special_mxn' => null,
         'stock' => null,
+        'photo' => '/opt/seed/images/plato-taconazo.jpg',
     ],
     [
         'menu_name' => 'Horchata',
@@ -1074,6 +1086,7 @@ $seedMenusForLocation = function (
         $stockQty = $data['stock'];
         $price = $data[$priceKey];
         $description = $data[$descriptionKey] ?? $data['menu_description'];
+        $photo = $data['photo'] ?? null;
         unset(
             $data['options'],
             $data['category'],
@@ -1086,6 +1099,7 @@ $seedMenusForLocation = function (
             $data['menu_price_mxn'],
             $data['menu_description'],
             $data['menu_description_mxn'],
+            $data['photo'],
         );
 
         $data['menu_description'] = $description;
@@ -1094,6 +1108,9 @@ $seedMenusForLocation = function (
         $data['menu_status'] = 1;
 
         $menu = Menu::create($data);
+        if (is_string($photo) && $photo !== '') {
+            attachLocationPhoto($menu, $photo, 'thumb');
+        }
         $menu->categories()->sync([$categoryIds[$categorySlug]]);
         $menu->locations()->sync([$forLocationId]);
         $menu->mealtimes()->sync(array_map(fn($k) => $mealtimes[$k]->getKey(), $mealtimeKeys));

@@ -46,6 +46,7 @@ Menu (separate EN + ES translations; duplicated per location for currency)
 - Categories: Breakfast, Tacos, Combos, Drinks, Sides
 - Breakfast (7-11am): Pambazo, Torta de Chilaquil
 - Tacos: suadero, pastor en trompo, cabeza, costilla (+ combos, drinks, extras)
+- Product photos on breakfast, tacos, and combos (items with options open the photo modal)
 - Options, mealtimes, specials, allergens. One language at a time via the header picker
 - CMS pages share slugs; About / Privacy / Terms switch with the locale
 
