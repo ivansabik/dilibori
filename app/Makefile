@@ -5,13 +5,16 @@ APP_URL ?= http://127.0.0.1:8001
 
 .DEFAULT_GOAL := help
 
-.PHONY: help up down stop start build rebuild logs shell ps passwd reset clean wait seed
+.PHONY: help up down stop start build rebuild logs shell ps passwd reset clean wait seed network
 
 help: ## Show this help
 	@awk 'BEGIN {FS = ":.*##"; printf "\nTastyIgniter local Docker\n\nUsage:\n  make \033[36m<target>\033[0m\n\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 	@printf "\nAdmin login:  %s / %s\nStorefront:   %s\nAdmin:        %s/admin\n\n" "$(ADMIN_EMAIL)" "$(ADMIN_PASSWORD)" "$(APP_URL)" "$(APP_URL)"
 
-up: ## Build (if needed) and start everything
+network: ## Create shared Docker network for CDP (idempotent)
+	@docker network inspect dilibori >/dev/null 2>&1 || docker network create dilibori
+
+up: network ## Build (if needed) and start everything
 	docker compose up db redis -d
 	@echo "Waiting for database..."
 	@$(MAKE) --no-print-directory wait
@@ -71,7 +74,7 @@ wait: ## Wait until MariaDB accepts connections
 	done
 	@echo "Database is ready"
 
-reset: ## Wipe DB + recreate containers and reinstall (dev only)
+reset: network ## Wipe DB + recreate containers and reinstall (dev only)
 	docker compose down -v --remove-orphans --rmi local || true
 	rm -rf db
 	mkdir -p db media

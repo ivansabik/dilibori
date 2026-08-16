@@ -25,9 +25,20 @@ services:
       - REDIS_HOST=redis
       - ADMIN_EMAIL=operations@taconazotaqueria.com
       - ADMIN_PASSWORD=12345678abc!
+      # CDP / analytics (driver-agnostic; rudderstack locally)
+      - CDP_ENABLED=${CDP_ENABLED:-true}
+      - EVENT_CLIENT_DRIVER=${EVENT_CLIENT_DRIVER:-rudderstack}
+      - RUDDERSTACK_DATA_PLANE_URL=${RUDDERSTACK_DATA_PLANE_URL:-http://rudder-server:8080}
+      - RUDDERSTACK_JS_DATA_PLANE_URL=${RUDDERSTACK_JS_DATA_PLANE_URL:-http://127.0.0.1:8080}
+      - RUDDERSTACK_HTTP_WRITE_KEY=${RUDDERSTACK_HTTP_WRITE_KEY:-dilibori_http_write_key_local}
+      - RUDDERSTACK_JS_WRITE_KEY=${RUDDERSTACK_JS_WRITE_KEY:-dilibori_js_write_key_local}
+      - RUDDERSTACK_JS_CONFIG_URL=${RUDDERSTACK_JS_CONFIG_URL:-http://127.0.0.1:8090}
     depends_on:
       - db
       - redis
+    networks:
+      - default
+      - dilibori
     restart: unless-stopped
 
   db:
@@ -47,3 +58,8 @@ services:
     image: redis:7
     command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
     restart: unless-stopped
+
+networks:
+  dilibori:
+    name: dilibori
+    external: true

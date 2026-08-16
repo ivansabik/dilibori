@@ -1,0 +1,27 @@
+{
+  "name": "dilibori/cdp",
+  "type": "tastyigniter-package",
+  "description": "Driver-agnostic storefront analytics (RudderStack locally; other drivers later).",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "dilibori"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Dilibori\\Cdp\\": "src/"
+    }
+  },
+  "extra": {
+    "tastyigniter-extension": {
+      "code": "dilibori.cdp",
+      "name": "CDP Analytics",
+      "icon": {
+        "class": "fa fa-chart-line",
+        "backgroundColor": "#1B4332",
+        "color": "#FFFFFF"
+      }
+    }
+  }
+}

@@ -1,8 +1,8 @@
-# Dilibori App 
+# Dilibori app
 
-Powered by TastyIgniter v4.0.1 deployed locally with Docker. One-command local stack: PHP 8.3 + Apache, MariaDB, Redis. Based on [PR #11](https://github.com/ThisIsQasim/TastyIgniter/pull/11).
+TastyIgniter v4.0.1 on Docker: PHP 8.3 + Apache, MariaDB, Redis. Based on [PR #11](https://github.com/ThisIsQasim/TastyIgniter/pull/11).
 
-Demo storefront: **El Taconazo** — El Paso, TX (USD) and Ciudad Juárez (MXN).
+Demo storefront: **El Taconazo**, El Paso, TX (USD) and Ciudad Juárez (MXN).
 
 ## Install
 
@@ -33,20 +33,20 @@ make reset
 ## What `make seed` loads
 
 Locations & ops
-- **El Taconazo - Alameda Ave** @ 4500 Alameda Ave, El Paso, TX 79905 — **USD** (storefront photo + homepage slider; wordmark as header logo; black primary buttons)
-- **El Taconazo - Tecnológico** @ Av. Tecnológico 1545, Ciudad Juárez, Chihuahua — **MXN** (same menu items, peso prices; night storefront photo)
+- **El Taconazo - Alameda Ave** @ 4500 Alameda Ave, El Paso, TX 79905. **USD**. Storefront photo + homepage slider; wordmark as header logo; black primary buttons
+- **El Taconazo - Tecnológico** @ Av. Tecnológico 1545, Ciudad Juárez, Chihuahua. **MXN**. Same menu items, peso prices; night storefront photo
 - Footer social: Instagram, Facebook, TikTok (`@eltaconazo`)
 - Timezone `America/Denver`; currencies **USD** (default) + **MXN** (auto-selected on the Juárez location)
 - Languages: **English** (default) + **Español (México)**; **EN | ES** picker in the header
-- Working hours (opening / delivery / pickup) from 7am — both locations
+- Working hours (opening / delivery / pickup) from 7am at both locations
 - Delivery + pickup + future orders + table reservations enabled
 - Delivery zones: El Paso (Central 4mi, Greater 10mi) + Juárez (Centro, Pronaf / Tecnológico)
 
 Menu (separate EN + ES translations; duplicated per location for currency)
 - Categories: Breakfast, Tacos, Combos, Drinks, Sides
-- Breakfast (7–11am): Pambazo, Torta de Chilaquil
+- Breakfast (7-11am): Pambazo, Torta de Chilaquil
 - Tacos: suadero, pastor en trompo, cabeza, costilla (+ combos, drinks, extras)
-- Options, mealtimes, specials, allergens — one language at a time via the header picker
+- Options, mealtimes, specials, allergens. One language at a time via the header picker
 - CMS pages share slugs; About / Privacy / Terms switch with the locale
 
 Marketing & guests
@@ -89,8 +89,42 @@ make reset                      # wipe DB, reinstall, seed
 |---------|------|
 | App | http://127.0.0.1:8001 |
 | MariaDB | localhost:3307 |
+| RudderStack data plane (CDP) | http://127.0.0.1:8080 |
+| CDP event inspector | http://127.0.0.1:8090 |
 
-Inside Docker, DB host is `db` (user/pass/db: `tastyigniter`).
+Inside Docker, DB host is `db` (user/pass/db: `tastyigniter`). CDP gateway hostname is `rudder-server` (shared `dilibori` network).
+
+Start CDP separately: `make -C ../cdp up` or from repo root `make cdp-up`.
+
+## Analytics (CDP)
+
+The `dilibori.cdp` extension sends storefront events through `EVENT_CLIENT_DRIVER` (RudderStack locally). Listeners do not call RudderStack APIs; change the driver in env.
+
+Event catalog (names, hooks, properties): [`extensions/dilibori/cdp/EVENTS.md`](extensions/dilibori/cdp/EVENTS.md).
+
+### Test events from this app
+
+```sh
+# Terminal 1: data plane + inspector
+make -C ../cdp up
+
+# Terminal 2: storefront (from app/)
+make up
+make seed
+```
+
+Watch http://127.0.0.1:8090 while you use the store:
+
+| Action | Events to look for |
+|--------|--------------------|
+| Open a menus page | `page`, `Product List Viewed` |
+| Add an item to cart | `Product Added` |
+| Open `/cart` | `Cart Viewed` |
+| Log in (`juanagallo@gmail.com` / `customer123!`) | `identify`, `Account Logged In` |
+| Start checkout | `Checkout Started` |
+| Complete an order | `Order Completed` |
+
+More detail: [`../cdp/README.md`](../cdp/README.md).
 
 ## Layout
 
@@ -99,8 +133,8 @@ Inside Docker, DB host is `db` (user/pass/db: `tastyigniter`).
 ├── Dockerfile
 ├── docker-compose.yml
 ├── docker-entrypoint.sh
-├── seed/el-taconazo.php    # rich demo data
-├── extensions/             # locale picker (copied into the container)
+├── seed/el-taconazo.php    # demo data
+├── extensions/             # locale picker + CDP (copied into the container)
 ├── db/                     # MariaDB (gitignored)
 └── media/                  # uploads (gitignored)
 ```
