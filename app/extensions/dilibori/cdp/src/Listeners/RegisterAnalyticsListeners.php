@@ -309,8 +309,15 @@ final class RegisterAnalyticsListeners
     public static function onCouponEntered(mixed $code = null): void
     {
         self::safe(function () use ($code): void {
+            $coupon = $code !== null ? trim((string) $code) : '';
+            // Mark an apply attempt so condition.loaded can emit Applied/Denied.
+            // The coupon cart condition also loads on every cart rebuild with no code.
+            if ($coupon !== '') {
+                session(['dilibori.cdp.pending_coupon' => $coupon]);
+            }
+
             Analytics::track(Events::COUPON_ENTERED, array_filter([
-                'coupon' => $code !== null ? (string) $code : null,
+                'coupon' => $coupon !== '' ? $coupon : null,
             ]));
         });
     }
@@ -322,7 +329,15 @@ final class RegisterAnalyticsListeners
                 return;
             }
 
-            $code = self::couponCodeFromCondition($condition);
+            // Only react to an apply attempt (beforeApplyCoupon). Routine cart
+            // rebuilds load an empty coupon condition that isValid()=false and
+            // must not look like Coupon Denied.
+            $pending = session()->pull('dilibori.cdp.pending_coupon');
+            if (! is_string($pending) || $pending === '') {
+                return;
+            }
+
+            $code = self::couponCodeFromCondition($condition) ?: $pending;
             $valid = true;
             try {
                 if (is_object($condition) && method_exists($condition, 'isValid')) {
@@ -332,7 +347,8 @@ final class RegisterAnalyticsListeners
                 $valid = false;
             }
 
-            if ($valid) {
+            // onLoad() strips invalid codes before condition.loaded fires.
+            if ($valid && self::couponCodeFromCondition($condition)) {
                 Analytics::track(Events::COUPON_APPLIED, array_filter(['coupon' => $code]));
             } else {
                 Analytics::track(Events::COUPON_DENIED, array_filter([

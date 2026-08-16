@@ -246,7 +246,7 @@ Source of truth for storefront analytics. Canonical names are Proper Case, objec
 |--|--|
 | **Constant** | `Events::COUPON_APPLIED` |
 | **Producer** | Backend |
-| **Hook** | `cart.condition.loaded` (coupon condition valid) |
+| **Hook** | `cart.condition.loaded` after `igniter.cart.beforeApplyCoupon` (coupon still present and valid) |
 | **Properties** | `coupon` |
 | **Question** | Promo success rate |
 
@@ -256,9 +256,10 @@ Source of truth for storefront analytics. Canonical names are Proper Case, objec
 |--|--|
 | **Constant** | `Events::COUPON_DENIED` |
 | **Producer** | Backend |
-| **Hook** | `cart.condition.loaded` (coupon condition invalid) |
+| **Hook** | `cart.condition.loaded` after `igniter.cart.beforeApplyCoupon` (code missing or invalid) |
 | **Properties** | `coupon`, `reason` |
 | **Question** | Bad codes / friction at cart |
+| **Notes** | Ignored on normal cart rebuilds. The coupon condition loads empty on every cart page; Applied/Denied only follow a Coupon Entered apply attempt. |
 
 ### Coupon Removed
 
