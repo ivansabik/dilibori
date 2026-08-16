@@ -948,6 +948,10 @@ $menuDefs = [
             'House rice & cinnamon agua fresca. 16 oz.',
             'Horchata casera de arroz con canela. 16 oz.',
         ),
+        'menu_description_mxn' => t(
+            'House rice & cinnamon agua fresca. 473 ml.',
+            'Horchata casera de arroz con canela. 473 ml.',
+        ),
         'menu_price' => 3.00,
         'menu_price_mxn' => 30,
         'menu_priority' => 10,
@@ -964,6 +968,10 @@ $menuDefs = [
         'menu_description' => t(
             'Fresh hibiscus agua fresca, lightly sweet. 16 oz.',
             'Flor de jamaica fresca, ligeramente dulce. 16 oz.',
+        ),
+        'menu_description_mxn' => t(
+            'Fresh hibiscus agua fresca, lightly sweet. 473 ml.',
+            'Flor de jamaica fresca, ligeramente dulce. 473 ml.',
         ),
         'menu_price' => 3.00,
         'menu_price_mxn' => 30,
@@ -1052,17 +1060,20 @@ $seedMenusForLocation = function (
     array $opts,
     string $priceKey,
     string $specialKey,
+    string $descriptionKey,
     string $currencyLabel,
 ) use ($categoryIds, $mealtimes, $ingredients) {
     $menusByName = [];
 
-    foreach ($menuDefs as $data) {        $optionKeys = $data['options'];
+    foreach ($menuDefs as $data) {
+        $optionKeys = $data['options'];
         $categorySlug = $data['category'];
         $mealtimeKeys = $data['mealtimes'];
         $ingredientNames = $data['ingredients'];
         $special = $data[$specialKey] ?? null;
         $stockQty = $data['stock'];
         $price = $data[$priceKey];
+        $description = $data[$descriptionKey] ?? $data['menu_description'];
         unset(
             $data['options'],
             $data['category'],
@@ -1073,8 +1084,11 @@ $seedMenusForLocation = function (
             $data['stock'],
             $data['menu_price'],
             $data['menu_price_mxn'],
+            $data['menu_description'],
+            $data['menu_description_mxn'],
         );
 
+        $data['menu_description'] = $description;
         $data['menu_price'] = $price;
         $data['minimum_qty'] = 1;
         $data['menu_status'] = 1;
@@ -1154,8 +1168,8 @@ $seedMenusForLocation = function (
     return $menusByName;
 };
 
-$menusByName = $seedMenusForLocation($menuDefs, $locationId, $optsUsd, 'menu_price', 'special', 'USD');
-$seedMenusForLocation($menuDefs, $juarezId, $optsMxn, 'menu_price_mxn', 'special_mxn', 'MXN');
+$menusByName = $seedMenusForLocation($menuDefs, $locationId, $optsUsd, 'menu_price', 'special', 'menu_description', 'USD');
+$seedMenusForLocation($menuDefs, $juarezId, $optsMxn, 'menu_price_mxn', 'special_mxn', 'menu_description_mxn', 'MXN');
 
 // ---------------------------------------------------------------------------
 // Coupons (USD thresholds for El Paso; MXN for Cd Juárez)
