@@ -7,7 +7,6 @@ namespace Dilibori\Cdp\Support;
 use Dilibori\Cdp\Contracts\EventClient;
 use Dilibori\Cdp\Drivers\NullDriver;
 use Dilibori\Cdp\Drivers\RudderStackDriver;
-use Illuminate\Support\Facades\Log;
 
 final class EventClientFactory
 {
@@ -34,7 +33,7 @@ final class EventClientFactory
         $key = (string) ($cfg['http_write_key'] ?? '');
 
         if ($url === '' || $key === '') {
-            Log::debug('CDP RudderStack driver missing data plane URL or write key; using NullDriver');
+            error_log('CDP RudderStack driver missing data plane URL or write key; using NullDriver');
 
             return new NullDriver;
         }
@@ -48,7 +47,7 @@ final class EventClientFactory
 
     private static function unsupported(string $driver): EventClient
     {
-        Log::warning("CDP event driver [{$driver}] is not implemented yet; using NullDriver");
+        error_log("CDP event driver [{$driver}] is not implemented yet; using NullDriver");
 
         return new NullDriver;
     }

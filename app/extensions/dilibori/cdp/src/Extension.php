@@ -11,8 +11,6 @@ use Dilibori\Cdp\Support\EventClientFactory;
 use Dilibori\Cdp\Support\ReportApplicationError;
 use Dilibori\Cdp\Support\Snippet;
 use Igniter\Admin\Facades\Template;
-use Igniter\Flame\Exception\AjaxException;
-use Igniter\Flame\Exception\ApplicationException;
 use Igniter\Flame\Support\Facades\Igniter;
 use Igniter\System\Classes\BaseExtension;
 use Illuminate\Contracts\Debug\ExceptionHandler;
@@ -54,13 +52,13 @@ class Extension extends BaseExtension
 
     private function registerErrorReporter(): void
     {
-        // Igniter marks ApplicationException / AjaxException as dontReport and returns
-        // false from its reportable callback, so later reportables never run. Hook
-        // exception.beforeReport (dispatched inside Igniter's handler) instead.
+        // Igniter's reportable runs first and returns false for ApplicationException /
+        // AjaxException (dontReport), which stops Laravel's reportable chain. Always
+        // emit from exception.beforeReport (dispatched inside Igniter's handler).
+        // Also covers UnexpectedValueException when laravel.log is unwritable —
+        // Laravel may fail while logging before later reportables finish cleanly.
         Event::listen('exception.beforeReport', function (Throwable $e): void {
-            if ($e instanceof ApplicationException || $e instanceof AjaxException) {
-                ReportApplicationError::fromThrowable($e);
-            }
+            ReportApplicationError::fromThrowable($e);
         });
 
         $this->app->afterResolving(ExceptionHandler::class, function (ExceptionHandler $handler): void {
@@ -69,11 +67,6 @@ class Extension extends BaseExtension
             }
 
             $handler->reportable(function (Throwable $e): void {
-                // Handled via exception.beforeReport (Igniter stops the reportable chain).
-                if ($e instanceof ApplicationException || $e instanceof AjaxException) {
-                    return;
-                }
-
                 ReportApplicationError::fromThrowable($e);
             });
         });

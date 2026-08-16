@@ -6,7 +6,6 @@ namespace Dilibori\Cdp\Drivers;
 
 use Dilibori\Cdp\Contracts\EventClient;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
@@ -85,7 +84,9 @@ final class RudderStackDriver implements EventClient
                 ->asJson()
                 ->post($url, $payload);
         } catch (Throwable $e) {
-            Log::debug('CDP RudderStack request failed: '.$e->getMessage());
+            // Never use the Laravel Log facade here: if storage/logs is unwritable,
+            // Log::debug throws and would swallow Application Error / other CDP events.
+            error_log('CDP RudderStack request failed: '.$e->getMessage());
         }
     }
 }

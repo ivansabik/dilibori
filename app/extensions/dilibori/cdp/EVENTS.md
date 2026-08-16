@@ -345,11 +345,11 @@ Source of truth for storefront analytics. Canonical names are Proper Case, objec
 |--|--|
 | **Constant** | `Events::APPLICATION_ERROR` |
 | **Producer** | Backend (PHP) and frontend (JS) |
-| **Hook** | PHP: Igniter `exception.beforeReport` for `ApplicationException` / `AjaxException` (Igniter marks these dontReport, so Laravel `reportable` never sees them); Laravel `reportable` for other throwables (skip admin, 404, validation). JS: `error`, `unhandledrejection`, Livewire `request` fail, `fetch` status >= 500 (non-Livewire) |
+| **Hook** | PHP: Igniter `exception.beforeReport` (all storefront throwables; deduped) plus Laravel `reportable` backup. Skips admin, 404, validation. JS: `error`, `unhandledrejection`, Livewire `request` fail, `fetch` status >= 500 (non-Livewire) |
 | **Properties** | `error_id`, `error_source` (`php` or `js`), `error_type`, `error_message`, `error_file`, `error_line`, `status_code`, `path`, `url` |
 | **Question** | Who hit failure X (bug or storefront UX)? |
 
-JS dedupes by `error_id` once per browser session (`sessionStorage`).
+JS dedupes by `error_id` once per browser session (`sessionStorage`). PHP dedupes by `error_id` within the request. CDP send paths do not call Laravel `Log`, so a broken `storage/logs` file still allows Application Error to reach RudderStack.
 
 TastyIgniter UX failures (e.g. “Horchata is currently out of stock”) **do** emit `Application Error` with `error_type` = `Igniter\Flame\Exception\ApplicationException`. Filter on that (or `error_message`) to separate UX from unexpected bugs. A Livewire fail may also emit a JS event (`error_source=js`, `error_type=livewire`) for the same click.
 
