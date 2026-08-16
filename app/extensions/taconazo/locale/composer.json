@@ -1,0 +1,27 @@
+{
+  "name": "taconazo/locale",
+  "type": "tastyigniter-package",
+  "description": "Storefront English / Español locale picker for the El Taconazo demo.",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "taconazo"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Taconazo\\Locale\\": "src/"
+    }
+  },
+  "extra": {
+    "tastyigniter-extension": {
+      "code": "taconazo.locale",
+      "name": "Locale Picker",
+      "icon": {
+        "class": "fa fa-language",
+        "backgroundColor": "#F16745",
+        "color": "#FFFFFF"
+      }
+    }
+  }
+}
