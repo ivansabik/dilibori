@@ -1,0 +1,52 @@
+---
+description: Conventional Commits — subject ≤51 chars, body explains changes and why
+alwaysApply: true
+---
+
+# Git commit messages
+
+When creating a git commit, follow Conventional Commits.
+
+## Subject (required)
+
+- Format: `type(scope): summary` — scope is optional
+- **≤ 51 characters** total (including type, scope, colon, and summary)
+- Imperative mood (“add”, not “added” / “adds”)
+- No trailing period
+- Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
+
+## Body (required)
+
+Separate subject from body with a blank line. Write for other developers:
+
+1. **What changed** — concrete files/areas and behavior
+2. **Why** — motivation, trade-offs, or context reviewers need
+3. **Notes** (if useful) — follow-ups, risks, migration steps
+
+Use bullet lists. Prefer “why” over a file dump.
+
+## Examples
+
+```
+feat(menu): add taco combo option groups
+
+- Seed El Taconazo menu with combo option groups for
+  size and extras so POS and online orders share the
+  same modifiers.
+- Keeps category IDs stable so existing item links do
+  not break after re-seed.
+```
+
+```
+fix(locale): correct es_MX checkout labels
+
+- Align checkout strings with storefront copy so
+  customers see consistent Spanish on cart and pay.
+- Avoids mixing Igniter defaults with custom overrides.
+```
+
+## Do not
+
+- Subject longer than 51 characters
+- Vague subjects (`update stuff`, `fix`, `wip`)
+- Body that only repeats the subject with no reasoning

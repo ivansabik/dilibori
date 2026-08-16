@@ -1,0 +1,38 @@
+---
+description: UI copy — Mexican Spanish (es_MX) + humanizer for customer-facing text
+alwaysApply: true
+---
+
+# UI copy and translations
+
+When writing or editing any text customers see in the app (locale packs, seed menu/page copy, Blade strings, alerts, buttons, meta), follow this rule.
+
+## Locale
+
+- Spanish for the storefront is **Mexican Spanish** only: locale code **`es_MX`** (never plain `es`, `es_ES`, or Spain-centric wording).
+- Prefer everyday Mexico / border usage already used in this project: *para recoger*, *a domicilio*, *platillos*, *sucursal*, *pedido*, *código postal*.
+- Keep English (`en`) natural for US customers; do not invent Spanish into `en` keys.
+- Put Igniter/lang overrides under `app/extensions/taconazo/locale/lang/es_MX/`.
+- Seed translations use the `es_MX` key / `setAttributeTranslatedValue(..., 'es_MX')` pattern.
+
+## Humanizer (required for UI prose)
+
+Before finishing any new or rewritten UI string (Spanish or English):
+
+1. Read and follow the **humanizer** skill (`humanizer/SKILL.md`).
+2. Use **embedded mode**: apply the draft → audit → final loop internally; ship only the final wording into the code.
+3. Goal: sound like a real taquería site, not AI marketing. Short, concrete, no fluff.
+
+Especially strip: em/en dashes, *vibrant* / *showcase* / *delve* style vocabulary, rule-of-three lists, promotional filler, chatbot closers (“¡Espero que esto ayude!”).
+
+## Do
+
+- Match tone of existing `es_MX` packs (direct, brief, imperative for buttons).
+- Preserve placeholders (`%s`, HTML spans) and key names; humanize values only.
+- Keep menu dish names and traditional food terms as locals say them (*suadero*, *pastor*, *pambazo*).
+
+## Do not
+
+- Spain Spanish (*vosotros*, *ordenador*, *móvil* as default, *ticket* for receipt when *cuenta* / *pedido* fits).
+- Long promotional paragraphs where a one-line label or alert belongs.
+- Apply humanizer personality/soul section to UI chrome (buttons, labels stay plain).
