@@ -3,6 +3,29 @@ set -e
 
 echo "Starting TastyIgniter entrypoint script..."
 
+# Symlink storage/app/public/media → persistent volume (must run BEFORE seed)
+# so photos are not written into a container-local dir that later gets deleted.
+setup_persistent_media() {
+    mkdir -p /var/www/html/storage/app/public
+    mkdir -p /var/www/persistent-media/uploads /var/www/persistent-media/attachments
+    MEDIA_LINK="/var/www/html/storage/app/public/media"
+    if [ -L "$MEDIA_LINK" ]; then
+        : # already linked
+    elif [ -d "$MEDIA_LINK" ]; then
+        echo "Migrating container-local media into persistent volume..."
+        cp -a "$MEDIA_LINK"/. /var/www/persistent-media/ 2>/dev/null || true
+        rm -rf "$MEDIA_LINK"
+        ln -sfn /var/www/persistent-media "$MEDIA_LINK"
+    elif [ ! -e "$MEDIA_LINK" ]; then
+        ln -sfn /var/www/persistent-media "$MEDIA_LINK"
+    fi
+    for dir in /var/www/persistent-media/uploads /var/www/persistent-media/attachments; do
+        mkdir -p "$dir"
+        chown www-data:www-data "$dir" 2>/dev/null || true
+        chmod 777 "$dir"
+    done
+}
+
 # First-run application setup
 if [ ! -f '/var/www/html/public/index.php' ]; then
     echo "Setting up TastyIgniter application... (first start)"
@@ -13,6 +36,9 @@ if [ ! -f '/var/www/html/public/index.php' ]; then
 
     # Copy application files
     cp -a /usr/src/tastyigniter/. /var/www/html/
+
+    # Link media before install/seed so attachments land on the host volume
+    setup_persistent_media
 
     # Create .env file with proper values
     if [ -f "/var/www/html/.env.example" ]; then
@@ -124,39 +150,9 @@ echo '    Require all granted' >> /etc/apache2/conf-available/public-dir.conf
 echo '</Directory>' >> /etc/apache2/conf-available/public-dir.conf
 a2enconf public-dir
 
-# ================== PERSISTENT MEDIA SETUP ==================
-# (Runs on EVERY startup)
+# Persistent media on every start (idempotent; migrate if a real dir appeared)
 echo "Configuring persistent media storage..."
-
-# 1. Symlink app media path → persistent volume (never delete the volume itself)
-mkdir -p /var/www/html/storage/app/public
-MEDIA_LINK="/var/www/html/storage/app/public/media"
-if [ -L "$MEDIA_LINK" ]; then
-    : # already a symlink — leave persistent files alone
-elif [ -d "$MEDIA_LINK" ]; then
-    # First run / migration: real dir in the container — replace with symlink
-    echo "Replacing non-persistent media directory with symlink..."
-    rm -rf "$MEDIA_LINK"
-    ln -sfn /var/www/persistent-media "$MEDIA_LINK"
-elif [ ! -e "$MEDIA_LINK" ]; then
-    ln -sfn /var/www/persistent-media "$MEDIA_LINK"
-fi
-
-# 2. Create required media directories in PERSISTENT location
-MEDIA_DIRS=(
-    "/var/www/persistent-media/uploads"
-    "/var/www/persistent-media/attachments"
-)
-
-for dir in "${MEDIA_DIRS[@]}"; do
-    if [ ! -d "$dir" ]; then
-        echo "Creating media directory: $dir"
-        mkdir -p "$dir"
-    fi
-    chown www-data:www-data "$dir"
-    chmod 777 "$dir"
-done
-# ================== END PERSISTENT MEDIA SETUP ==================
+setup_persistent_media
 
 # Make storage directory writable during runtime
 chmod -R 777 /var/www/html/storage

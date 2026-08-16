@@ -81,16 +81,16 @@ function attachLocationPhoto($model, string $sourcePath, string $tag = 'thumb'):
 
     $relative = $media->getDiskPath(); // e.g. media/attachments/public/.../file.png
     $absolute = storage_path('app/public/'.$relative);
-    if (!is_file($absolute) || filesize($absolute) < 1000) {
-        $dir = dirname($absolute);
-        if (!is_dir($dir)) {
-            mkdir($dir, 0777, true);
-        }
-        if (!copy($sourcePath, $absolute)) {
-            throw new RuntimeException("Failed to copy photo to {$absolute}");
-        }
-        @chmod($absolute, 0666);
+    $dir = dirname($absolute);
+    if (!is_dir($dir)) {
+        mkdir($dir, 0777, true);
     }
+    // Always overwrite from seed source — TI sometimes records media without
+    // leaving the original on the persistent volume (placeholder thumbs only).
+    if (!copy($sourcePath, $absolute)) {
+        throw new RuntimeException("Failed to copy photo to {$absolute}");
+    }
+    @chmod($absolute, 0666);
 
     // Drop stale placeholder thumbs so the next request regenerates from the real file
     foreach (glob(dirname($absolute).'/thumb_'.$media->getKey().'_*') ?: [] as $thumb) {
