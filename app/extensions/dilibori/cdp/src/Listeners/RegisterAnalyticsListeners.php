@@ -48,7 +48,8 @@ final class RegisterAnalyticsListeners
         Event::listen('igniter.reservation.isFullyBookedOn', [self::class, 'onReservationSlotDenied']);
 
         Event::listen('eloquent.created: Igniter\Local\Models\Review', [self::class, 'onReviewSubmitted']);
-        Event::listen('eloquent.created: Igniter\Frontend\Models\Subscribe', [self::class, 'onNewsletterSubscribed']);
+        // firstOrCreate — use Igniter's event so duplicates still track (success toast either way).
+        Event::listen('igniter.frontend.subscribed', [self::class, 'onNewsletterSubscribed']);
     }
 
     public static function onRegister(Customer $customer, array $data = []): void
@@ -440,14 +441,20 @@ final class RegisterAnalyticsListeners
         });
     }
 
-    public static function onNewsletterSubscribed(mixed $subscribe = null): void
+    public static function onNewsletterSubscribed(mixed $subscribe = null, mixed $data = null): void
     {
         self::safe(function () use ($subscribe): void {
             $props = [];
             if (is_object($subscribe)) {
                 $props['email'] = (string) ($subscribe->email ?? '');
+                if (property_exists($subscribe, 'wasRecentlyCreated') || isset($subscribe->wasRecentlyCreated)) {
+                    $props['is_new'] = (bool) $subscribe->wasRecentlyCreated;
+                }
             }
-            Analytics::track(Events::NEWSLETTER_SUBSCRIBED, array_filter($props));
+            Analytics::track(Events::NEWSLETTER_SUBSCRIBED, array_filter(
+                $props,
+                static fn ($v) => $v !== null && $v !== '',
+            ));
         });
     }
 

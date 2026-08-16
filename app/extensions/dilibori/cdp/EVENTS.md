@@ -330,9 +330,9 @@ Source of truth for storefront analytics. Canonical names are Proper Case, objec
 |--|--|
 | **Constant** | `Events::NEWSLETTER_SUBSCRIBED` |
 | **Producer** | Backend |
-| **Hook** | `eloquent.created: Igniter\Frontend\Models\Subscribe` |
-| **Properties** | `email` |
-| **Question** | Marketing list growth |
+| **Hook** | `igniter.frontend.subscribed` (`Subscriber::subscribe` / firstOrCreate) |
+| **Properties** | `email`, `is_new` (true when a new row was created) |
+| **Question** | Marketing list growth (includes “already subscribed” success toast) |
 
 ---
 
