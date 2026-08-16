@@ -35,6 +35,7 @@ return [
     'text_asap_only' => 'Solo lo antes posible',
     'text_later' => 'Programar pedido',
     'text_later_only' => 'Solo programado',
+    'text_starts' => 'empieza %s',
     'text_delivery_not_available' => 'la entrega no está disponible',
     'text_delivery_areas' => 'Zonas de entrega',
     'text_in_min' => 'en %s min',
