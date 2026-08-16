@@ -310,15 +310,15 @@ final class RegisterAnalyticsListeners
     {
         self::safe(function () use ($code): void {
             $coupon = $code !== null ? trim((string) $code) : '';
-            // Mark an apply attempt so condition.loaded can emit Applied/Denied.
-            // The coupon cart condition also loads on every cart rebuild with no code.
-            if ($coupon !== '') {
-                session(['dilibori.cdp.pending_coupon' => $coupon]);
+            if ($coupon === '') {
+                return;
             }
 
-            Analytics::track(Events::COUPON_ENTERED, array_filter([
-                'coupon' => $coupon !== '' ? $coupon : null,
-            ]));
+            // Mark an apply attempt so condition.loaded can emit Applied/Denied.
+            // The coupon cart condition also loads on every cart rebuild with no code.
+            session(['dilibori.cdp.pending_coupon' => $coupon]);
+
+            Analytics::track(Events::COUPON_ENTERED, ['coupon' => $coupon]);
         });
     }
 
@@ -337,7 +337,8 @@ final class RegisterAnalyticsListeners
                 return;
             }
 
-            $code = self::couponCodeFromCondition($condition) ?: $pending;
+            $stillOnCondition = self::couponCodeFromCondition($condition);
+            $code = $stillOnCondition ?: $pending;
             $valid = true;
             try {
                 if (is_object($condition) && method_exists($condition, 'isValid')) {
@@ -348,13 +349,13 @@ final class RegisterAnalyticsListeners
             }
 
             // onLoad() strips invalid codes before condition.loaded fires.
-            if ($valid && self::couponCodeFromCondition($condition)) {
-                Analytics::track(Events::COUPON_APPLIED, array_filter(['coupon' => $code]));
+            if ($valid && $stillOnCondition) {
+                Analytics::track(Events::COUPON_APPLIED, ['coupon' => $code]);
             } else {
-                Analytics::track(Events::COUPON_DENIED, array_filter([
+                Analytics::track(Events::COUPON_DENIED, [
                     'coupon' => $code,
                     'reason' => 'invalid',
-                ]));
+                ]);
             }
         });
     }
