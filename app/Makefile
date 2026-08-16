@@ -46,7 +46,7 @@ shell: ## Open a shell in the app container
 	docker compose exec app bash
 
 passwd: ## Set admin password (PASSWORD='...' EMAIL='...') — updates first admin email if needed
-	docker compose exec -e ADMIN_EMAIL="$(or $(EMAIL),$(ADMIN_EMAIL))" -e ADMIN_PASSWORD="$(or $(PASSWORD),$(ADMIN_PASSWORD))" app php -r '\
+	docker compose exec -e ADMIN_EMAIL="$(or $(EMAIL),$(ADMIN_EMAIL))" -e ADMIN_PASSWORD="$(or $(PASSWORD),$(ADMIN_PASSWORD))" -u www-data app php -r '\
 require "/var/www/html/vendor/autoload.php"; \
 $$app = require "/var/www/html/bootstrap/app.php"; \
 $$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap(); \
@@ -63,7 +63,9 @@ echo "Admin login ready\n"; \
 	@echo "Password set for $(or $(EMAIL),$(ADMIN_EMAIL))"
 
 seed: ## Load El Taconazo demo (El Paso USD + Cd Juárez MXN)
-	docker compose exec app php /opt/seed/el-taconazo.php
+	docker compose exec -u www-data app php /opt/seed/el-taconazo.php
+	@# Root-owned laravel.log from prior exec breaks Apache logging/reservations
+	docker compose exec app bash -lc 'chown -R www-data:www-data /var/www/html/storage/logs && chmod -R ug+rwX /var/www/html/storage/logs'
 
 wait: ## Wait until MariaDB accepts connections
 	@i=0; \

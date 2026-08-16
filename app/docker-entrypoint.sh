@@ -157,6 +157,7 @@ setup_persistent_media
 # Make storage directory writable during runtime
 chmod -R 777 /var/www/html/storage
 chmod -R 777 /var/www/html/bootstrap/cache
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache 2>/dev/null || true
 
 echo "Starting Apache..."
 exec "$@"
