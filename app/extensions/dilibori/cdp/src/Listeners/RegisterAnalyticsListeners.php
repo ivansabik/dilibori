@@ -13,7 +13,7 @@ use Igniter\User\Models\Customer;
 use Illuminate\Support\Facades\Event;
 use Throwable;
 
-final class RegisterAnalyticsListeners
+class RegisterAnalyticsListeners
 {
     public static function register(): void
     {
@@ -351,12 +351,14 @@ final class RegisterAnalyticsListeners
             // onLoad() strips invalid codes before condition.loaded fires.
             if ($valid && $stillOnCondition) {
                 Analytics::track(Events::COUPON_APPLIED, ['coupon' => $code]);
-            } else {
-                Analytics::track(Events::COUPON_DENIED, [
-                    'coupon' => $code,
-                    'reason' => 'invalid',
-                ]);
+
+                return;
             }
+
+            Analytics::track(Events::COUPON_DENIED, [
+                'coupon' => $code,
+                'reason' => 'invalid',
+            ]);
         });
     }
 

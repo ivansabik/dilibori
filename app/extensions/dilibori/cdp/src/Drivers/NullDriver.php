@@ -9,7 +9,7 @@ use Dilibori\Cdp\Contracts\EventClient;
 /**
  * No-op driver used when CDP is disabled or the configured driver is unavailable.
  */
-final class NullDriver implements EventClient
+class NullDriver implements EventClient
 {
     public function identify(string $userId, array $traits = [], ?string $anonymousId = null, array $context = []): void
     {

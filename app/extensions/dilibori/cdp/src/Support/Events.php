@@ -8,7 +8,7 @@ namespace Dilibori\Cdp\Support;
  * Canonical track event names (object-action, Proper Case, past tense).
  * Keep in sync with EVENTS.md.
  */
-final class Events
+class Events
 {
     // Account
     public const ACCOUNT_CREATED = 'Account Created';

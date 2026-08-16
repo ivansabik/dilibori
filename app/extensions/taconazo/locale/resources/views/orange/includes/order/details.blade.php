@@ -1,4 +1,4 @@
-@if ($order->isDeliveryType())
+($order->isDeliveryType())
     <div class="card shadow-sm mb-3">
         <div class="card-body">
             <h6 class="text-muted">@lang('igniter.cart::default.checkout.text_delivery_address')</h6>
@@ -19,7 +19,7 @@
     <div class="card-body">
         <h6 class="text-muted">@lang('igniter.cart::default.checkout.label_payment_method')</h6>
         <p class="mb-0">
-            @if ($order->payment_method)
+            ($order->payment_method)
                 {{ $order->payment_method->code === 'cod' && str_starts_with((string) app()->getLocale(), 'es')
                     ? lang('igniter.payregister::default.cod')
                     : $order->payment_method->name }}

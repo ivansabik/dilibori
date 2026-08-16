@@ -7,7 +7,7 @@ namespace Dilibori\Cdp\Support;
 use Igniter\User\Facades\Auth;
 use Illuminate\Contracts\View\View;
 
-final class Snippet
+class Snippet
 {
     public static function view(): View
     {

@@ -11,7 +11,7 @@ use Throwable;
 /**
  * Segment-compatible HTTP API against a RudderStack data plane.
  */
-final class RudderStackDriver implements EventClient
+class RudderStackDriver implements EventClient
 {
     public function __construct(
         private readonly string $dataPlaneUrl,
@@ -75,7 +75,8 @@ final class RudderStackDriver implements EventClient
             return;
         }
 
-        $url = rtrim($this->dataPlaneUrl, '/').$path;
+        $baseUrl = rtrim($this->dataPlaneUrl, '/');
+        $url = "{$baseUrl}{$path}";
 
         try {
             Http::withBasicAuth($this->writeKey, '')
@@ -86,7 +87,7 @@ final class RudderStackDriver implements EventClient
         } catch (Throwable $e) {
             // Never use the Laravel Log facade here: if storage/logs is unwritable,
             // Log::debug throws and would swallow Application Error / other CDP events.
-            error_log('CDP RudderStack request failed: '.$e->getMessage());
+            error_log("CDP RudderStack request failed: {$e->getMessage()}");
         }
     }
 }

@@ -11,7 +11,7 @@ use RuntimeException;
  * Placeholder — produce snake_case Kafka topics from Proper Case events later.
  * Set EVENT_CLIENT_DRIVER=kafka after filling config dilibori-cdp.drivers.kafka.
  */
-final class KafkaDriver implements EventClient
+class KafkaDriver implements EventClient
 {
     public function __construct()
     {

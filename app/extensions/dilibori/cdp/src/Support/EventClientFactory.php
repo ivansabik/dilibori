@@ -8,7 +8,7 @@ use Dilibori\Cdp\Contracts\EventClient;
 use Dilibori\Cdp\Drivers\NullDriver;
 use Dilibori\Cdp\Drivers\RudderStackDriver;
 
-final class EventClientFactory
+class EventClientFactory
 {
     public static function make(): EventClient
     {

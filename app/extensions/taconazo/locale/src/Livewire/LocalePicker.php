@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Taconazo\Locale\Livewire;
 
 use Igniter\System\Models\Language;
+use Illuminate\Contracts\View\View;
 use Livewire\Component;
 
 class LocalePicker extends Component
@@ -12,7 +13,7 @@ class LocalePicker extends Component
     public function switchLocale(string $locale): mixed
     {
         $localization = resolve('translator.localization');
-        if (!$localization->isValid($locale)) {
+        if (! $localization->isValid($locale)) {
             return null;
         }
 
@@ -24,7 +25,7 @@ class LocalePicker extends Component
         return $this->redirect($url, navigate: false);
     }
 
-    public function render()
+    public function render(): View
     {
         $locales = Language::listSupported();
         $active = resolve('translator.localization')->getLocale();

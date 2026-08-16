@@ -38,9 +38,9 @@
         </div>
         <div class="col-12 col-sm-5 flex-shrink-0 ps-sm-2 mt-3 mt-sm-0">
             <div>
-                @if ($locationData->openingSchedule()->isOpen())
+                ($locationData->openingSchedule()->isOpen())
                     @lang('igniter.local::default.text_is_opened')
-                @elseif ($locationData->openingSchedule()->isOpening())
+                ($locationData->openingSchedule()->isOpening())
                     <span class="text-muted">{!! sprintf(lang('igniter.local::default.text_opening_time'), make_carbon($locationData->openingSchedule()->getOpenTime())->isoFormat(lang('igniter::system.moment.day_time_format_short'))) !!}</span>
                 @else
                     <span class="text-muted">@lang('igniter.local::default.text_closed')</span>

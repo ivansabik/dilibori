@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace Dilibori\Cdp\Support;
 
 use Igniter\Local\Facades\Location;
-use Illuminate\Support\Facades\App;
 
-final class EventContext
+class EventContext
 {
     /**
      * Shared properties for nearly every storefront event.
@@ -17,7 +16,7 @@ final class EventContext
     public static function baseProperties(): array
     {
         $props = [
-            'locale' => App::getLocale(),
+            'locale' => app()->getLocale(),
         ];
 
         try {

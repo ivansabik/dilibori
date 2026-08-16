@@ -5,24 +5,22 @@ declare(strict_types=1);
 namespace Dilibori\Cdp\Support;
 
 use Igniter\User\Facades\Auth;
-use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Str;
 
-final class Identity
+class Identity
 {
     public static function anonymousId(): string
     {
         $cookie = (string) config('dilibori-cdp.anonymous_id_cookie', 'dilibori_anonymous_id');
 
-        $fromCookie = Cookie::get($cookie)
-            ?? request()->cookie($cookie)
+        $fromCookie = request()->cookie($cookie)
             ?? request()->cookie('rl_anonymous_id');
 
         if (is_string($fromCookie) && $fromCookie !== '') {
             return trim($fromCookie, '"');
         }
 
-        return 'anon_'.Str::uuid()->toString();
+        return "anon_".Str::uuid()->toString();
     }
 
     public static function userId(): ?string
@@ -59,7 +57,7 @@ final class Identity
         if ($last !== '') {
             $traits['last_name'] = $last;
         }
-        $name = trim($first.' '.$last);
+        $name = trim("{$first} {$last}");
         if ($name !== '') {
             $traits['name'] = $name;
         }

@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Injects the analytics snippet before </body> when Template endBody is unavailable.
  */
-final class InjectAnalyticsSnippet
+class InjectAnalyticsSnippet
 {
     public function handle(Request $request, Closure $next): Response
     {
@@ -50,7 +50,7 @@ final class InjectAnalyticsSnippet
             return $response;
         }
 
-        $response->setContent(str_ireplace('</body>', $html.'</body>', $content));
+        $response->setContent(str_ireplace('</body>', "{$html}</body>", $content));
 
         return $response;
     }

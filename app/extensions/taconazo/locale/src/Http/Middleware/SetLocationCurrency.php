@@ -30,7 +30,11 @@ class SetLocationCurrency
 
     protected function forceCurrency(string $code): void
     {
-        if (!function_exists('currency') || !currency()->isActive($code)) {
+        if (! function_exists('currency')) {
+            return;
+        }
+
+        if (! currency()->isActive($code)) {
             return;
         }
 
@@ -49,8 +53,6 @@ class SetLocationCurrency
             }
         }
 
-        if ($request = request()) {
-            $request->session()->put('igniter.currency', $code);
-        }
+        session(['igniter.currency' => $code]);
     }
 }

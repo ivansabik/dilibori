@@ -11,7 +11,7 @@ use RuntimeException;
  * Placeholder — implement when wiring Segment HTTP API.
  * Set EVENT_CLIENT_DRIVER=segment after filling config dilibori-cdp.drivers.segment.
  */
-final class SegmentDriver implements EventClient
+class SegmentDriver implements EventClient
 {
     public function __construct()
     {

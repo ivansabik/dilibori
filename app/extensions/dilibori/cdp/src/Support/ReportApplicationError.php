@@ -12,7 +12,7 @@ use Throwable;
 /**
  * Emits Application Error for storefront failures (PHP).
  */
-final class ReportApplicationError
+class ReportApplicationError
 {
     /** @var array<string, true> */
     private static array $reported = [];

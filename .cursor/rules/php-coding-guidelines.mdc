@@ -1,0 +1,51 @@
+---
+description: PHP standards for the TastyIgniter app under app/ only (not cdp/ or sibling projects)
+alwaysApply: true
+---
+
+# PHP coding guidelines
+
+**Scope:** Apply only when working on the TastyIgniter app under `app/` (extensions, seed, themes, Docker/PHP there). Do **not** apply to `cdp/` or other sibling projects in this repo.
+
+Follow [TastyIgniter PHP Coding Guidelines](https://tastyigniter.com/docs/resources/php-coding-guidelines) (Spatie-derived). PSR-1 / PSR-2 / PSR-12. Prefer camelCase for string-like names except Model attributes.
+
+## Types and classes
+
+- Prefer `?Type` over `Type|null`. Add `: void` when a method returns nothing.
+- Type properties; do not use `@var` docblocks for them. Do not use `final` by default.
+- Enum cases: PascalCase. Facades: fully qualified (`Illuminate\Support\Facades\Config`, not `Config`).
+- One trait per `use` line. Prefer string interpolation over `.` / `sprintf`.
+
+## Naming (Laravel conventions)
+
+| Kind | Style | Example |
+| --- | --- | --- |
+| Controller / route / table | plural | `ArticlesController`, `articles/1` |
+| Model / object | singular | `User`, `$activeUser` |
+| Collection / variable | plural / camelCase | `$activeUsers`, `$anyOtherVariable` |
+| Column / FK / config key | snake_case | `meta_title`, `article_id` |
+| Method / test method | camelCase | `getAll`, `testGuestCannotSeeArticle` |
+| Function / view / config file | snake / kebab | `abort_if`, `show-filtered.blade.php` |
+| Job / Event / Listener | action tense | `CreateUser`, `CustomerApproved`, `SendInvitationMailListener` |
+
+## Style preferences
+
+- Prefer helpers over facades (`session()`, `now()`, `redirect()`, `optional()`).
+- Prefer Eloquent over Query Builder / raw SQL; Collections over arrays; eager-load relations (`with`) to avoid N+1.
+- Fat models, skinny controllers: keep query logic on models / scopes.
+- Config files kebab-case; keys snake_case. Never call `env()` outside config — use `config()`.
+- User-facing text via `lang(...)`, not hardcoded strings.
+- Validation: FormRequest classes; multi-rule fields as arrays (`['nullable', 'date']`), not `|`.
+- Artisan command names: kebab-case; print progress / a final success comment.
+
+## Control flow and docs
+
+- Early returns / happy path last; avoid `else` when early return or ternary is clearer.
+- Prefer separate `if`s over long compound conditions when debugging matters.
+- Curly braces for multi-line `if`; one-line `if` without braces is OK.
+- Skip redundant docblocks on fully type-hinted methods. When needed: FQCN, one-line if possible, most common type first in unions.
+- Prefer expressive names over comments; blank lines between logical statements, not inside `{}`.
+
+## Blade
+
+- Four-space indent. No space after directives: `@if($condition)`. Minimize raw PHP in templates.

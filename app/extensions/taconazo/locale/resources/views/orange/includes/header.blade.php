@@ -26,7 +26,7 @@
             data-bs-target="#navbarMainHeader"
             aria-controls="navbarMainHeader"
             aria-expanded="false"
-            aria-label="Toggle navigation"
+            aria-label="{{ lang('taconazo.locale::default.aria_toggle_navigation') }}"
         ><span class="navbar-toggler-icon"></span></button>
 
         <div class="justify-content-end align-items-center collapse navbar-collapse" id="navbarMainHeader">

@@ -1,0 +1,38 @@
+---
+description: JS standards for the TastyIgniter app under app/ only (not cdp/ or sibling projects)
+alwaysApply: true
+---
+
+# Javascript coding guidelines
+
+**Scope:** Apply only when working on the TastyIgniter app under `app/` (extensions, themes, frontend assets there). Do **not** apply to `cdp/` or other sibling projects in this repo.
+
+Follow [TastyIgniter Javascript Coding Guidelines](https://tastyigniter.com/docs/resources/js-coding-guidelines) (Spatie-derived). Prettier owns formatting; match PHP-adjacent overrides:
+
+- Indent: **4 spaces**
+- `printWidth`: **120**
+- `singleQuote`: **true**
+
+## Variables and comparisons
+
+- Prefer `const`; use `let` only when reassigning. Never `var`.
+- Do not abbreviate names in normal code. Short names OK in single-line callbacks when the collection name makes the type obvious (`userSessions.forEach(s => ...)`).
+- Always `===` / `!==`. Cast first if types may differ (`parseInt`, etc.).
+
+## Functions
+
+- Named function declarations use the `function` keyword, not `const fn = () => {}`.
+- Short one-liners and higher-order wrappers may use arrows when clearer.
+- Anonymous callbacks: arrows, unless `this` is required (then `function`).
+- Object methods: shorthand (`handleClick(event) { ... }`), not `handleClick: function`.
+- Prefer pure functions; limit `this`.
+
+## Destructuring
+
+Prefer destructuring over indexed / keyed assignments, especially for options objects with defaults:
+
+```js
+function uploader({ element, url, multiple = false, beforeUpload = noop }) {
+    // ...
+}
+```

@@ -9,7 +9,7 @@ use Dilibori\Cdp\Contracts\EventClient;
 /**
  * Thin helper so listeners call Analytics::track(...) without caring about the driver.
  */
-final class Analytics
+class Analytics
 {
     public static function client(): EventClient
     {
