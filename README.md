@@ -6,6 +6,7 @@ Local workspace for the Dilibori stack and related data tools.
 |--------|---------|
 | [`app/`](app/) | TastyIgniter 4 storefront (Docker) |
 | [`cdp/`](cdp/) | RudderStack data plane + local event inspector |
+| [`mailpit/`](mailpit/) | Local SMTP catcher (Mailpit) |
 
 ## Storefront
 
@@ -36,3 +37,18 @@ make cdp-up
 App PHP posts to `http://rudder-server:8080` on the shared `dilibori` Docker network. Browser SDK uses `http://127.0.0.1:8080`.
 
 Events go through `EVENT_CLIENT_DRIVER` (`rudderstack` locally). See [`app/extensions/dilibori/cdp`](app/extensions/dilibori/cdp) and [`cdp/README.md`](cdp/README.md).
+
+## Mailpit
+
+```sh
+make mailpit-up
+cd app && make up && make seed
+make mailpit-smoke
+```
+
+| Service | URL |
+|---------|-----|
+| Web UI | http://127.0.0.1:8025 |
+| SMTP (from the app) | `mailpit:1025` on the `dilibori` network |
+
+After seed, outgoing mail uses From **El Taconazo Taqueria** `<hola@eltaconazo.example>`. See [`mailpit/README.md`](mailpit/README.md).

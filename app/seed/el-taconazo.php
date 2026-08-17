@@ -175,6 +175,14 @@ $usdId = $usd?->currency_id ?: 3;
 
 settingSet('site_name', 'El Taconazo');
 settingSet('site_email', 'hola@eltaconazo.example');
+settingSet('sender_name', 'El Taconazo Taqueria');
+settingSet('sender_email', 'hola@eltaconazo.example');
+settingSet('protocol', 'smtp');
+settingSet('smtp_host', getenv('MAIL_HOST') ?: 'mailpit');
+settingSet('smtp_port', getenv('MAIL_PORT') ?: '1025');
+settingSet('smtp_encryption', '');
+settingSet('smtp_user', '');
+settingSet('smtp_pass', '');
 settingSet('timezone', 'America/Denver');
 settingSet('currency_id', (string)$usdId);
 settingSet('default_currency', (string)$usdId);
@@ -184,6 +192,7 @@ settingSet('guest_order', '1');
 settingSet('allow_registration', '1');
 settingSet('default_geocode', ['lat' => 31.7587, 'lng' => -106.4431]);
 say("Site settings → America/Denver, USD default + MXN enabled (#{$usdId})");
+say("Mail → smtp mailpit:1025, From El Taconazo Taqueria");
 
 // ---------------------------------------------------------------------------
 // Languages: English (default) + Spanish (Mexico)

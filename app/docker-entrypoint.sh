@@ -26,6 +26,39 @@ setup_persistent_media() {
     done
 }
 
+# Upsert KEY=value in the app .env (quotes values that need it).
+env_upsert() {
+    local key="$1"
+    local value="$2"
+    local file="/var/www/html/.env"
+    [ -f "$file" ] || return 0
+    local encoded="$value"
+    case "$value" in
+        *[!A-Za-z0-9._:@/-]*)
+            encoded=$(printf '%s' "$value" | sed 's/"/\\"/g')
+            encoded="\"${encoded}\""
+            ;;
+    esac
+    if grep -q "^${key}=" "$file"; then
+        sed -i "s|^${key}=.*|${key}=${encoded}|" "$file"
+    else
+        printf '%s=%s\n' "$key" "$encoded" >> "$file"
+    fi
+}
+
+# TastyIgniter 4.0.1 prefers DB mail settings; keep Laravel .env in sync as a fallback.
+apply_mail_env() {
+    [ -f /var/www/html/.env ] || return 0
+    env_upsert MAIL_MAILER "${MAIL_MAILER:-smtp}"
+    env_upsert MAIL_HOST "${MAIL_HOST:-mailpit}"
+    env_upsert MAIL_PORT "${MAIL_PORT:-1025}"
+    env_upsert MAIL_USERNAME "${MAIL_USERNAME:-}"
+    env_upsert MAIL_PASSWORD "${MAIL_PASSWORD:-}"
+    env_upsert MAIL_ENCRYPTION "${MAIL_ENCRYPTION:-}"
+    env_upsert MAIL_FROM_ADDRESS "${MAIL_FROM_ADDRESS:-hola@eltaconazo.example}"
+    env_upsert MAIL_FROM_NAME "${MAIL_FROM_NAME:-El Taconazo Taqueria}"
+}
+
 # First-run application setup
 if [ ! -f '/var/www/html/public/index.php' ]; then
     echo "Setting up TastyIgniter application... (first start)"
@@ -83,6 +116,7 @@ if [ ! -f '/var/www/html/public/index.php' ]; then
         if [ -n "${REDIS_HOST}" ]; then
             sed -i "s|^REDIS_HOST=.*|REDIS_HOST=${REDIS_HOST}|g" /var/www/html/.env
         fi
+        apply_mail_env
     fi
 
     # Set proper permissions
@@ -134,6 +168,9 @@ if [ -d /opt/extensions ]; then
     cp -a /opt/extensions/. /var/www/html/extensions/
     chown -R www-data:www-data /var/www/html/extensions 2>/dev/null || true
 fi
+
+# Mailpit SMTP on every start (existing installs keep MAIL_MAILER=log otherwise)
+apply_mail_env
 
 # Public URL for media uploads + attachments (logo, store photos)
 if [ -f /var/www/html/public/index.php ] && [ ! -e /var/www/html/public/storage ]; then

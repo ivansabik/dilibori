@@ -33,6 +33,15 @@ services:
       - RUDDERSTACK_HTTP_WRITE_KEY=${RUDDERSTACK_HTTP_WRITE_KEY:-dilibori_http_write_key_local}
       - RUDDERSTACK_JS_WRITE_KEY=${RUDDERSTACK_JS_WRITE_KEY:-dilibori_js_write_key_local}
       - RUDDERSTACK_JS_CONFIG_URL=${RUDDERSTACK_JS_CONFIG_URL:-http://127.0.0.1:8090}
+      # Mailpit (local SMTP catcher on the dilibori network)
+      - MAIL_MAILER=smtp
+      - MAIL_HOST=mailpit
+      - MAIL_PORT=1025
+      - MAIL_USERNAME=
+      - MAIL_PASSWORD=
+      - MAIL_ENCRYPTION=
+      - MAIL_FROM_ADDRESS=hola@eltaconazo.example
+      - MAIL_FROM_NAME=El Taconazo Taqueria
     depends_on:
       - db
       - redis

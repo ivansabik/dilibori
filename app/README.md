@@ -58,6 +58,7 @@ Marketing & guests
 - About / Privacy / Terms pages
 - Homepage banners + newsletter subscribers
 - Dining floor + Patio section + sample reservation
+- Mail SMTP → Mailpit (`mailpit:1025`); From **El Taconazo Taqueria** `<hola@eltaconazo.example>`
 
 Re-run anytime: `make seed` (safe to repeat).
 
@@ -92,10 +93,22 @@ make reset                      # wipe DB, reinstall, seed
 | MariaDB | localhost:3307 |
 | RudderStack data plane (CDP) | http://127.0.0.1:8080 |
 | CDP event inspector | http://127.0.0.1:8090 |
+| Mailpit UI | http://127.0.0.1:8025 |
 
-Inside Docker, DB host is `db` (user/pass/db: `tastyigniter`). CDP gateway hostname is `rudder-server` (shared `dilibori` network).
+Inside Docker, DB host is `db` (user/pass/db: `tastyigniter`). CDP gateway hostname is `rudder-server`. Mail SMTP hostname is `mailpit:1025` (shared `dilibori` network).
 
 Start CDP separately: `make -C ../cdp up` or from repo root `make cdp-up`.
+
+Start Mailpit, then seed so TastyIgniter stores SMTP (From **El Taconazo Taqueria**):
+
+```sh
+make -C ../mailpit up
+make up
+make seed
+make -C ../mailpit smoke
+```
+
+From the repo root: `make mailpit-up` then `make seed` then `make mailpit-smoke`. See [`../mailpit/README.md`](../mailpit/README.md).
 
 ## Analytics (CDP)
 
