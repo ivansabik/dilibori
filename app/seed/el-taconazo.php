@@ -1513,25 +1513,33 @@ Page::query()->whereIn('permalink_slug', ['acerca-de', 'aviso-de-privacidad', 't
 
 $about = Page::query()->where('permalink_slug', 'about-us')->first();
 if ($about) {
+    // Page::getContentAttribute + Translate: without an `en` content translation,
+    // Purify mutates null→'' and the storefront body renders blank.
+    $aboutContentEn = '<p><strong>El Taconazo</strong> started with Don Lucio, a cook who learned the trompo in Mexico City. He moved north looking for work, opened a small kitchen near Tecnológico in Ciudad Juárez, and kept the trompo turning for neighbors who came back for suadero, cabeza, pastor, and costilla.</p><p>Years later the line spilled past Juárez. Don Lucio opened on Alameda Ave in El Paso so the same trompo could feed both sides of the border. Same recipes: carve all day, breakfast from 7am with pambazo and torta de chilaquil.</p><p>Come in, pick up, or order delivery. We cook like it\'s for family, because it is.</p>';
+    $aboutMetaEn = 'Don Lucio\'s taquería: Mexico City trompo, Juárez roots, El Paso on Alameda. Pastor, suadero, breakfast from 7am.';
     $about->language_id = $enId;
     $about->title = 'About El Taconazo';
-    $about->content = '<p><strong>El Taconazo</strong> is a family taquería on Alameda Ave in El Paso, Texas. We carve pastor from the trompo all day and cook suadero, cabeza, and costilla the traditional way.</p><p>Dine in, pick up, or get delivery across Central El Paso. Breakfast starts at 7am with pambazo and torta de chilaquil.</p>';
-    $about->meta_description = 'Authentic Mexican tacos in El Paso, TX — breakfast, suadero, pastor, cabeza, costilla.';
+    $about->content = $aboutContentEn;
+    $about->meta_description = $aboutMetaEn;
     $about->status = 1;
     $about->save();
+    $about->setAttributeTranslatedValue('content', $aboutContentEn, 'en');
+    $about->setAttributeTranslatedValue('meta_description', $aboutMetaEn, 'en');
     $about->setAttributeTranslatedValue('title', 'Acerca de El Taconazo', 'es_MX');
-    $about->setAttributeTranslatedValue('content', '<p><strong>El Taconazo</strong> es una taquería familiar en Alameda Ave, El Paso, Texas. Sacamos pastor del trompo todo el día y cocinamos suadero, cabeza y costilla al estilo tradicional.</p><p>Come aquí, para llevar o pide a domicilio en el centro de El Paso. El desayuno empieza a las 7am con pambazo y torta de chilaquil.</p>', 'es_MX');
-    $about->setAttributeTranslatedValue('meta_description', 'Tacos mexicanos auténticos en El Paso, TX — desayuno, suadero, pastor, cabeza, costilla.', 'es_MX');
+    $about->setAttributeTranslatedValue('content', '<p><strong>El Taconazo</strong> empezó con Don Lucio, un cocinero que aprendió el trompo en la Ciudad de México. Se vino al norte buscando jale, abrió una cocina chica cerca del Tecnológico en Ciudad Juárez y mantuvo el trompo girando para el barrio que regresaba por suadero, cabeza, pastor y costilla.</p><p>Con el tiempo la fila ya no cabía en Juárez. Don Lucio abrió en Alameda Ave en El Paso para que el mismo trompo alimentara de los dos lados. Las mismas recetas: pastor todo el día, desayuno desde las 7am con pambazo y torta de chilaquil.</p><p>Pasa, pide para llevar o a domicilio. Cocina de familia, de verdad.</p>', 'es_MX');
+    $about->setAttributeTranslatedValue('meta_description', 'La taquería de Don Lucio: trompo de la CDMX, raíces en Juárez, El Paso en Alameda. Pastor, suadero, desayuno desde las 7am.', 'es_MX');
     $about->save();
 }
 
 $policy = Page::query()->where('permalink_slug', 'policy')->first();
 if ($policy) {
+    $policyContentEn = '<p>El Taconazo respects your privacy. We only use your contact and order details to prepare and deliver your food.</p>';
     $policy->language_id = $enId;
     $policy->title = 'Privacy Policy';
-    $policy->content = '<p>El Taconazo respects your privacy. We only use your contact and order details to prepare and deliver your food.</p>';
+    $policy->content = $policyContentEn;
     $policy->status = 1;
     $policy->save();
+    $policy->setAttributeTranslatedValue('content', $policyContentEn, 'en');
     $policy->setAttributeTranslatedValue('title', 'Aviso de privacidad', 'es_MX');
     $policy->setAttributeTranslatedValue('content', '<p>El Taconazo respeta tu privacidad. Solo usamos tus datos de contacto y pedido para preparar y entregar tu comida.</p>', 'es_MX');
     $policy->save();
@@ -1539,11 +1547,13 @@ if ($policy) {
 
 $terms = Page::query()->where('permalink_slug', 'terms-and-conditions')->first();
 if ($terms) {
+    $termsContentEn = '<p>Orders are subject to availability of meats from the trompo. Allergies: flour tortillas contain wheat; crema and queso contain dairy.</p>';
     $terms->language_id = $enId;
     $terms->title = 'Terms & Conditions';
-    $terms->content = '<p>Orders are subject to availability of meats from the trompo. Allergies: flour tortillas contain wheat; crema and queso contain dairy.</p>';
+    $terms->content = $termsContentEn;
     $terms->status = 1;
     $terms->save();
+    $terms->setAttributeTranslatedValue('content', $termsContentEn, 'en');
     $terms->setAttributeTranslatedValue('title', 'Términos y condiciones', 'es_MX');
     $terms->setAttributeTranslatedValue('content', '<p>Los pedidos están sujetos a la disponibilidad de carnes del trompo. Alérgenos: las tortillas de harina contienen trigo; la crema y el queso contienen lácteos.</p>', 'es_MX');
     $terms->save();
