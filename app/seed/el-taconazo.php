@@ -25,7 +25,6 @@ use Igniter\Frontend\Models\Banner;
 use Igniter\Frontend\Models\Slider;
 use Igniter\Frontend\Models\Subscriber;
 use Igniter\Local\Models\Location;
-use Igniter\Local\Models\LocationArea;
 use Igniter\Local\Models\LocationSettings;
 use Igniter\Local\Models\Review;
 use Igniter\Local\Models\WorkingHour;
@@ -586,12 +585,11 @@ say('Delivery, pickup, checkout & reservations enabled — both locations');
 
 // ---------------------------------------------------------------------------
 // Delivery areas (circle around the taquería)
+// location_id / color are not fillable on LocationArea — use the relation + assign color.
 // ---------------------------------------------------------------------------
-LocationArea::query()->create([
-    'location_id' => $locationId,
+$centralElPaso = $location->delivery_areas()->create([
     'name' => 'Central El Paso',
     'type' => 'circle',
-    'color' => '#F16745',
     'is_default' => 1,
     'priority' => 1,
     'boundaries' => [
@@ -607,11 +605,12 @@ LocationArea::query()->create([
         ['priority' => 3, 'amount' => 4.99, 'type' => 'all', 'total' => 0],
     ],
 ]);
-LocationArea::query()->create([
-    'location_id' => $locationId,
+$centralElPaso->color = '#F16745';
+$centralElPaso->save();
+
+$greaterElPaso = $location->delivery_areas()->create([
     'name' => 'Greater El Paso',
     'type' => 'circle',
-    'color' => '#4CC3D9',
     'is_default' => 0,
     'priority' => 2,
     'boundaries' => [
@@ -626,11 +625,12 @@ LocationArea::query()->create([
         ['priority' => 2, 'amount' => 5.99, 'type' => 'all', 'total' => 0],
     ],
 ]);
-LocationArea::query()->create([
-    'location_id' => $juarezId,
+$greaterElPaso->color = '#4CC3D9';
+$greaterElPaso->save();
+
+$centroJuarez = $locationJuarez->delivery_areas()->create([
     'name' => 'Centro Juárez',
     'type' => 'circle',
-    'color' => '#F16745',
     'is_default' => 1,
     'priority' => 1,
     'boundaries' => [
@@ -646,11 +646,12 @@ LocationArea::query()->create([
         ['priority' => 3, 'amount' => 55, 'type' => 'all', 'total' => 0],
     ],
 ]);
-LocationArea::query()->create([
-    'location_id' => $juarezId,
+$centroJuarez->color = '#F16745';
+$centroJuarez->save();
+
+$zonaPronaf = $locationJuarez->delivery_areas()->create([
     'name' => 'Zona Pronaf / Tecnológico',
     'type' => 'circle',
-    'color' => '#4CC3D9',
     'is_default' => 0,
     'priority' => 2,
     'boundaries' => [
@@ -666,6 +667,9 @@ LocationArea::query()->create([
         ['priority' => 3, 'amount' => 85, 'type' => 'all', 'total' => 0],
     ],
 ]);
+$zonaPronaf->color = '#4CC3D9';
+$zonaPronaf->save();
+
 say('Delivery areas: El Paso (2) + Cd Juárez (2)');
 // ---------------------------------------------------------------------------
 // Mealtimes
