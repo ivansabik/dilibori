@@ -12,6 +12,9 @@ python3 tests/test_seed_manifests.py
 echo "== isolation contracts =="
 python3 tests/test_isolation_contracts.py
 
+echo "== scale one-way doors =="
+python3 tests/test_scale_one_way_doors.py
+
 echo "== one live deployment =="
 python3 tests/test_one_live_deployment.py
 

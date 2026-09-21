@@ -67,9 +67,10 @@ Production-like forbids `APP_DEBUG`, source mounts, and marketplace installs.
 ## Security boundaries
 
 - One MariaDB database and least-privilege user per deployment
+- Tenant DB traffic through ProxySQL (connection budgets enforced)
 - Redis ACL user limited to a key prefix
-- MinIO credentials limited to a tenant prefix
-- Isolated Docker network per deployment plus shared services network
+- MinIO user limited to a tenant prefix (policy attached at provision)
+- Isolated Docker bridge per deployment (`10.200.0.0/16`); shared services and ingress attach to that bridge
 - Runtime agent requires a bearer token and rejects non-allowlisted images/env/mounts
 - Tenant admins cannot install extensions or themes
 
@@ -80,3 +81,5 @@ make capacity
 ```
 
 Idle memory per tenant is the primary density limit for the $49 plan. Connection budgets are tracked separately for MariaDB and PostgreSQL.
+
+For whether that cell model reaches ~1000 tenants, see [docs/scale-findings.md](docs/scale-findings.md).
