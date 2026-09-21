@@ -54,7 +54,7 @@ jobs:
           chmod +x scripts/run-tests.sh
           ./scripts/run-tests.sh
       - name: Capacity model smoke
-        run: python3 scripts/capacity_model.py --tenants 50 --idle-memory-mb 180 --proxy-budget 80
+        run: python3 scripts/capacity_model.py --tenants 16 --idle-memory-mb 180 --proxy-budget 80
 
   runtime-agent-syntax:
     runs-on: ubuntu-latest

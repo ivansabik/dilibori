@@ -12,6 +12,9 @@ python3 tests/test_seed_manifests.py
 echo "== isolation contracts =="
 python3 tests/test_isolation_contracts.py
 
+echo "== one live deployment =="
+python3 tests/test_one_live_deployment.py
+
 echo "== connection budgets =="
 python3 tests/test_connection_budgets.py
 

@@ -106,7 +106,8 @@
           "type": "array",
           "items": { "type": "string" }
         },
-        "include_demo_orders": { "type": "boolean" }
+        "include_demo_orders": { "type": "boolean" },
+        "rich_seed": { "type": "string" }
       }
     }
   }

@@ -58,6 +58,8 @@ def main() -> int:
     assert taconazo["show_language_picker"] is True
     assert {loc["currency"] for loc in taconazo["locations"]} == {"USD", "MXN"}
     assert {loc["code"] for loc in taconazo["locales"]} == {"en", "es_MX"}
+    assert (SEEDS / "taconazo" / "seed-menu.php").is_file()
+    assert taconazo.get("catalog", {}).get("rich_seed") == "el-taconazo.php"
 
     assert pizza["slug"] == "pizza-rin"
     assert pizza["name"] == "Pizza Rin"
@@ -145,7 +147,9 @@ def main() -> int:
         "Durazno Chipotle",
         "Tamarindo Chipotle",
     ]
-    assert [item["name"] for item in menu["items"] if item["category"] == "extras"] == ["Papas"]
+    assert [item["name"] for item in menu["items"] if item["category"] == "extras"] == [
+        "Papas"
+    ]
     assert sum(1 for item in menu["items"] if item["category"] == "refrescos") == 2
 
     # Envelope schema requires tenant_id for future analytics
