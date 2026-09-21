@@ -208,10 +208,10 @@ def _tenant_env(settings: Settings, deployment_id: str, payload: dict[str, Any])
         "DEPLOYMENT_ID": deployment_id,
         "CELL_ID": str(payload.get("cell_id") or "local-cell"),
         "DEPLOYMENT_ENVIRONMENT": str(payload.get("environment") or "development"),
-        # PoC: connect via MariaDB directly; ProxySQL sits ready for user sync
+        # Capacity budgets assume ProxySQL; register users there in MariaDbService.
         "DB_CONNECTION": "mysql",
-        "DB_HOST": "mariadb",
-        "DB_PORT": "3306",
+        "DB_HOST": settings.proxysql_host,
+        "DB_PORT": str(settings.proxysql_mysql_port),
         "DB_DATABASE": str(payload.get("database_name") or ""),
         "DB_USERNAME": _db_user(deployment_id),
         "SEED_MANIFEST": f"/opt/platform/seeds/{payload.get('seed_bundle', 'taconazo')}/manifest.json",

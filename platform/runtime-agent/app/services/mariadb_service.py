@@ -4,6 +4,7 @@ import pymysql
 from pymysql.cursors import DictCursor
 
 from app.config import Settings
+from app.services.proxysql_service import ProxySqlService
 from app.utils.naming import validate_sql_identifier
 
 
@@ -60,3 +61,10 @@ class MariaDbService:
                     f"GRANT ALL PRIVILEGES ON `{database_name}`.* TO `{username}`@`%`",
                 )
                 cursor.execute("FLUSH PRIVILEGES")
+
+        # Tenant containers authenticate via ProxySQL; keep mysql_users in sync.
+        ProxySqlService(self._settings).upsert_mysql_user(
+            username=username,
+            password=password,
+            max_connections=max_user_connections,
+        )

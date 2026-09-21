@@ -209,6 +209,11 @@ services:
       DATA_DIR: /var/lib/dilibori
       SHARED_NETWORK: dilibori-shared
       PROXYSQL_HOST: proxysql
+      PROXYSQL_MYSQL_PORT: "6033"
+      PROXYSQL_ADMIN_HOST: proxysql
+      PROXYSQL_ADMIN_PORT: "6032"
+      PROXYSQL_ADMIN_USER: admin
+      PROXYSQL_ADMIN_PASSWORD: ${PROXYSQL_ADMIN_PASSWORD:-platform-proxysql-admin}
       MAILPIT_HOST: mailpit
       HOST_SEEDS_PATH: ${HOST_SEEDS_PATH:-}
       HOST_EXTENSIONS_PATH: ${HOST_EXTENSIONS_PATH:-}
