@@ -6,10 +6,13 @@
         <div class="col-12 col-sm-7 min-w-0 pe-sm-3">
             <div class="d-sm-flex align-items-start">
                 @if($showThumb)
+                    @php
+                        $thumbSrc = orange_media_src((string) $locationData->getThumb());
+                    @endphp
                     <div class="col-sm-3 p-0 me-sm-4 mb-3 mb-sm-0 flex-shrink-0">
                         <img
                             class="img-fluid"
-                            src="{{ $locationData->getThumb() }}"
+                            src="{{ $thumbSrc }}"
                             alt="{{$locationData->name}}"
                         />
                     </div>

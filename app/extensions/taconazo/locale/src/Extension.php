@@ -18,6 +18,8 @@ class Extension extends BaseExtension
     #[Override]
     public function register(): void
     {
+        require_once __DIR__.'/helpers.php';
+
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'taconazo.locale');
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'taconazo.locale');
         $this->app['router']->pushMiddlewareToGroup('web', SetLocationCurrency::class);
