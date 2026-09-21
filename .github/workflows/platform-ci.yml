@@ -1,0 +1,83 @@
+name: Platform CI
+
+on:
+  push:
+    paths:
+      - "platform/**"
+      - "cdp/event-sink/**"
+      - "ruff.toml"
+      - "**/*.py"
+      - "app/Dockerfile"
+      - "app/docker-entrypoint.sh"
+      - "app/bin/**"
+      - "app/extensions/**"
+      - "app/supervisor/**"
+  pull_request:
+    paths:
+      - "platform/**"
+      - "cdp/event-sink/**"
+      - "ruff.toml"
+      - "**/*.py"
+      - "app/Dockerfile"
+      - "app/docker-entrypoint.sh"
+      - "app/bin/**"
+      - "app/extensions/**"
+      - "app/supervisor/**"
+
+jobs:
+  ruff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Ruff
+        run: pip install ruff
+      - name: Ruff check
+        run: python3 -m ruff check platform cdp/event-sink
+      - name: Ruff format
+        run: python3 -m ruff format --check platform cdp/event-sink
+
+  contracts:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: platform
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run contract and policy tests
+        run: |
+          chmod +x scripts/run-tests.sh
+          ./scripts/run-tests.sh
+      - name: Capacity model smoke
+        run: python3 scripts/capacity_model.py --tenants 50 --idle-memory-mb 180 --proxy-budget 80
+
+  runtime-agent-syntax:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: platform/runtime-agent
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install and compile
+        run: |
+          pip install -r requirements.txt
+          python -m compileall app
+
+  control-plane-syntax:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: platform/control-plane
+    steps:
+      - uses: actions/checkout@v4
+      - name: PHP lint
+        run: |
+          find src public -name '*.php' -print0 | xargs -0 -n1 php -l
