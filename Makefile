@@ -1,30 +1,42 @@
-# Proxy common targets into app/ (TastyIgniter Docker stack).
+# Proxy common targets into app/ or platform/.
 .DEFAULT_GOAL := help
 
 .PHONY: help up down stop start build rebuild logs shell ps passwd reset clean wait seed \
 	cdp-up cdp-down cdp-logs cdp-health cdp-ps \
-	mailpit-up mailpit-down mailpit-logs mailpit-ps mailpit-smoke
+	mailpit-up mailpit-down mailpit-logs mailpit-ps mailpit-smoke \
+	platform-up platform-down platform-test platform-pilots platform-build
 
 help:
 	@echo ""
-	@echo "El Taconazo monorepo"
+	@echo "Dilibori monorepo"
 	@echo ""
-	@echo "  app/              TastyIgniter storefront (make targets below)"
+	@echo "  platform/         Multi-tenant PoC (preferred)"
+	@echo "  app/              Single-tenant TastyIgniter storefront"
 	@echo "  cdp/              RudderStack data plane + event inspector"
-	@echo "  mailpit/          Local SMTP catcher (http://127.0.0.1:8025)"
+	@echo "  mailpit/          Local SMTP catcher"
 	@echo ""
-	@echo "CDP:"
-	@echo "  make cdp-up       Start RudderStack (http://127.0.0.1:8080)"
-	@echo "  make cdp-health   Check data plane /health"
-	@echo "  make cdp-down     Stop CDP"
-	@echo "  Inspector         http://127.0.0.1:8090"
-	@echo ""
-	@echo "Mailpit:"
-	@echo "  make mailpit-up     Start Mailpit (http://127.0.0.1:8025)"
-	@echo "  make mailpit-smoke  Send a test mail from the app and check From"
-	@echo "  make mailpit-down   Stop Mailpit"
+	@echo "Platform:"
+	@echo "  make platform-build   Build immutable TI image"
+	@echo "  make platform-up      Start shared cell + control plane"
+	@echo "  make platform-test    Run contract tests"
+	@echo "  make platform-pilots  Provision Taconazo + Pizza Rin pilots"
 	@echo ""
 	@$(MAKE) -C app help
+
+platform-build:
+	@$(MAKE) -C platform build-app
+
+platform-up:
+	@$(MAKE) -C platform up
+
+platform-down:
+	@$(MAKE) -C platform down
+
+platform-test:
+	@$(MAKE) -C platform test
+
+platform-pilots:
+	@$(MAKE) -C platform pilots
 
 up down stop start build rebuild logs shell ps passwd reset clean wait seed:
 	@$(MAKE) -C app $@ $(filter-out $@,$(MAKECMDGOALS))
@@ -59,6 +71,5 @@ mailpit-ps:
 mailpit-smoke:
 	@$(MAKE) -C mailpit smoke
 
-# Absorb extra goals passed through (e.g. PASSWORD=...)
 %:
 	@:
