@@ -1,0 +1,53 @@
+datadir="/var/lib/proxysql"
+
+admin_variables=
+{
+    admin_credentials="admin:platform-proxysql-admin"
+    mysql_ifaces="0.0.0.0:6032"
+}
+
+mysql_variables=
+{
+    threads=2
+    max_connections=100
+    default_query_delay=0
+    default_query_timeout=36000000
+    have_compress=true
+    poll_timeout=2000
+    interfaces="0.0.0.0:6033"
+    default_schema="information_schema"
+    stacksize=1048576
+    server_version="8.0.0"
+    connect_timeout_server=10000
+    monitor_username="root"
+    monitor_password="platform-root-change-me"
+    monitor_history=60000
+    monitor_connect_interval=20000
+    monitor_ping_interval=10000
+    ping_interval_server_msec=10000
+    commands_stats=true
+    sessions_sort=true
+}
+
+mysql_servers=
+(
+    {
+        address="mariadb"
+        port=3306
+        hostgroup=0
+        max_connections=80
+        max_replication_lag=0
+        comment="local cell MariaDB"
+    }
+)
+
+mysql_users=
+(
+    {
+        username="root"
+        password="platform-root-change-me"
+        default_hostgroup=0
+        max_connections=5
+        active=1
+    }
+)

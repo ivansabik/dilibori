@@ -1,0 +1,20 @@
+{
+    "name": "dilibori/control-plane",
+    "description": "Multi-tenant TastyIgniter control plane",
+    "type": "project",
+    "require": {
+        "php": ">=8.2",
+        "ext-json": "*",
+        "ext-openssl": "*",
+        "ext-pdo": "*",
+        "ext-pdo_pgsql": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Dilibori\\ControlPlane\\": "src/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    }
+}

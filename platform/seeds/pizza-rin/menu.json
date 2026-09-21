@@ -1,0 +1,126 @@
+{
+  "categories": [
+    { "slug": "pizza", "name": "Pizza", "priority": 0 },
+    { "slug": "especialidades", "name": "Especialidades", "priority": 1 },
+    { "slug": "boneless", "name": "Boneless", "priority": 2 },
+    { "slug": "extras", "name": "Extras", "priority": 3 },
+    { "slug": "refrescos", "name": "Refrescos", "priority": 4 }
+  ],
+  "option_groups": {
+    "tamano": {
+      "name": "Tamaño",
+      "display_type": "radio",
+      "required": true,
+      "values": [
+        { "key": "gde", "name": "Grande" },
+        { "key": "exg", "name": "Extra grande" },
+        { "key": "fam", "name": "Familiar" }
+      ]
+    },
+    "pizza_extras": {
+      "name": "Extras",
+      "display_type": "checkbox",
+      "required": false,
+      "values": [
+        { "key": "orilla", "name": "Orilla", "price": 35 },
+        { "key": "extra_queso", "name": "Extra queso", "price": 30 },
+        { "key": "ingrediente_extra", "name": "Ingrediente extra", "price": 25 }
+      ]
+    },
+    "porcion": {
+      "name": "Porción",
+      "display_type": "radio",
+      "required": true,
+      "values": [
+        { "key": "10pz", "name": "10 pz" },
+        { "key": "15pz", "name": "15 pz" },
+        { "key": "20pz", "name": "20 pz" },
+        { "key": "25pz", "name": "25 pz" },
+        { "key": "30pz", "name": "30 pz" }
+      ]
+    },
+    "salsa": {
+      "name": "Salsa",
+      "display_type": "radio",
+      "required": true,
+      "values": [
+        { "key": "bbq", "name": "BBQ", "price": 0 },
+        { "key": "red_hot", "name": "Red Hot", "price": 0 },
+        { "key": "crema_hot", "name": "Crema Hot", "price": 0 },
+        { "key": "mango_habanero", "name": "Mango Habanero", "price": 0 },
+        { "key": "durazno_chipotle", "name": "Durazno Chipotle", "price": 0 },
+        { "key": "tamarindo_chipotle", "name": "Tamarindo Chipotle", "price": 0 }
+      ]
+    }
+  },
+  "items": [
+    {
+      "name": "Pepperoni",
+      "category": "pizza",
+      "description": "Pepperoni",
+      "photo": "menu/pepperoni.jpg",
+      "option_groups": ["tamano", "pizza_extras"],
+      "prices": { "gde": 139, "exg": 149, "fam": 209 }
+    },
+    {
+      "name": "Hawaiana",
+      "category": "pizza",
+      "description": "Jamón piña",
+      "photo": "menu/hawaiana.jpg",
+      "option_groups": ["tamano", "pizza_extras"],
+      "prices": { "gde": 139, "exg": 149, "fam": 209 }
+    },
+    {
+      "name": "Tocinos",
+      "category": "especialidades",
+      "photo": "menu/tocinos.jpg",
+      "option_groups": ["tamano", "pizza_extras"],
+      "prices": { "gde": 149, "exg": 169, "fam": 219 }
+    },
+    {
+      "name": "Suprema",
+      "category": "especialidades",
+      "photo": "menu/suprema.jpg",
+      "option_groups": ["tamano", "pizza_extras"],
+      "prices": { "gde": 149, "exg": 169, "fam": 219 }
+    },
+    {
+      "name": "Pastor",
+      "category": "especialidades",
+      "photo": "menu/pastor.jpg",
+      "option_groups": ["tamano", "pizza_extras"],
+      "prices": { "gde": 159, "exg": 189, "fam": 239 }
+    },
+    {
+      "name": "4 Carnes",
+      "category": "especialidades",
+      "photo": "menu/4-carnes.jpg",
+      "option_groups": ["tamano", "pizza_extras"],
+      "prices": { "gde": 149, "exg": 169, "fam": 219 }
+    },
+    {
+      "name": "4 Quesos",
+      "category": "especialidades",
+      "photo": "menu/4-quesos.jpg",
+      "option_groups": ["tamano", "pizza_extras"],
+      "prices": { "gde": 149, "exg": 169, "fam": 219 }
+    },
+    {
+      "name": "Mexicana",
+      "category": "especialidades",
+      "photo": "menu/mexicana.jpg",
+      "option_groups": ["tamano", "pizza_extras"],
+      "prices": { "gde": 149, "exg": 169, "fam": 219 }
+    },
+    {
+      "name": "Boneless",
+      "category": "boneless",
+      "photo": "menu/boneless.jpg",
+      "option_groups": ["porcion", "salsa"],
+      "prices": { "10pz": 125, "15pz": 180, "20pz": 220, "25pz": 275, "30pz": 315 }
+    },
+    { "name": "Papas", "category": "extras", "price": 45, "photo": "menu/papas.jpg" },
+    { "name": "Coca Cola", "category": "refrescos", "price": 25 },
+    { "name": "Sprite", "category": "refrescos", "price": 25 }
+  ]
+}

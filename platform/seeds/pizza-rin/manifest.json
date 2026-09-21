@@ -1,0 +1,92 @@
+{
+  "slug": "pizza-rin",
+  "name": "Pizza Rin",
+  "seed_version": "1.0.0",
+  "timezone": "America/Ciudad_Juarez",
+  "default_currency": "MXN",
+  "show_language_picker": false,
+  "storefront": {
+    "hero_title": "Invita a tus cuates",
+    "hero_subtitle": "Pizza Rin · Ciudad Juárez"
+  },
+  "theme": {
+    "color_primary": "#DA442E",
+    "heading_color": "#DA442E",
+    "header_accent": "#DA442E",
+    "logo": "logo.png",
+    "logo_height": "96px"
+  },
+  "locales": [
+    { "code": "es_MX", "name": "Español (México)", "default": true }
+  ],
+  "mail": {
+    "from_address": "hola@pizzarin.example",
+    "from_name": "Pizza Rin"
+  },
+  "admin": {
+    "email": "ops@pizzarin.example",
+    "name": "Operaciones",
+    "username": "admin"
+  },
+  "locations": [
+    {
+      "slug": "pizza-rin-centro",
+      "name": "Pizza Rin - Centro",
+      "currency": "MXN",
+      "email": "centro@pizzarin.example",
+      "address_1": "Av. Juárez 210",
+      "address_2": "",
+      "city": "Ciudad Juárez",
+      "state": "Chihuahua",
+      "postcode": "32000",
+      "country_id": 138,
+      "telephone": "+52 656 555 0200",
+      "lat": 31.6901,
+      "lng": -106.4249,
+      "is_default": true,
+      "photo": "centro.jpg",
+      "description": {
+        "es_MX": "Pizzería en el centro de Ciudad Juárez. Menú en español, precios en pesos."
+      }
+    },
+    {
+      "slug": "pizza-rin-pradera",
+      "name": "Pizza Rin - Pradera",
+      "currency": "MXN",
+      "email": "pradera@pizzarin.example",
+      "address_1": "Blvd. Independencia 4500",
+      "address_2": "Local 12",
+      "city": "Ciudad Juárez",
+      "state": "Chihuahua",
+      "postcode": "32618",
+      "country_id": 138,
+      "telephone": "+52 656 555 0201",
+      "lat": 31.7202,
+      "lng": -106.4051,
+      "is_default": false,
+      "photo": "pradera.png",
+      "description": {
+        "es_MX": "Sucursal Pradera. Mismo menú en español, precios en pesos."
+      }
+    }
+  ],
+  "pages": {
+    "about-us": {
+      "title": "Acerca de Pizza Rin",
+      "content": "<p><strong>Pizza Rin</strong> es una pizzería en Ciudad Juárez. Pide para llevar, a domicilio o pasa con tus cuates.</p>",
+      "meta_description": "Pizzería en Ciudad Juárez. Invita a tus cuates."
+    },
+    "policy": {
+      "title": "Aviso de privacidad",
+      "content": "<p>Pizza Rin respeta tu privacidad. Solo usamos tus datos de contacto y pedido para preparar y entregar tu comida.</p>"
+    },
+    "terms-and-conditions": {
+      "title": "Términos y condiciones",
+      "content": "<p>Los pedidos están sujetos a disponibilidad. Si eres alérgico al gluten o a los lácteos, avísanos al ordenar.</p>"
+    }
+  },
+  "catalog": {
+    "require_translations": ["es_MX"],
+    "include_demo_orders": false
+  }
+}

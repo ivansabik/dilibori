@@ -1,0 +1,72 @@
+{
+  "slug": "taconazo",
+  "name": "El Taconazo",
+  "seed_version": "1.0.0",
+  "timezone": "America/Denver",
+  "default_currency": "USD",
+  "show_language_picker": true,
+  "storefront": {
+    "hero_title": "Order authentic tacos in El Paso",
+    "hero_subtitle": "El Taconazo · El Paso, TX"
+  },
+  "locales": [
+    { "code": "en", "name": "English", "default": true },
+    { "code": "es_MX", "name": "Español (México)", "default": false }
+  ],
+  "mail": {
+    "from_address": "hola@eltaconazo.example",
+    "from_name": "El Taconazo Taqueria"
+  },
+  "admin": {
+    "email": "operations@taconazotaqueria.com",
+    "name": "Operations",
+    "username": "admin"
+  },
+  "locations": [
+    {
+      "slug": "el-taconazo-alameda-ave",
+      "name": "El Taconazo - Alameda Ave",
+      "currency": "USD",
+      "email": "hola@eltaconazo.example",
+      "address_1": "4500 Alameda Ave",
+      "address_2": "Suite B",
+      "city": "El Paso",
+      "state": "TX",
+      "postcode": "79905",
+      "country_id": 223,
+      "telephone": "(915) 555-0142",
+      "lat": 31.7587,
+      "lng": -106.4431,
+      "is_default": true,
+      "description": {
+        "en": "Authentic Mexican taquería in El Paso, Texas.",
+        "es_MX": "Taquería auténtica en El Paso, Texas."
+      }
+    },
+    {
+      "slug": "el-taconazo-tecnologico",
+      "name": "El Taconazo - Tecnológico",
+      "currency": "MXN",
+      "email": "juarez@eltaconazo.example",
+      "address_1": "Av. Tecnológico 1545",
+      "address_2": "",
+      "city": "Ciudad Juárez",
+      "state": "Chihuahua",
+      "postcode": "32310",
+      "country_id": 138,
+      "telephone": "+52 656 555 0142",
+      "lat": 31.6904,
+      "lng": -106.4245,
+      "is_default": false,
+      "description": {
+        "en": "El Taconazo in Ciudad Juárez, priced in Mexican pesos.",
+        "es_MX": "El Taconazo en Ciudad Juárez, precios en pesos mexicanos."
+      }
+    }
+  ],
+  "catalog": {
+    "require_translations": ["en", "es_MX"],
+    "include_demo_orders": true,
+    "rich_seed": "el-taconazo.php"
+  }
+}

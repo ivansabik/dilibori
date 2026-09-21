@@ -1,0 +1,25 @@
+# Ruff config for platform/ and cdp/ Python.
+# See .cursor/rules/python-coding-guidelines.mdc
+
+target-version = "py312"
+line-length = 88
+
+extend-exclude = [
+    "platform/data",
+    "app",
+]
+
+[lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "W",   # pycodestyle warnings
+    "I",   # isort
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+]
+
+[format]
+quote-style = "double"
+indent-style = "space"
+docstring-code-format = true

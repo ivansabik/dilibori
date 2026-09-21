@@ -1,0 +1,2 @@
+user default on >platform-redis-admin ~* &* +@all
+user admin on >platform-redis-admin ~* &* +@all

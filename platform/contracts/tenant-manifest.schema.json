@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://dilibori.local/schemas/tenant-manifest.schema.json",
+  "title": "Tenant seed manifest",
+  "type": "object",
+  "required": ["slug", "name", "locales", "locations", "mail", "admin"],
+  "additionalProperties": false,
+  "properties": {
+    "slug": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+    "name": { "type": "string", "minLength": 1 },
+    "seed_version": { "type": "string" },
+    "locales": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["code", "name", "default"],
+        "properties": {
+          "code": { "type": "string" },
+          "name": { "type": "string" },
+          "default": { "type": "boolean" }
+        }
+      }
+    },
+    "show_language_picker": { "type": "boolean" },
+    "timezone": { "type": "string" },
+    "default_currency": { "type": "string" },
+    "storefront": {
+      "type": "object",
+      "properties": {
+        "hero_title": { "type": "string" },
+        "hero_subtitle": { "type": "string" }
+      }
+    },
+    "theme": {
+      "type": "object",
+      "properties": {
+        "color_primary": { "type": "string" },
+        "heading_color": { "type": "string" },
+        "header_accent": { "type": "string" },
+        "logo": { "type": "string" },
+        "logo_height": { "type": "string" }
+      }
+    },
+    "pages": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string" },
+          "content": { "type": "string" },
+          "meta_description": { "type": "string" }
+        }
+      }
+    },
+    "mail": {
+      "type": "object",
+      "required": ["from_address", "from_name"],
+      "properties": {
+        "from_address": { "type": "string" },
+        "from_name": { "type": "string" }
+      }
+    },
+    "admin": {
+      "type": "object",
+      "required": ["email", "name"],
+      "properties": {
+        "email": { "type": "string" },
+        "name": { "type": "string" },
+        "username": { "type": "string" }
+      }
+    },
+    "locations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["slug", "name", "currency", "city", "country_id"],
+        "properties": {
+          "slug": { "type": "string" },
+          "name": { "type": "string" },
+          "currency": { "type": "string" },
+          "email": { "type": "string" },
+          "address_1": { "type": "string" },
+          "address_2": { "type": "string" },
+          "city": { "type": "string" },
+          "state": { "type": "string" },
+          "postcode": { "type": "string" },
+          "country_id": { "type": "integer" },
+          "telephone": { "type": "string" },
+          "lat": { "type": "number" },
+          "lng": { "type": "number" },
+          "is_default": { "type": "boolean" },
+          "photo": { "type": "string" },
+          "description": {
+            "type": "object",
+            "additionalProperties": { "type": "string" }
+          }
+        }
+      }
+    },
+    "catalog": {
+      "type": "object",
+      "properties": {
+        "require_translations": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "include_demo_orders": { "type": "boolean" }
+      }
+    }
+  }
+}

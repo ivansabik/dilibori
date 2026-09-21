@@ -1,0 +1,41 @@
+{
+  "version": "1.0.0",
+  "name": "production-like",
+  "description": "Hardened local profile that mirrors production invariants.",
+  "config": {
+    "APP_ENV": "production",
+    "APP_DEBUG": false,
+    "LOG_LEVEL": "info",
+    "LOG_STACK_TRACES": false,
+    "SESSION_SECURE_COOKIE": true,
+    "SESSION_HTTP_ONLY": true,
+    "SESSION_SAME_SITE": "lax",
+    "TRUSTED_PROXIES": "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16",
+    "CACHE_DRIVER": "redis",
+    "QUEUE_CONNECTION": "redis",
+    "MAIL_MAILER": "smtp",
+    "ALLOW_SOURCE_MOUNTS": false,
+    "READ_ONLY_ROOTFS": true,
+    "APACHE_MAX_REQUEST_WORKERS": 2,
+    "QUEUE_WORKER_SLEEP": 1,
+    "DB_PERSISTENT": false,
+    "MEMORY_LIMIT_MB": 256,
+    "CPU_LIMIT": 0.25,
+    "MAX_USER_CONNECTIONS": 5
+  },
+  "invariants": {
+    "APP_DEBUG": false,
+    "APP_ENV": "production",
+    "require_secure_cookies": true,
+    "forbid_marketplace_install": true,
+    "forbid_self_update": true,
+    "forbid_source_mounts": true,
+    "forbid_unapproved_images": true
+  },
+  "allowlisted_tenant_overrides": [
+    "MAIL_FROM_ADDRESS",
+    "MAIL_FROM_NAME",
+    "ADMIN_EMAIL",
+    "APP_URL"
+  ]
+}

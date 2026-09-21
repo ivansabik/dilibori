@@ -1,0 +1,5 @@
+{
+    "APP_DEBUG": "false",
+    "LOG_LEVEL": "warning",
+    "CACHE_DRIVER": "redis"
+}
