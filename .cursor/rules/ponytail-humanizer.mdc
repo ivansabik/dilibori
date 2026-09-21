@@ -1,0 +1,35 @@
+---
+description: Humanizer for docs, comments, and customer-facing prose (Ponytail lives in ponytail.mdc)
+alwaysApply: true
+---
+
+# Humanizer (docs and comments)
+
+Code changes follow [`ponytail.mdc`](ponytail.mdc). Style under `app/` still follows [`php-coding-guidelines.mdc`](php-coding-guidelines.mdc) and [`js-coding-guidelines.mdc`](js-coding-guidelines.mdc). Python under `platform/` and `cdp/` follows [`python-coding-guidelines.mdc`](python-coding-guidelines.mdc). Do not rewrite required `ponytail:` ceiling comments with humanizer.
+
+## When to humanize
+
+Before finishing any new or rewritten documentation (Markdown including READMEs, design notes) **or** code comments / docblocks:
+
+1. Read and follow **humanizer** (`humanizer/SKILL.md`) in **embedded mode**: draft → audit → final internally; ship only the final wording.
+2. Technical voice: plain and specific. No personality or first person in comments, API docs, or README prose.
+3. Preserve facts, commands, URLs, credentials, table data, identifiers, placeholders, code blocks, and link targets. Humanize surrounding prose only.
+
+### Strip
+
+- Em/en dashes (use a period, comma, colon, or hyphen)
+- AI vocabulary (*driver-agnostic*, *showcase*, *delve*, *robust*, *seamless*)
+- Promotional openers ("Powered by", "one-command local stack" unless that is the actual command)
+- Title Case headings → sentence case (`## Quick start`, not `## Quick Start`)
+- Mechanical bold, emoji headings, chatbot closers
+
+### Do not
+
+- Invent ports, env vars, event names, or setup steps
+- Rewrite code fences or Makefile snippets to sound nicer
+- Turn a working command list into a narrative
+- Add fluff comments to satisfy this rule; prefer no comment when the name is enough
+
+Customer-facing storefront strings: humanizer still applies here, **plus** [`ui-copy-es-mx-humanizer.mdc`](ui-copy-es-mx-humanizer.mdc) for `es_MX` locale and taquería tone.
+
+Locale / lang-file / seed-translation policy stays in that UI-copy rule. Commit message format stays in [`conventional-commits.mdc`](conventional-commits.mdc).

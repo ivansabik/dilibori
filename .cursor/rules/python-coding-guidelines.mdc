@@ -1,0 +1,44 @@
+---
+description: Python standards for platform/ and cdp/ (Ponytail, PEP 20, PEP 8 via Ruff)
+alwaysApply: true
+---
+
+# Python coding guidelines
+
+**Scope:** Apply only when working on Python under `platform/` or `cdp/`. Do **not** apply to `app/` (PHP/JS).
+
+## Ponytail first
+
+Follow [`ponytail.mdc`](ponytail.mdc) before writing Python: YAGNI, reuse what exists, prefer the stdlib, shortest correct diff, `ponytail:` ceiling comments when cutting a known corner. Do not restate the ladder here.
+
+## PEP 20
+
+Follow the [Zen of Python](https://peps.python.org/pep-0020/) when choosing structure:
+
+- Explicit over implicit: type hints on public functions, keyword-only args at trust boundaries.
+- Simple over complex; flat over nested (early return).
+- Errors must not pass silently unless the `except` logs or is a documented swallow.
+- One obvious way: match neighboring modules in the same package.
+
+## PEP 8 via Ruff
+
+Follow [PEP 8](https://peps.python.org/pep-0008/) as enforced by Ruff, not by hand:
+
+- Indent: **4 spaces**. Line length: **88** (repo `ruff.toml`).
+- Import order and unused imports: leave to Ruff.
+- Naming: `snake_case` functions/vars, `PascalCase` classes, `SCREAMING_SNAKE` constants.
+- Comparisons: `is None` / `is not None`. Prefer `-> None` on void functions.
+- Quotes: double quotes (Ruff format). Docstrings wrap at 72.
+
+## Ruff
+
+Ruff owns lint and format. Do not add flake8, Black, isort, or pylint.
+
+Config: repo-root [`ruff.toml`](../../ruff.toml). After Python edits, leave these clean:
+
+```bash
+ruff check platform cdp/event-sink
+ruff format --check platform cdp/event-sink
+```
+
+Or from `platform/`: `make lint`.

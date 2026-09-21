@@ -1,5 +1,5 @@
 ---
-description: UI copy — Mexican Spanish (es_MX) + humanizer for customer-facing text
+description: UI copy — Mexican Spanish (es_MX) for customer-facing text
 alwaysApply: true
 ---
 
@@ -15,15 +15,11 @@ When writing or editing any text customers see in the app (locale packs, seed me
 - Put Igniter/lang overrides under `app/extensions/taconazo/locale/lang/es_MX/`.
 - Seed translations use the `es_MX` key / `setAttributeTranslatedValue(..., 'es_MX')` pattern.
 
-## Humanizer (required for UI prose)
+## Prose
 
-Before finishing any new or rewritten UI string (Spanish or English):
+Customer-facing strings (Spanish or English) go through **humanizer** per [`ponytail-humanizer.mdc`](ponytail-humanizer.mdc), plus the locale and tone constraints below.
 
-1. Read and follow the **humanizer** skill (`humanizer/SKILL.md`).
-2. Use **embedded mode**: apply the draft → audit → final loop internally; ship only the final wording into the code.
-3. Goal: sound like a real taquería site, not AI marketing. Short, concrete, no fluff.
-
-Especially strip: em/en dashes, *vibrant* / *showcase* / *delve* style vocabulary, rule-of-three lists, promotional filler, chatbot closers (“¡Espero que esto ayude!”).
+Goal: sound like a real taquería site, not AI marketing. Short, concrete, no fluff.
 
 ## Do
 
