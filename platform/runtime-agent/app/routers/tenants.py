@@ -9,8 +9,8 @@ from app.models.schemas import (
     CreateMinioCredsRequest,
     CreateNetworkRequest,
     CreateRedisAclRequest,
-    DeployRequest,
     DeploymentRequest,
+    DeployRequest,
     OkResponse,
     ProvisionInstallRequest,
     RestoreRequest,
@@ -18,6 +18,7 @@ from app.models.schemas import (
 from app.services.allowlist import AllowlistError
 from app.services.backup_service import BackupService
 from app.services.caddy_service import CaddyService
+from app.services.caddy_snippet import effective_noindex
 from app.services.docker_service import DockerService
 from app.services.mariadb_service import MariaDbService
 from app.services.minio_service import MinioService
@@ -232,7 +233,7 @@ def configure_route(
             deployment_id=body.deployment_id,
             hostname=body.hostname,
             container_name=body.container_name,
-            noindex=body.noindex,
+            noindex=effective_noindex(body.noindex, body.environment),
         )
     except ValueError as exc:
         raise _bad_request(exc) from exc

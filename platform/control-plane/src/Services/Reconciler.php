@@ -3,6 +3,7 @@
 namespace Dilibori\ControlPlane\Services;
 
 use Dilibori\ControlPlane\Contracts\RuntimeAgentClientInterface;
+use Dilibori\ControlPlane\Models\Tenant;
 use Dilibori\ControlPlane\Support\Database;
 use PDO;
 
@@ -28,9 +29,11 @@ final class Reconciler
     public function reconcile(?string $actor = null): array
     {
         $statement = $this->db->query(
-            "SELECT id, tenant_id, desired_release, config_checksum, status, runtime_refs
-             FROM deployments
-             WHERE status IN ('active', 'health_check', 'configuring_route')",
+            "SELECT d.id, d.tenant_id, d.desired_release, d.config_checksum, d.status, d.runtime_refs,
+                    d.hostname, d.environment, t.noindex AS tenant_noindex
+             FROM deployments d
+             JOIN tenants t ON t.id = d.tenant_id
+             WHERE d.status IN ('active', 'health_check', 'configuring_route')",
         );
 
         $deployments = $statement->fetchAll();
@@ -39,6 +42,10 @@ final class Reconciler
 
         foreach ($deployments as $deployment) {
             if ($this->ensureRedisAcl($deployment, $actor)) {
+                $repaired++;
+            }
+
+            if ($this->ensureIngressNoindex($deployment, $actor)) {
                 $repaired++;
             }
 
@@ -99,6 +106,35 @@ final class Reconciler
                 $deployment['tenant_id'],
                 $deployment['id'],
                 (string) ($response['error'] ?? 'ensure_redis_acl failed'),
+                [],
+                $actor,
+            );
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /** @param array<string, mixed> $deployment */
+    private function ensureIngressNoindex(array $deployment, ?string $actor): bool
+    {
+        $hostname = trim((string) ($deployment['hostname'] ?? ''));
+        if ($hostname === '') {
+            return false;
+        }
+
+        $response = $this->runtimeAgent->enqueue('configure_route', $deployment['id'], [
+            'hostname' => $hostname,
+            'environment' => (string) ($deployment['environment'] ?? ''),
+            'noindex' => Tenant::asBool($deployment['tenant_noindex'] ?? false),
+        ]);
+        if (($response['ok'] ?? true) === false) {
+            $this->audit->log(
+                'reconcile.ingress_noindex_failed',
+                $deployment['tenant_id'],
+                $deployment['id'],
+                (string) ($response['error'] ?? 'configure_route failed'),
                 [],
                 $actor,
             );

@@ -14,7 +14,10 @@ from app.services.allowlist import (  # noqa: E402
     validate_env,
     validate_image,
 )
-from app.services.caddy_snippet import render_tenant_snippet  # noqa: E402
+from app.services.caddy_snippet import (  # noqa: E402
+    effective_noindex,
+    render_tenant_snippet,
+)
 
 
 class FakeSettings:
@@ -101,6 +104,30 @@ def main() -> int:
     assert "X-Robots-Tag" not in open_snippet
     assert "Disallow" not in open_snippet
     assert "reverse_proxy dilibori-tenant-abc123:80" in open_snippet
+
+    # Effective noindex: only production + tenant flag off can stay indexable.
+    cases = [
+        (False, "production", False),
+        (True, "production", True),
+        (False, "development", True),
+        (False, "staging", True),
+        (False, "", True),
+        (False, "unknown", True),
+    ]
+    for tenant_flag, environment, expect_blocked in cases:
+        effective = effective_noindex(tenant_flag, environment)
+        assert effective is expect_blocked, (tenant_flag, environment)
+        snippet = render_tenant_snippet(
+            hostname="case.example",
+            container_name="dilibori-tenant-abc123",
+            noindex=effective,
+        )
+        if expect_blocked:
+            assert 'X-Robots-Tag "noindex, nofollow"' in snippet
+            assert "Disallow: /" in snippet
+        else:
+            assert "X-Robots-Tag" not in snippet
+            assert "Disallow" not in snippet
 
     print("OK: isolation contract tests passed")
     return 0

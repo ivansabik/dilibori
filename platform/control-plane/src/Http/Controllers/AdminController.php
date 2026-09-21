@@ -100,7 +100,7 @@ final class AdminController
 
         <label>
             <input type="checkbox" name="noindex" value="1">
-            Block search indexing (noindex)
+            Block search indexing in production (dev and staging are always blocked)
         </label>
 
         <button type="submit">Create tenant</button>

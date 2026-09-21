@@ -57,6 +57,7 @@ class ConfigureRouteRequest(DeploymentRequest):
     hostname: str
     container_name: str
     noindex: bool = False
+    environment: str = ""
 
 
 class BackupRequest(DeploymentRequest):

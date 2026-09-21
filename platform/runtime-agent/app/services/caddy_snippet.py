@@ -1,7 +1,19 @@
 from __future__ import annotations
 
 
-def render_tenant_snippet(*, hostname: str, container_name: str, noindex: bool = False) -> str:
+def effective_noindex(tenant_noindex: bool, environment: str) -> bool:
+    """Block indexing unless this is a production deployment with noindex off.
+
+    Missing or unknown environment fails closed (noindex).
+    """
+    if tenant_noindex:
+        return True
+    return environment.strip().lower() != "production"
+
+
+def render_tenant_snippet(
+    *, hostname: str, container_name: str, noindex: bool = False
+) -> str:
     """Pure Caddy site-block text for one tenant hostname."""
     if noindex:
         robots_body = "User-agent: *\nDisallow: /\n"

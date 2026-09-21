@@ -66,7 +66,8 @@ final class DeploymentController
             if ($hostnameChanged && in_array((string) ($row['status'] ?? ''), ['active', 'health_check', 'configuring_route'], true)) {
                 $this->app->runtimeAgent()->enqueue('configure_route', $deployment['id'], [
                     'hostname' => $hostname,
-                    'noindex' => Tenant::asBool($tenant['noindex'] ?? true),
+                    'environment' => $environment,
+                    'noindex' => Tenant::asBool($tenant['noindex']),
                 ]);
             }
 

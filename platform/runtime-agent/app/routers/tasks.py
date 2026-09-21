@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 from app.auth import require_token
 from app.config import Settings, get_settings
 from app.services.caddy_service import CaddyService
+from app.services.caddy_snippet import effective_noindex
 from app.services.docker_service import DockerService
 from app.services.mariadb_service import MariaDbService
 from app.services.minio_service import MinioService
@@ -181,7 +182,7 @@ def enqueue_task(
                 deployment_id=deployment_id,
                 hostname=str(payload.get("hostname") or ""),
                 container_name=tenant_container_name(deployment_id),
-                noindex=noindex,
+                noindex=effective_noindex(noindex, environment),
             )
             return {"ok": True}
 

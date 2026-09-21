@@ -62,9 +62,9 @@ All responses are JSON unless noted. Pass `X-Actor: your-name` on mutating calls
 | GET | `/` | HTML admin dashboard |
 | GET | `/health` | Liveness + DB check |
 | GET | `/tenants` | List tenants (includes `noindex`) |
-| POST | `/tenants` | Body: `{ "slug", "name", "noindex?" }` (`noindex` defaults false) |
+| POST | `/tenants` | Body: `{ "slug", "name", "noindex?" }` (`noindex` defaults false; blocks production indexing; development and staging are always blocked at ingress) |
 | GET | `/tenants/{id}` | Tenant by UUID or slug, includes deployments |
-| PATCH | `/tenants/{id}` | Body: `{ "noindex": true or false }`; rewrites Caddy routes for live deployments |
+| PATCH | `/tenants/{id}` | Body: `{ "noindex": true or false }`; rewrites Caddy routes for live deployments (effective noindex also depends on deployment environment) |
 | POST | `/tenants/{id}/deployments` | Body: `{ "environment", "seed_bundle", "hostname?" }`. Reuses the live row for that tenant+environment when one already exists. |
 
 | GET | `/deployments/{id}` | Deployment record |
