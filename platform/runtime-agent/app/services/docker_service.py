@@ -7,6 +7,7 @@ from typing import Any
 import docker
 from docker.errors import APIError, NotFound
 from docker.models.containers import Container
+from docker.types import IPAMConfig, IPAMPool
 
 from app.config import Settings
 from app.services.allowlist import (
@@ -29,6 +30,19 @@ logger = logging.getLogger(__name__)
 
 LABEL_PREFIX = "dilibori."
 
+# Compose service label -> DNS aliases on each tenant bridge.
+# Tenants stay off dilibori-shared so they cannot reach each other by name.
+_SHARED_SERVICE_ALIASES: tuple[tuple[str, list[str]], ...] = (
+    ("proxysql", ["proxysql", "mysql"]),
+    ("redis", ["redis"]),
+    ("minio", ["minio"]),
+    ("mailpit", ["mailpit"]),
+)
+
+# Explicit /24 pool so we do not burn Docker Desktop's default address pools
+# when failed provisions leave bridges behind. 256 cells max per agent host.
+_TENANT_SUBNET_PREFIX = "10.200"
+
 
 class DockerService:
     def __init__(self, settings: Settings) -> None:
@@ -50,16 +64,124 @@ class DockerService:
         if network_name != expected:
             raise ValueError(f"network_name must be {expected}")
 
-        # PoC: reuse the shared cell network. Per-tenant bridges exhaust Docker
-        # Desktop's default IPv4 pools after a few failed provision attempts.
         self._ensure_shared_network()
-        network = self._client.networks.get(self._settings.shared_network)
+        self._assert_short_id_available(deployment_id)
+
+        created = False
+        try:
+            network = self._client.networks.get(network_name)
+            labels = network.attrs.get("Labels") or {}
+            owner = labels.get(f"{LABEL_PREFIX}deployment_id")
+            if owner and owner != deployment_id:
+                raise RuntimeError(
+                    f"network {network_name} owned by deployment {owner}, "
+                    f"short-id collision for {deployment_id}"
+                )
+        except NotFound:
+            subnet = self._allocate_tenant_subnet()
+            ipam = IPAMConfig(pool_configs=[IPAMPool(subnet=subnet)])
+            network = self._client.networks.create(
+                name=network_name,
+                driver="bridge",
+                check_duplicate=True,
+                ipam=ipam,
+                labels={
+                    f"{LABEL_PREFIX}deployment_id": deployment_id,
+                    f"{LABEL_PREFIX}managed_by": "runtime-agent",
+                    f"{LABEL_PREFIX}role": "tenant",
+                },
+            )
+            created = True
+
+        attached = self._attach_shared_services(network_name)
         return {
             "network_id": network.id,
-            "created": False,
-            "network_name": self._settings.shared_network,
-            "requested_network_name": network_name,
+            "created": created,
+            "network_name": network_name,
+            "shared_services_attached": attached,
         }
+
+    def remove_network(self, deployment_id: str) -> dict:
+        validate_deployment_id(deployment_id)
+        network_name = default_network_name(deployment_id)
+        try:
+            network = self._client.networks.get(network_name)
+        except NotFound:
+            return {"network_name": network_name, "status": "absent"}
+
+        network.reload()
+        for container_id in list((network.attrs.get("Containers") or {}).keys()):
+            try:
+                network.disconnect(container_id, force=True)
+            except APIError as exc:
+                logger.warning("disconnect %s from %s: %s", container_id, network_name, exc)
+
+        try:
+            network.remove()
+        except APIError as exc:
+            raise RuntimeError(f"failed to remove network {network_name}: {exc}") from exc
+
+        return {"network_name": network_name, "status": "removed"}
+
+    def _allocate_tenant_subnet(self) -> str:
+        used: set[str] = set()
+        for network in self._client.networks.list():
+            for cfg in (network.attrs.get("IPAM") or {}).get("Config") or []:
+                subnet = cfg.get("Subnet") or ""
+                if subnet.startswith(f"{_TENANT_SUBNET_PREFIX}."):
+                    used.add(subnet)
+        for octet in range(256):
+            candidate = f"{_TENANT_SUBNET_PREFIX}.{octet}.0/24"
+            if candidate not in used:
+                return candidate
+        raise RuntimeError(
+            f"tenant network pool {_TENANT_SUBNET_PREFIX}.0.0/16 exhausted; "
+            "remove stale dilibori-net-* bridges"
+        )
+
+    def _attach_shared_services(self, network_name: str) -> list[str]:
+        attached: list[str] = []
+        for service, aliases in _SHARED_SERVICE_ALIASES:
+            container = self._find_compose_service(service)
+            if container is None:
+                logger.warning("shared service %s not found; skip attach to %s", service, network_name)
+                continue
+            self._connect_container_network(container, network_name, aliases=aliases)
+            attached.append(service)
+
+        caddy_name = self._settings.caddy_container_name
+        try:
+            caddy = self._client.containers.get(caddy_name)
+        except NotFound:
+            logger.warning("caddy container %s not found; skip attach to %s", caddy_name, network_name)
+        else:
+            self._connect_container_network(caddy, network_name)
+            attached.append("ingress")
+
+        return attached
+
+    def _find_compose_service(self, service: str) -> Container | None:
+        matches = self._client.containers.list(
+            filters={"label": f"com.docker.compose.service={service}"},
+        )
+        if not matches:
+            return None
+        return matches[0]
+
+    def _assert_short_id_available(self, deployment_id: str) -> None:
+        short = deployment_id_short(deployment_id)
+        name = tenant_container_name(deployment_id)
+        try:
+            existing = self._client.containers.get(name)
+        except NotFound:
+            return
+        labels = existing.labels or {}
+        owner = labels.get(f"{LABEL_PREFIX}deployment_id")
+        if owner and owner != deployment_id:
+            raise RuntimeError(
+                f"short id {short} already used by deployment {owner} "
+                f"(container {name})"
+            )
 
     def _tenant_data_paths(self, deployment_id: str) -> dict[str, Path]:
         # When the agent runs in Docker, DATA_DIR is the in-container path, but bind
@@ -109,13 +231,6 @@ class DockerService:
             labels[f"{LABEL_PREFIX}image_digest"] = "unknown"
 
         return labels
-
-    def _networks_for_tenant(self, deployment_network: str) -> dict[str, Any]:
-        validate_network_name(deployment_network)
-        return {
-            deployment_network: {},
-            self._settings.shared_network: {},
-        }
 
     def _host_config(
         self,
@@ -193,6 +308,10 @@ class DockerService:
 
         return host_config
 
+    def _ensure_tenant_network(self, deployment_id: str, network_name: str) -> str:
+        result = self.create_network(deployment_id=deployment_id, network_name=network_name)
+        return str(result["network_name"])
+
     def _run_one_off(
         self,
         *,
@@ -207,6 +326,7 @@ class DockerService:
     ) -> dict:
         name = f"dilibori-provision-{deployment_id_short(deployment_id)}"
         self._remove_container_if_exists(name)
+        network_name = self._ensure_tenant_network(deployment_id, network_name)
 
         host_config = self._host_config(
             environment_profile=environment_profile,
@@ -224,7 +344,7 @@ class DockerService:
             name=name,
             command=command,
             environment=env,
-            network=self._settings.shared_network,
+            network=network_name,
             detach=True,
             remove=False,
             labels=self._tenant_labels(
@@ -244,6 +364,12 @@ class DockerService:
         container.remove(force=True)
 
         if status_code != 0:
+            # Failed installs leave the bridge; remove it so the address pool
+            # does not leak (the original reason per-tenant nets were abandoned).
+            try:
+                self.remove_network(deployment_id)
+            except Exception as exc:
+                logger.warning("cleanup network after failed provision: %s", exc)
             raise RuntimeError(f"provision container exited {status_code}: {logs[-2000:]}")
 
         return {"exit_code": status_code, "logs_tail": logs[-2000:]}
@@ -262,7 +388,6 @@ class DockerService:
         validate_deployment_id(deployment_id)
         image = validate_image(image or self._settings.tenant_image, self._settings)
         env = validate_env(env, environment_profile=environment_profile)
-        self._ensure_shared_network()
 
         return self._run_one_off(
             deployment_id=deployment_id,
@@ -294,7 +419,7 @@ class DockerService:
         env = validate_env(env, environment_profile=environment_profile)
         validate_network_name(network_name)
         validate_hostname_label(hostname_label)
-        self._ensure_shared_network()
+        network_name = self._ensure_tenant_network(deployment_id, network_name)
 
         name = tenant_container_name(deployment_id)
         self._remove_container_if_exists(name)
@@ -320,7 +445,7 @@ class DockerService:
                 image=image,
                 hostname_label=hostname_label,
             ),
-            network=self._settings.shared_network,
+            network=network_name,
             restart_policy={"Name": "unless-stopped"},
             mounts=mounts,
             **host_config,
@@ -329,10 +454,16 @@ class DockerService:
         return {
             "container_id": container.id,
             "container_name": name,
-            "networks": [self._settings.shared_network],
+            "networks": [network_name],
         }
 
-    def _connect_container_network(self, container_or_name: str | Container, network_name: str) -> None:
+    def _connect_container_network(
+        self,
+        container_or_name: str | Container,
+        network_name: str,
+        *,
+        aliases: list[str] | None = None,
+    ) -> None:
         try:
             network = self._client.networks.get(network_name)
         except NotFound as exc:
@@ -343,8 +474,12 @@ class DockerService:
         else:
             container = container_or_name
 
+        kwargs: dict[str, Any] = {}
+        if aliases:
+            kwargs["aliases"] = aliases
+
         try:
-            network.connect(container)
+            network.connect(container, **kwargs)
         except APIError as exc:
             if "already exists" not in str(exc).lower():
                 raise
@@ -375,7 +510,12 @@ class DockerService:
     def remove(self, deployment_id: str) -> dict:
         name = tenant_container_name(deployment_id)
         self._remove_container_if_exists(name)
-        return {"container_name": name, "status": "removed"}
+        network = self.remove_network(deployment_id)
+        return {
+            "container_name": name,
+            "status": "removed",
+            "network": network,
+        }
 
     def _remove_container_if_exists(self, name: str) -> None:
         try:

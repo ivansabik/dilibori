@@ -27,7 +27,11 @@ platform/runtime-agent/
   requirements.txt
 ```
 
-Tenant containers are named `dilibori-tenant-{deployment_id_short}`. Each tenant joins its deployment network and the shared `dilibori-shared` network (ProxySQL, Redis, MinIO, Mailpit). Tenants never attach to the control-plane network.
+Tenant containers are named `dilibori-tenant-{deployment_id_short}`. Each tenant
+gets its own bridge (`dilibori-net-{short}` in `10.200.0.0/16`). Ingress, ProxySQL,
+Redis, MinIO, and Mailpit are attached to that bridge with DNS aliases. Tenants
+never join `dilibori-shared` with each other, and never attach to the control-plane
+network. Failed installs remove the bridge so the address pool does not leak.
 
 ## Security model
 
@@ -51,7 +55,7 @@ Production profile: read-only rootfs, tmpfs on `/tmp`, bind mounts for storage, 
 | POST | `/tenants/create-network` | Deployment bridge network |
 | POST | `/tenants/create-database` | MariaDB DDL (direct to MariaDB, not ProxySQL) |
 | POST | `/tenants/create-redis-acl` | Redis ACL user scoped to a key prefix |
-| POST | `/tenants/create-minio-creds` | Prefix policy JSON on disk |
+| POST | `/tenants/create-minio-creds` | Create MinIO user + attach prefix policy |
 | POST | `/tenants/provision-install` | One-off install container, then remove |
 | POST | `/tenants/deploy` | Long-running tenant container |
 | POST | `/tenants/stop` | Stop tenant |
@@ -114,7 +118,10 @@ After each route update the agent sends `SIGUSR1` or `SIGHUP` to `CADDY_CONTAINE
 
 ## MinIO credentials
 
-`create-minio-creds` writes `{DATA_DIR}/minio-policies/{deployment_id}.json` with a prefix-scoped policy document. Attach that policy to the access key with your MinIO operator workflow (`mc admin policy create`, IAM, etc.). Bucket creation is attempted when missing.
+`create-minio-creds` creates a MinIO user (access key / secret), writes a
+prefix-scoped IAM policy, and attaches that policy to the user via `mc admin`.
+Policy JSON is also kept under `{DATA_DIR}/minio-policies/{deployment_id}.json`
+for audit. The runtime-agent image includes the MinIO client (`mc`).
 
 ## Typical provision flow
 
