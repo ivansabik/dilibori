@@ -74,8 +74,8 @@ final class DeploymentController
         }
 
         $cell = $this->pickCell();
-        $deploymentId = Uuid::v4();
-        $databaseName = 'ti_' . str_replace('-', '_', $tenant['slug']) . '_' . substr($deploymentId, 0, 8);
+        $deploymentId = $this->allocateUniqueDeploymentId();
+        $databaseName = 'ti_' . str_replace('-', '_', $tenant['slug']) . '_' . substr(str_replace('-', '', $deploymentId), 0, 8);
 
         try {
             $statement = $this->db->prepare(
@@ -388,6 +388,29 @@ final class DeploymentController
         $row = $this->db->query('SELECT id, name, provider FROM cells ORDER BY created_at ASC LIMIT 1')->fetch();
 
         return $row ?: null;
+    }
+
+    /**
+     * Mint a deployment UUID whose 12-char short form (alphanumeric, no hyphens)
+     * does not collide with an existing deployment. Short ids name containers,
+     * networks, DB users, Redis ACL users, and MinIO keys and cannot be renamed.
+     */
+    private function allocateUniqueDeploymentId(): string
+    {
+        $statement = $this->db->prepare(
+            "SELECT 1 FROM deployments WHERE left(replace(id::text, '-', ''), 12) = :short LIMIT 1",
+        );
+
+        for ($attempt = 0; $attempt < 16; $attempt++) {
+            $id = Uuid::v4();
+            $short = substr(str_replace('-', '', $id), 0, 12);
+            $statement->execute(['short' => $short]);
+            if (!$statement->fetchColumn()) {
+                return $id;
+            }
+        }
+
+        throw new \RuntimeException('Could not allocate a unique deployment short id');
     }
 
     private function releaseExists(string $releaseId): bool
