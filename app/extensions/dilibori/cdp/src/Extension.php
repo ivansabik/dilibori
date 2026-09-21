@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Dilibori\Cdp;
 
 use Dilibori\Cdp\Contracts\EventClient;
+use Dilibori\Cdp\Contracts\EventPublisher;
 use Dilibori\Cdp\Http\Middleware\InjectAnalyticsSnippet;
 use Dilibori\Cdp\Listeners\RegisterAnalyticsListeners;
 use Dilibori\Cdp\Support\EventClientFactory;
@@ -28,6 +29,7 @@ class Extension extends BaseExtension
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'dilibori.cdp');
 
         $this->app->singleton(EventClient::class, fn (): EventClient => EventClientFactory::make());
+        $this->app->singleton(EventPublisher::class, fn (): EventPublisher => EventClientFactory::makePublisher());
     }
 
     #[Override]

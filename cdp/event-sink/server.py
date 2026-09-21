@@ -1,20 +1,23 @@
 #!/usr/bin/env python3
-"""Local webhook sink for RudderStack — inspect events without a warehouse."""
+"""Local webhook sink for RudderStack. Inspect events without a warehouse."""
 
 from __future__ import annotations
 
 import json
 import os
 import threading
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 PORT = int(os.environ.get("EVENT_SINK_PORT", "8090"))
 DATA_PATH = Path(os.environ.get("EVENT_SINK_DATA", "/data/events.jsonl"))
 WORKSPACE_CONFIG_PATH = Path(
-    os.environ.get("EVENT_SINK_WORKSPACE_CONFIG", "/etc/rudderstack/workspaceConfig.json")
+    os.environ.get(
+        "EVENT_SINK_WORKSPACE_CONFIG",
+        "/etc/rudderstack/workspaceConfig.json",
+    )
 )
 MAX_EVENTS = int(os.environ.get("EVENT_SINK_MAX_EVENTS", "500"))
 LOCK = threading.Lock()
@@ -49,20 +52,15 @@ def source_config_for_write_key(write_key: str) -> dict | None:
 
 
 def query_param(query: str, name: str) -> str | None:
-    for part in query.split("&"):
-        if not part:
-            continue
-        key, _, value = part.partition("=")
-        if key == name:
-            from urllib.parse import unquote
-
-            return unquote(value)
-    return None
+    values = parse_qs(query, keep_blank_values=True).get(name)
+    if not values:
+        return None
+    return values[0]
 
 
 def append_events(payload: object) -> int:
     """Normalize RudderStack webhook payloads into one JSONL line per event."""
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(UTC).isoformat()
     items: list[object]
     if isinstance(payload, list):
         items = payload
@@ -84,7 +82,10 @@ def append_events(payload: object) -> int:
         # Trim file to last MAX_EVENTS lines
         lines = DATA_PATH.read_text(encoding="utf-8").splitlines()
         if len(lines) > MAX_EVENTS:
-            DATA_PATH.write_text("\n".join(lines[-MAX_EVENTS:]) + "\n", encoding="utf-8")
+            DATA_PATH.write_text(
+                "\n".join(lines[-MAX_EVENTS:]) + "\n",
+                encoding="utf-8",
+            )
     return written
 
 
@@ -92,7 +93,8 @@ def read_events(limit: int = 100) -> list[dict]:
     with LOCK:
         if not DATA_PATH.exists():
             return []
-        lines = [ln for ln in DATA_PATH.read_text(encoding="utf-8").splitlines() if ln.strip()]
+        text = DATA_PATH.read_text(encoding="utf-8")
+        lines = [ln for ln in text.splitlines() if ln.strip()]
     events: list[dict] = []
     for line in lines[-limit:]:
         try:
@@ -108,26 +110,40 @@ HTML = """<!DOCTYPE html>
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Dilibori CDP — Event Inspector</title>
+  <title>Dilibori CDP: Event Inspector</title>
   <style>
-    :root { color-scheme: light dark; font-family: ui-sans-serif, system-ui, sans-serif; }
+    :root {
+      color-scheme: light dark;
+      font-family: ui-sans-serif, system-ui, sans-serif;
+    }
     body { margin: 1.5rem; max-width: 960px; }
     h1 { font-size: 1.25rem; margin: 0 0 .25rem; }
     p.meta { color: #666; margin: 0 0 1rem; font-size: .9rem; }
-    .toolbar { display: flex; gap: .75rem; align-items: center; margin-bottom: 1rem; }
+    .toolbar {
+      display: flex; gap: .75rem; align-items: center; margin-bottom: 1rem;
+    }
     button { cursor: pointer; }
     pre {
       background: #111; color: #e8e8e8; padding: .75rem 1rem; border-radius: 6px;
       overflow: auto; font-size: .8rem; line-height: 1.4; margin: 0 0 .75rem;
     }
     .empty { color: #888; }
-    .card { border: 1px solid #4444; border-radius: 8px; padding: .75rem; margin-bottom: .75rem; }
-    .label { font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; color: #888; }
+    .card {
+      border: 1px solid #4444; border-radius: 8px;
+      padding: .75rem; margin-bottom: .75rem;
+    }
+    .label {
+      font-size: .75rem; text-transform: uppercase;
+      letter-spacing: .04em; color: #888;
+    }
   </style>
 </head>
 <body>
   <h1>Event inspector</h1>
-  <p class="meta">RudderStack webhook sink · auto-refreshes every 3s · <a href="/events.json">/events.json</a></p>
+  <p class="meta">
+    RudderStack webhook sink · auto-refreshes every 3s ·
+    <a href="/events.json">/events.json</a>
+  </p>
   <div class="toolbar">
     <button type="button" onclick="location.reload()">Refresh</button>
     <form method="post" action="/clear" style="margin:0">
@@ -211,6 +227,7 @@ class Handler(BaseHTTPRequestHandler):
                 try:
                     limit = max(1, min(MAX_EVENTS, int(raw_limit)))
                 except ValueError:
+                    # Invalid limit keeps the default of 100.
                     pass
             body = json.dumps(read_events(limit), default=str).encode("utf-8")
             self._send(200, body, "application/json")
@@ -240,7 +257,8 @@ class Handler(BaseHTTPRequestHandler):
             payload = {"raw": raw.decode("utf-8", errors="replace")}
 
         written = append_events(payload)
-        self._send(200, json.dumps({"ok": True, "written": written}).encode("utf-8"), "application/json")
+        body = json.dumps({"ok": True, "written": written}).encode("utf-8")
+        self._send(200, body, "application/json")
 
 
 def main() -> None:

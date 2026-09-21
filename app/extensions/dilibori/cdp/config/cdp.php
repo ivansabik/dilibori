@@ -12,7 +12,8 @@ return [
     | Backend event driver: rudderstack | null
     | Future: segment | kafka | …
     */
-    'driver' => env('EVENT_CLIENT_DRIVER', 'rudderstack'),
+    // PoC default is null/structured-log. Set rudderstack when that adapter is wired.
+    'driver' => env('EVENT_CLIENT_DRIVER', 'structured-log'),
 
     /*
     | Cookie shared by JS + PHP so anonymous activity stitches across SDKs.
