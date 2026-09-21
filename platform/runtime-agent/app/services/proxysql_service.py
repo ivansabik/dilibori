@@ -51,3 +51,12 @@ class ProxySqlService:
                 )
                 cursor.execute("LOAD MYSQL USERS TO RUNTIME")
                 cursor.execute("SAVE MYSQL USERS TO DISK")
+
+    def delete_mysql_user(self, *, username: str) -> None:
+        username = validate_sql_identifier(username, "username")
+
+        with self._connect() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute("DELETE FROM mysql_users WHERE username = %s", (username,))
+                cursor.execute("LOAD MYSQL USERS TO RUNTIME")
+                cursor.execute("SAVE MYSQL USERS TO DISK")

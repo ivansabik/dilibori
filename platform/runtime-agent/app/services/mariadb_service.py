@@ -68,3 +68,15 @@ class MariaDbService:
             password=password,
             max_connections=max_user_connections,
         )
+
+    def drop_database_user(self, *, database_name: str, username: str) -> None:
+        database_name = validate_sql_identifier(database_name, "database_name")
+        username = validate_sql_identifier(username, "username")
+
+        with self._connect() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(f"DROP DATABASE IF EXISTS `{database_name}`")
+                cursor.execute(f"DROP USER IF EXISTS `{username}`@`%%`")
+                cursor.execute("FLUSH PRIVILEGES")
+
+        ProxySqlService(self._settings).delete_mysql_user(username=username)

@@ -65,7 +65,8 @@ Production profile: read-only rootfs, tmpfs on `/tmp`, bind mounts for storage, 
 | POST | `/tenants/configure-route` | Caddy snippet + reload signal |
 | POST | `/tenants/backup` | gzip mysqldump |
 | POST | `/tenants/restore` | Restore from backup file name |
-| POST | `/deployments/{id}/tasks` | Control-plane task dispatcher (`create_database`, `create_secrets`, `install_release`, …) |
+| GET | `/tenants/{deployment_id}/snapshot` | Download migrate snapshot (`?file=*.tar.gz`) |
+| POST | `/deployments/{id}/tasks` | Control-plane task dispatcher (`create_database`, `create_secrets`, `export_snapshot`, `import_snapshot`, `purge`, …) |
 | GET | `/deployments/{id}/state` | Observed container state |
 | GET | `/deployments/{id}/health` | Running health for provisioning |
 
@@ -80,7 +81,7 @@ Copy `.env.example` and set at least `RUNTIME_AGENT_TOKEN`. Shared service hosts
 | `RUNTIME_AGENT_TOKEN` | Bearer token for all routes |
 | `DATA_DIR` | State root (default `/var/lib/dilibori`) |
 | `TENANT_IMAGE` / `ALLOWED_IMAGES` | Tenant image allowlist |
-| `SHARED_NETWORK` | Shared services network (default `dilibori-shared`) |
+| `SHARED_NETWORK` | Shared services network (default `dilibori-shared`). Used to pick the right compose services when multiple cells share a Docker daemon. |
 | `MARIADB_*` | Admin connection for DDL and backups |
 | `REDIS_*` | Admin Redis for ACL |
 | `MINIO_*` | Root MinIO credentials |

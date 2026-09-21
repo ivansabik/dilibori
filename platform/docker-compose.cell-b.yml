@@ -1,0 +1,180 @@
+# Second data-plane cell for local migrate / drain tests.
+# Join the control plane network from `docker-compose.yml` (must be up first).
+# No Postgres or control-plane here.
+name: dilibori-cell-b
+
+services:
+  ingress:
+    image: caddy:2.8-alpine
+    container_name: dilibori-caddy-b
+    ports:
+      - "${CELL_B_INGRESS_HTTP_PORT:-8089}:80"
+    volumes:
+      - ./ingress/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./data-cell-b/ingress/tenants:/etc/caddy/tenants:ro
+    networks:
+      - dilibori-cell-b-shared
+    restart: unless-stopped
+
+  mariadb:
+    image: mariadb:10.11
+    container_name: dilibori-mariadb-b
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-platform-root-change-me}
+      MYSQL_DATABASE: platform_meta
+    volumes:
+      - mariadb_b_data:/var/lib/mysql
+      - ./proxies/mariadb/init:/docker-entrypoint-initdb.d:ro
+    command:
+      - --max_connections=200
+      - --character-set-server=utf8mb4
+    networks:
+      dilibori-cell-b-shared:
+        aliases: [mariadb]
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+    restart: unless-stopped
+
+  proxysql:
+    image: proxysql/proxysql:2.6.3
+    container_name: dilibori-proxysql-b
+    volumes:
+      - ./proxies/proxysql/proxysql.cnf:/etc/proxysql.cnf:ro
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    networks:
+      dilibori-cell-b-shared:
+        aliases: [proxysql, mysql]
+    restart: unless-stopped
+
+  redis:
+    image: redis:7
+    container_name: dilibori-redis-b
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        if [ ! -f /data/users.acl ]; then
+          cp /seed/users.acl /data/users.acl
+        fi
+        exec redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - ./redis/users.acl:/seed/users.acl:ro
+      - ./data-cell-b/redis:/data
+    networks:
+      dilibori-cell-b-shared:
+        aliases: [redis]
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_ADMIN_PASSWORD:-platform-redis-admin}", "PING"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  minio:
+    image: quay.io/minio/minio:RELEASE.2024-12-18T13-15-44Z
+    container_name: dilibori-minio-b
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-platformminio}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-platform-minio-change-me}
+    volumes:
+      - ./data-cell-b/minio:/data
+    networks:
+      dilibori-cell-b-shared:
+        aliases: [minio]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  minio-init:
+    image: quay.io/minio/mc:RELEASE.2025-04-16T18-13-26Z
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 $${MINIO_ROOT_USER} $${MINIO_ROOT_PASSWORD};
+      mc mb -p local/dilibori-media || true;
+      exit 0;
+      "
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-platformminio}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-platform-minio-change-me}
+    networks:
+      - dilibori-cell-b-shared
+    restart: "no"
+
+  mailpit:
+    image: axllent/mailpit:v1.30.7
+    container_name: dilibori-mailpit-b
+    networks:
+      dilibori-cell-b-shared:
+        aliases: [mailpit]
+    restart: unless-stopped
+
+  runtime-agent:
+    build: ./runtime-agent
+    container_name: dilibori-runtime-agent-b
+    environment:
+      RUNTIME_AGENT_TOKEN: ${RUNTIME_AGENT_TOKEN:-platform-agent-token-change-me}
+      MARIADB_HOST: mariadb
+      MARIADB_ADMIN_USER: root
+      MARIADB_ADMIN_PASSWORD: ${MARIADB_ROOT_PASSWORD:-platform-root-change-me}
+      REDIS_HOST: redis
+      REDIS_ADMIN_PASSWORD: ${REDIS_ADMIN_PASSWORD:-platform-redis-admin}
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-platformminio}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-platform-minio-change-me}
+      TENANT_IMAGE: ${TENANT_IMAGE:-dilibori/tastyigniter:poc}
+      ALLOWED_IMAGES: ${ALLOWED_IMAGES:-dilibori/tastyigniter:poc}
+      DATA_DIR: /var/lib/dilibori
+      SHARED_NETWORK: dilibori-cell-b-shared
+      CADDY_CONTAINER_NAME: dilibori-caddy-b
+      PROXYSQL_HOST: proxysql
+      PROXYSQL_MYSQL_PORT: "6033"
+      PROXYSQL_ADMIN_HOST: proxysql
+      PROXYSQL_ADMIN_PORT: "6032"
+      PROXYSQL_ADMIN_USER: admin
+      PROXYSQL_ADMIN_PASSWORD: ${PROXYSQL_ADMIN_PASSWORD:-platform-proxysql-admin}
+      MAILPIT_HOST: mailpit
+      HOST_SEEDS_PATH: ${HOST_SEEDS_PATH:-}
+      HOST_EXTENSIONS_PATH: ${HOST_EXTENSIONS_PATH:-}
+      HOST_DATA_PATH: ${HOST_CELL_B_DATA_PATH:-}
+      HOST_APP_SEED_PATH: ${HOST_APP_SEED_PATH:-}
+      INGRESS_HTTP_PORT: ${CELL_B_INGRESS_HTTP_PORT:-8089}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data-cell-b:/var/lib/dilibori
+      - ./seeds:/opt/platform/seeds:ro
+      - ./profiles:/opt/platform/profiles:ro
+      - ../app/extensions:/opt/extensions:ro
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - dilibori-control
+      - dilibori-cell-b-shared
+    ports:
+      - "${CELL_B_RUNTIME_AGENT_PORT:-8101}:8100"
+    restart: unless-stopped
+
+networks:
+  dilibori-cell-b-shared:
+    name: dilibori-cell-b-shared
+  dilibori-control:
+    external: true
+    name: dilibori-control
+
+volumes:
+  mariadb_b_data:

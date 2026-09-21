@@ -166,6 +166,16 @@ class DockerService:
         )
         if not matches:
             return None
+        shared = self._settings.shared_network
+        on_shared: list[Container] = []
+        for container in matches:
+            container.reload()
+            networks = (container.attrs.get("NetworkSettings") or {}).get("Networks") or {}
+            if shared in networks:
+                on_shared.append(container)
+        if on_shared:
+            return on_shared[0]
+        # Fallback for agents that share one compose project.
         return matches[0]
 
     def _assert_short_id_available(self, deployment_id: str) -> None:
@@ -498,7 +508,11 @@ class DockerService:
         return self._client.containers.get(name)
 
     def stop(self, deployment_id: str) -> dict:
-        container = self._get_tenant_container(deployment_id)
+        name = tenant_container_name(deployment_id)
+        try:
+            container = self._get_tenant_container(deployment_id)
+        except NotFound:
+            return {"container_name": name, "status": "absent"}
         container.stop(timeout=30)
         return {"container_name": container.name, "status": "stopped"}
 

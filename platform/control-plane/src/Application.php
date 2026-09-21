@@ -2,8 +2,10 @@
 
 namespace Dilibori\ControlPlane;
 
+use Dilibori\ControlPlane\Contracts\RuntimeAgentClientInterface;
 use Dilibori\ControlPlane\Services\AuditLogger;
 use Dilibori\ControlPlane\Services\ConfigResolver;
+use Dilibori\ControlPlane\Services\MigrationStateMachine;
 use Dilibori\ControlPlane\Services\ProvisioningStateMachine;
 use Dilibori\ControlPlane\Services\Reconciler;
 use Dilibori\ControlPlane\Services\RuntimeAgentClient;
@@ -30,10 +32,31 @@ final class Application
 
     public function runtimeAgent(): RuntimeAgentClient
     {
+        return $this->runtimeAgentForCell(null);
+    }
+
+    public function runtimeAgentForCell(?string $cellId): RuntimeAgentClient
+    {
+        $url = (string) $this->config['runtime_agent_url'];
+        if ($cellId !== null && $cellId !== '') {
+            $statement = $this->db()->prepare('SELECT agent_url FROM cells WHERE id = :id');
+            $statement->execute(['id' => $cellId]);
+            $row = $statement->fetch();
+            if (is_array($row) && !empty($row['agent_url'])) {
+                $url = rtrim((string) $row['agent_url'], '/');
+            }
+        }
+
         return new RuntimeAgentClient(
-            (string) $this->config['runtime_agent_url'],
+            $url,
             (string) $this->config['runtime_agent_token'],
         );
+    }
+
+    /** @return callable(?string): RuntimeAgentClientInterface */
+    public function runtimeAgentResolver(): callable
+    {
+        return fn (?string $cellId) => $this->runtimeAgentForCell($cellId);
     }
 
     public function audit(): AuditLogger
@@ -57,7 +80,17 @@ final class Application
     public function provisioning(): ProvisioningStateMachine
     {
         return ProvisioningStateMachine::make(
-            $this->runtimeAgent(),
+            $this->runtimeAgentResolver(),
+            $this->secretStore(),
+            $this->configResolver(),
+            $this->audit(),
+        );
+    }
+
+    public function migration(): MigrationStateMachine
+    {
+        return MigrationStateMachine::make(
+            $this->runtimeAgentResolver(),
             $this->secretStore(),
             $this->configResolver(),
             $this->audit(),
@@ -66,7 +99,11 @@ final class Application
 
     public function reconciler(): Reconciler
     {
-        return Reconciler::make($this->runtimeAgent(), $this->secretStore(), $this->audit());
+        return Reconciler::make(
+            $this->runtimeAgentResolver(),
+            $this->secretStore(),
+            $this->audit(),
+        );
     }
 
     /** @return array<string, mixed> */

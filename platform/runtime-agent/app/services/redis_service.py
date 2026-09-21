@@ -62,3 +62,9 @@ class RedisService:
         )
         # Persist to /data/users.acl so tenant users survive Redis restarts.
         client.execute_command("ACL", "SAVE")
+
+    def delete_acl_user(self, *, username: str) -> None:
+        username = validate_sql_identifier(username, "username")
+        client = self._admin_client()
+        client.execute_command("ACL", "DELUSER", username)
+        client.execute_command("ACL", "SAVE")

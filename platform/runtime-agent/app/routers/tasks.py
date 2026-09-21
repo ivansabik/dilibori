@@ -17,7 +17,9 @@ from app.services.caddy_snippet import effective_noindex
 from app.services.docker_service import DockerService
 from app.services.mariadb_service import MariaDbService
 from app.services.minio_service import MinioService
+from app.services.purge_service import PurgeService
 from app.services.redis_service import RedisService
+from app.services.snapshot_service import SnapshotService
 from app.utils.naming import (
     default_network_name,
     deployment_id_short,
@@ -75,7 +77,7 @@ def enqueue_task(
         if action == "create_database":
             database_name = payload.get("database_name") or f"ti_{deployment_id_short(deployment_id)}"
             username = _db_user(deployment_id)
-            password = str(payload.get("db_password") or _password())
+            password = str(payload.get("db_password") or payload.get("DB_PASSWORD") or _password())
             max_conn = int((payload.get("config") or {}).get("MAX_USER_CONNECTIONS") or 5)
             MariaDbService(settings).create_database_user(
                 database_name=database_name,
@@ -111,17 +113,22 @@ def enqueue_task(
             return {"ok": True}
 
         if action == "create_secrets":
-            prefix = f"ti:{deployment_id_short(deployment_id)}:"
-            redis_user = f"r_{deployment_id_short(deployment_id)}"
-            redis_password = _password()
+            prefix = str(payload.get("REDIS_PREFIX") or f"ti:{deployment_id_short(deployment_id)}:")
+            redis_user = str(payload.get("REDIS_USERNAME") or f"r_{deployment_id_short(deployment_id)}")
+            redis_password = str(payload.get("REDIS_PASSWORD") or _password())
             RedisService(settings).create_acl_user(
                 username=redis_user,
                 password=redis_password,
                 key_prefix=prefix,
             )
-            access_key = f"AK{deployment_id_short(deployment_id).upper()}"
-            secret_key = _password(32)
-            media_prefix = f"tenants/{payload.get('tenant_id', deployment_id)}/"
+            access_key = str(
+                payload.get("MINIO_ACCESS_KEY") or f"AK{deployment_id_short(deployment_id).upper()}"
+            )
+            secret_key = str(payload.get("MINIO_SECRET_KEY") or _password(32))
+            media_prefix = str(
+                payload.get("MINIO_PREFIX")
+                or f"tenants/{payload.get('tenant_id', deployment_id)}/"
+            )
             MinioService(settings).create_tenant_credentials(
                 deployment_id=deployment_id,
                 access_key=access_key,
@@ -190,6 +197,58 @@ def enqueue_task(
             observed = docker_svc.observe(deployment_id)
             healthy = bool(observed.get("running"))
             return {"ok": True, "healthy": healthy, "observed": observed}
+
+        if action == "stop":
+            data = docker_svc.stop(deployment_id)
+            return {"ok": True, "data": data}
+
+        if action == "remove_runtime":
+            data = docker_svc.remove(deployment_id)
+            return {"ok": True, "data": data}
+
+        if action == "export_snapshot":
+            data = SnapshotService(settings).export_snapshot(
+                deployment_id=deployment_id,
+                database_name=str(payload.get("database_name") or ""),
+                tenant_id=str(payload.get("tenant_id") or deployment_id),
+                minio_prefix=payload.get("MINIO_PREFIX") or payload.get("minio_prefix"),
+            )
+            return {"ok": True, **data}
+
+        if action == "import_snapshot":
+            source_url = str(payload.get("source_url") or "")
+            source_token = str(payload.get("source_token") or "")
+            if not source_url or not source_token:
+                raise HTTPException(status_code=400, detail="source_url and source_token are required")
+            data = SnapshotService(settings).import_snapshot(
+                deployment_id=deployment_id,
+                database_name=str(payload.get("database_name") or ""),
+                tenant_id=str(payload.get("tenant_id") or deployment_id),
+                source_url=source_url,
+                source_token=source_token,
+                minio_prefix=payload.get("MINIO_PREFIX") or payload.get("minio_prefix"),
+            )
+            return {"ok": True, **data}
+
+        if action == "purge":
+            data = PurgeService(settings).purge(
+                deployment_id=deployment_id,
+                database_name=str(payload.get("database_name") or ""),
+                hostname=str(payload.get("hostname") or ""),
+                redis_username=str(payload.get("REDIS_USERNAME") or ""),
+                minio_access_key=str(payload.get("MINIO_ACCESS_KEY") or ""),
+                minio_prefix=str(payload.get("MINIO_PREFIX") or ""),
+                tenant_id=str(payload.get("tenant_id") or ""),
+                remove_runtime=bool(payload.get("remove_runtime", True)),
+            )
+            return {"ok": True, **data}
+
+        if action == "remove_route":
+            client = docker.from_env()
+            data = CaddyService(settings, client).remove_route(
+                hostname=str(payload.get("hostname") or ""),
+            )
+            return {"ok": True, "data": data}
 
         raise HTTPException(status_code=400, detail=f"unknown action: {action}")
     except HTTPException:

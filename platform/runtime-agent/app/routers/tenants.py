@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import FileResponse
 
 from app.auth import require_token
 from app.config import Settings, get_settings
@@ -23,6 +24,7 @@ from app.services.docker_service import DockerService
 from app.services.mariadb_service import MariaDbService
 from app.services.minio_service import MinioService
 from app.services.redis_service import RedisService
+from app.services.snapshot_service import SnapshotService
 from app.utils.naming import validate_deployment_id
 
 router = APIRouter(prefix="/tenants", tags=["tenants"])
@@ -34,6 +36,29 @@ def _bad_request(exc: Exception) -> HTTPException:
 
 def _server_error(exc: Exception) -> HTTPException:
     return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc))
+
+
+@router.get("/{deployment_id}/snapshot")
+def download_snapshot(
+    deployment_id: str,
+    file: str,
+    _: None = Depends(require_token),
+    settings: Settings = Depends(get_settings),
+) -> FileResponse:
+    try:
+        validate_deployment_id(deployment_id)
+        path = SnapshotService(settings).snapshot_path(deployment_id, file)
+        if not path.is_file():
+            raise FileNotFoundError(f"snapshot not found: {file}")
+    except (ValueError, FileNotFoundError) as exc:
+        raise _bad_request(exc) from exc
+    except Exception as exc:
+        raise _server_error(exc) from exc
+    return FileResponse(
+        path,
+        media_type="application/gzip",
+        filename=file,
+    )
 
 
 @router.post("/create-network", response_model=OkResponse)

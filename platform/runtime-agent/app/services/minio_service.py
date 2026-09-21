@@ -170,3 +170,78 @@ class MinioService:
             "user_created": True,
             "policy_attached": True,
         }
+
+    def export_prefix(self, *, bucket: str, prefix: str, dest_dir: Path) -> int:
+        prefix = prefix.strip("/")
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        count = 0
+        for obj in self._client.list_objects(bucket, prefix=f"{prefix}/", recursive=True):
+            if obj.is_dir:
+                continue
+            relative = obj.object_name[len(prefix) :].lstrip("/")
+            if not relative:
+                continue
+            target = dest_dir / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            self._client.fget_object(bucket, obj.object_name, str(target))
+            count += 1
+        return count
+
+    def import_prefix(self, *, bucket: str, prefix: str, source_dir: Path) -> int:
+        prefix = prefix.strip("/")
+        if not self._client.bucket_exists(bucket):
+            self._client.make_bucket(bucket)
+        if not source_dir.is_dir():
+            return 0
+        count = 0
+        for path in source_dir.rglob("*"):
+            if not path.is_file():
+                continue
+            relative = path.relative_to(source_dir).as_posix()
+            object_name = f"{prefix}/{relative}"
+            self._client.fput_object(bucket, object_name, str(path))
+            count += 1
+        return count
+
+    def delete_tenant(
+        self,
+        *,
+        deployment_id: str,
+        access_key: str,
+        bucket: str,
+        prefix: str,
+    ) -> dict:
+        prefix = prefix.strip("/")
+        policy_name = f"dilibori-{deployment_id[:24]}"
+        deleted_objects = 0
+        if prefix:
+            for obj in self._client.list_objects(bucket, prefix=f"{prefix}/", recursive=True):
+                if obj.is_dir:
+                    continue
+                self._client.remove_object(bucket, obj.object_name)
+                deleted_objects += 1
+
+        alias = self._ensure_alias()
+        mc = shutil.which("mc") or "mc"
+        subprocess.run(
+            [mc, "admin", "user", "remove", alias, access_key],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        subprocess.run(
+            [mc, "admin", "policy", "remove", alias, policy_name],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+        policy_path = Path(self._settings.data_dir) / "minio-policies" / f"{deployment_id}.json"
+        policy_path.unlink(missing_ok=True)
+        policy_path.with_suffix(".policy.json").unlink(missing_ok=True)
+
+        return {
+            "access_key": access_key,
+            "deleted_objects": deleted_objects,
+            "policy_name": policy_name,
+        }

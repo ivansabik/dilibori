@@ -15,6 +15,7 @@ final class Deployment
         'active',
         'failed',
         'suspended',
+        'migrating',
     ];
 
     /** @param array<string, mixed> $row */

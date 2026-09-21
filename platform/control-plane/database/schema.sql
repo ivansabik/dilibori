@@ -13,7 +13,8 @@ CREATE TYPE deployment_status AS ENUM (
     'health_check',
     'active',
     'failed',
-    'suspended'
+    'suspended',
+    'migrating'
 );
 CREATE TYPE suspension_state AS ENUM ('none', 'suspended', 'pending_suspend');
 CREATE TYPE backup_state AS ENUM ('none', 'in_progress', 'completed', 'failed');
@@ -23,6 +24,8 @@ CREATE TABLE cells (
     name VARCHAR(255) NOT NULL,
     provider VARCHAR(64) NOT NULL,
     capacity_metadata JSONB NOT NULL DEFAULT '{}',
+    agent_url VARCHAR(512),
+    schedulable BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -63,6 +66,7 @@ CREATE TABLE deployments (
 
 CREATE INDEX deployments_tenant_id_idx ON deployments (tenant_id);
 CREATE INDEX deployments_status_idx ON deployments (status);
+CREATE INDEX deployments_cell_id_idx ON deployments (cell_id);
 
 -- At most one live deployment per tenant + environment (failed/suspended excluded).
 CREATE UNIQUE INDEX deployments_one_live_per_tenant_env_idx

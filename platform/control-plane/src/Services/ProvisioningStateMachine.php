@@ -33,22 +33,29 @@ final class ProvisioningStateMachine
         'health_check' => 'health_check',
     ];
 
+    /** @param callable(?string): RuntimeAgentClientInterface $agentResolver */
     public function __construct(
         private PDO $db,
-        private RuntimeAgentClientInterface $runtimeAgent,
+        private $agentResolver,
         private SecretStore $secretStore,
         private ConfigResolver $configResolver,
         private AuditLogger $audit,
     ) {
     }
 
+    /** @param callable(?string): RuntimeAgentClientInterface $agentResolver */
     public static function make(
-        RuntimeAgentClientInterface $runtimeAgent,
+        callable $agentResolver,
         SecretStore $secretStore,
         ConfigResolver $configResolver,
         AuditLogger $audit,
     ): self {
-        return new self(Database::connection(), $runtimeAgent, $secretStore, $configResolver, $audit);
+        return new self(Database::connection(), $agentResolver, $secretStore, $configResolver, $audit);
+    }
+
+    private function agent(?string $cellId): RuntimeAgentClientInterface
+    {
+        return ($this->agentResolver)($cellId);
     }
 
     /** @return array<string, mixed> */
@@ -112,7 +119,8 @@ final class ProvisioningStateMachine
                     }
                 }
 
-                $response = $this->runtimeAgent->enqueue($action, $deploymentId, $payload);
+                $agent = $this->agent($deployment['cell_id'] ?? null);
+                $response = $agent->enqueue($action, $deploymentId, $payload);
 
                 if (($response['ok'] ?? true) === false) {
                     throw new RuntimeException((string) ($response['error'] ?? $response['detail'] ?? 'runtime agent rejected task'));
@@ -148,7 +156,7 @@ final class ProvisioningStateMachine
             }
 
             if ($next === 'active' && $status === 'health_check') {
-                $health = $this->runtimeAgent->health($deploymentId);
+                $health = $this->agent($deployment['cell_id'] ?? null)->health($deploymentId);
                 if (($health['healthy'] ?? false) !== true) {
                     throw new RuntimeException('Health check failed');
                 }

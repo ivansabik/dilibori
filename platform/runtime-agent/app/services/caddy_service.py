@@ -66,6 +66,26 @@ class CaddyService:
             "reload": reload_result,
         }
 
+    def remove_route(self, *, hostname: str) -> dict:
+        hostname = validate_hostname(hostname)
+        snippet_dir = Path(self._settings.data_dir) / "ingress" / "tenants"
+        safe_name = hostname.replace(".", "_")
+        snippet_path = snippet_dir / f"{safe_name}.caddy"
+        removed = []
+        if snippet_path.is_file():
+            snippet_path.unlink()
+            removed.append(str(snippet_path))
+        for stale in snippet_dir.glob("*.caddy"):
+            try:
+                text = stale.read_text(encoding="utf-8")
+            except OSError:
+                continue
+            if text.lstrip().startswith(f"{hostname} ") or text.lstrip().startswith(f"{hostname}{{") or f"{hostname} {{" in text:
+                stale.unlink(missing_ok=True)
+                removed.append(str(stale))
+        reload_result = self._signal_reload() if removed else {"attempted": False, "reason": "no snippet"}
+        return {"hostname": hostname, "removed": removed, "reload": reload_result}
+
     def _signal_reload(self) -> dict:
         name = self._settings.caddy_container_name
         try:

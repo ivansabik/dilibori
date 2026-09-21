@@ -11,7 +11,7 @@ HOST_EXTENSIONS_PATH ?= $(REPO_ROOT)/app/extensions
 HOST_DATA_PATH ?= $(PLATFORM_DIR)/data
 HOST_APP_SEED_PATH ?= $(REPO_ROOT)/app/seed
 
-.PHONY: help build-app up down logs ps test lint pilots capacity env-copy reconcile
+.PHONY: help build-app up down logs ps test lint pilots capacity env-copy reconcile cell-b-up cell-b-down migrate-schema
 
 help:
 	@echo ""
@@ -21,6 +21,9 @@ help:
 	@echo "  make build-app    Build immutable TastyIgniter image"
 	@echo "  make up           Start shared cell services"
 	@echo "  make down         Stop shared cell services"
+	@echo "  make cell-b-up    Start second data-plane cell (migrate tests)"
+	@echo "  make cell-b-down  Stop second data-plane cell"
+	@echo "  make migrate-schema  Apply control-plane SQL migrations"
 	@echo "  make test         Run contract and policy tests"
 	@echo "  make lint         Ruff check + format --check (platform + cdp)"
 	@echo "  make pilots       Provision both pilot tenants via control plane"
@@ -43,6 +46,9 @@ env-copy:
 	@grep -q '^HOST_APP_SEED_PATH=' $(PLATFORM_DIR)/.env \
 		&& sed -i.bak 's|^HOST_APP_SEED_PATH=.*|HOST_APP_SEED_PATH=$(HOST_APP_SEED_PATH)|' $(PLATFORM_DIR)/.env \
 		|| echo "HOST_APP_SEED_PATH=$(HOST_APP_SEED_PATH)" >> $(PLATFORM_DIR)/.env
+	@grep -q '^HOST_CELL_B_DATA_PATH=' $(PLATFORM_DIR)/.env \
+		&& sed -i.bak 's|^HOST_CELL_B_DATA_PATH=.*|HOST_CELL_B_DATA_PATH=$(PLATFORM_DIR)/data-cell-b|' $(PLATFORM_DIR)/.env \
+		|| echo "HOST_CELL_B_DATA_PATH=$(PLATFORM_DIR)/data-cell-b" >> $(PLATFORM_DIR)/.env
 	@rm -f $(PLATFORM_DIR)/.env.bak
 	@echo "Wrote platform/.env"
 
@@ -96,3 +102,26 @@ pilots:
 
 reconcile:
 	curl -sf -X POST http://127.0.0.1:$${CONTROL_PLANE_PORT:-8099}/reconcile -H 'Content-Type: application/json' -d '{}' | python3 -m json.tool
+
+cell-b-up: env-copy
+	mkdir -p $(PLATFORM_DIR)/data-cell-b/ingress/tenants $(PLATFORM_DIR)/data-cell-b/redis $(PLATFORM_DIR)/data-cell-b/minio $(PLATFORM_DIR)/data-cell-b/tenants $(PLATFORM_DIR)/data-cell-b/snapshots
+	HOST_SEEDS_PATH=$(HOST_SEEDS_PATH) \
+	HOST_EXTENSIONS_PATH=$(HOST_EXTENSIONS_PATH) \
+	HOST_CELL_B_DATA_PATH=$(PLATFORM_DIR)/data-cell-b \
+	HOST_APP_SEED_PATH=$(HOST_APP_SEED_PATH) \
+	TENANT_IMAGE=$(TENANT_IMAGE) \
+	docker compose -f $(PLATFORM_DIR)/docker-compose.cell-b.yml --env-file $(PLATFORM_DIR)/.env up -d --build
+	@echo "Cell B agent:   http://127.0.0.1:$${CELL_B_RUNTIME_AGENT_PORT:-8101}"
+	@echo "Cell B ingress: http://127.0.0.1:$${CELL_B_INGRESS_HTTP_PORT:-8089}"
+	@echo "Register with: POST /cells {\"name\":\"local-b\",\"agent_url\":\"http://dilibori-runtime-agent-b:8100\",\"capacity_metadata\":{\"max_deployments\":16,\"ingress_base_url\":\"http://127.0.0.1:8089\"}}"
+
+cell-b-down:
+	docker compose -f $(PLATFORM_DIR)/docker-compose.cell-b.yml --env-file $(PLATFORM_DIR)/.env down
+
+migrate-schema:
+	@echo "Applying control-plane migrations..."
+	@docker compose -f $(PLATFORM_DIR)/docker-compose.yml --env-file $(PLATFORM_DIR)/.env exec -T postgres \
+		psql -U controlplane -d controlplane < $(PLATFORM_DIR)/control-plane/database/migrations/002_cell_migrate.sql
+	@docker compose -f $(PLATFORM_DIR)/docker-compose.yml --env-file $(PLATFORM_DIR)/.env exec -T postgres \
+		psql -U controlplane -d controlplane -c "UPDATE cells SET agent_url = COALESCE(NULLIF(agent_url, ''), 'http://runtime-agent:8100'), capacity_metadata = capacity_metadata || '{\"ingress_base_url\":\"http://127.0.0.1:8088\"}'::jsonb WHERE name = 'local-dev';"
+	@echo "Done."

@@ -17,4 +17,5 @@ platform/data/tenants/
 platform/data/backups/
 platform/data/ingress/tenants/*.caddy
 platform/data/minio-policies/*.json
+platform/data-cell-b/
 !platform/data/**/.gitkeep

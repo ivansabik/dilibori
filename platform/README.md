@@ -83,3 +83,28 @@ make capacity
 Idle memory per tenant is the primary density limit for the $49 plan. Connection budgets are tracked separately for MariaDB and PostgreSQL.
 
 For whether that cell model reaches ~1000 tenants, see [docs/scale-findings.md](docs/scale-findings.md).
+
+## Second cell (migrate / drain)
+
+```sh
+make up          # control plane + cell A
+make cell-b-up   # data plane only on ports 8101 / 8089
+make migrate-schema   # if the Postgres volume predates agent_url / migrating
+```
+
+Register cell B, then move a deployment:
+
+```sh
+curl -s localhost:8099/cells -H 'Content-Type: application/json' -d '{
+  "name":"local-b",
+  "agent_url":"http://dilibori-runtime-agent-b:8100",
+  "capacity_metadata":{"max_deployments":16,"ingress_base_url":"http://127.0.0.1:8089"}
+}'
+
+curl -s -X POST localhost:8099/deployments/{id}/migrate \
+  -H 'Content-Type: application/json' \
+  -d '{"target_cell_id":"<cell-b-uuid>"}'
+```
+
+Drain empties a cell into another: `POST /cells/{id}/drain` with `target_cell_id`.
+The source cell is marked unschedulable so new reserves do not refill it.

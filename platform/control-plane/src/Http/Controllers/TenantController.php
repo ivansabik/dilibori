@@ -169,7 +169,7 @@ final class TenantController
     private function reapplyIngressRoutes(string $tenantId, bool $noindex): array
     {
         $statement = $this->db->prepare(
-            "SELECT id, hostname, environment, status FROM deployments
+            "SELECT id, cell_id, hostname, environment, status FROM deployments
              WHERE tenant_id = :tenant_id
                AND status IN ('active', 'health_check', 'configuring_route')
                AND hostname IS NOT NULL
@@ -180,7 +180,7 @@ final class TenantController
 
         $results = [];
         foreach ($deployments as $deployment) {
-            $response = $this->app->runtimeAgent()->enqueue('configure_route', $deployment['id'], [
+            $response = $this->app->runtimeAgentForCell($deployment['cell_id'] ?? null)->enqueue('configure_route', $deployment['id'], [
                 'hostname' => $deployment['hostname'],
                 'environment' => $deployment['environment'],
                 'noindex' => $noindex,

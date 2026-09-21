@@ -15,6 +15,9 @@ python3 tests/test_isolation_contracts.py
 echo "== scale one-way doors =="
 python3 tests/test_scale_one_way_doors.py
 
+echo "== migrate contracts =="
+python3 tests/test_migrate_contracts.py
+
 echo "== one live deployment =="
 python3 tests/test_one_live_deployment.py
 

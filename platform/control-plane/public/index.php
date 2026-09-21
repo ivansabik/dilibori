@@ -47,10 +47,14 @@ $router->post('/deployments/{id}/rollback', fn (Request $request) => $deployment
 $router->post('/deployments/{id}/backup', fn (Request $request) => $deployments->backup($request));
 $router->post('/deployments/{id}/restore', fn (Request $request) => $deployments->restore($request));
 $router->post('/deployments/{id}/support-access', fn (Request $request) => $deployments->supportAccess($request));
+$router->post('/deployments/{id}/migrate', fn (Request $request) => $deployments->migrate($request));
 
 $router->post('/reconcile', fn (Request $request) => $reconcile->run($request));
 
 $router->get('/cells', fn () => $cells->index());
+$router->post('/cells', fn (Request $request) => $cells->store($request));
+$router->patch('/cells/{id}', fn (Request $request) => $cells->update($request));
+$router->post('/cells/{id}/drain', fn (Request $request) => $cells->drain($request));
 $router->get('/releases', fn () => $releases->index());
 $router->post('/releases', fn (Request $request) => $releases->store($request));
 

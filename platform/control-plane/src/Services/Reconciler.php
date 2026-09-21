@@ -9,27 +9,34 @@ use PDO;
 
 final class Reconciler
 {
+    /** @param callable(?string): RuntimeAgentClientInterface $agentResolver */
     public function __construct(
         private PDO $db,
-        private RuntimeAgentClientInterface $runtimeAgent,
+        private $agentResolver,
         private SecretStore $secretStore,
         private AuditLogger $audit,
     ) {
     }
 
+    /** @param callable(?string): RuntimeAgentClientInterface $agentResolver */
     public static function make(
-        RuntimeAgentClientInterface $runtimeAgent,
+        callable $agentResolver,
         SecretStore $secretStore,
         AuditLogger $audit,
     ): self {
-        return new self(Database::connection(), $runtimeAgent, $secretStore, $audit);
+        return new self(Database::connection(), $agentResolver, $secretStore, $audit);
+    }
+
+    private function agent(?string $cellId): RuntimeAgentClientInterface
+    {
+        return ($this->agentResolver)($cellId);
     }
 
     /** @return array{checked: int, repaired: int, drift: list<array<string, mixed>>} */
     public function reconcile(?string $actor = null): array
     {
         $statement = $this->db->query(
-            "SELECT d.id, d.tenant_id, d.desired_release, d.config_checksum, d.status, d.runtime_refs,
+            "SELECT d.id, d.tenant_id, d.cell_id, d.desired_release, d.config_checksum, d.status, d.runtime_refs,
                     d.hostname, d.environment, t.noindex AS tenant_noindex
              FROM deployments d
              JOIN tenants t ON t.id = d.tenant_id
@@ -41,15 +48,16 @@ final class Reconciler
         $drift = [];
 
         foreach ($deployments as $deployment) {
-            if ($this->ensureRedisAcl($deployment, $actor)) {
+            $cellId = $deployment['cell_id'] ?? null;
+            if ($this->ensureRedisAcl($deployment, $cellId, $actor)) {
                 $repaired++;
             }
 
-            if ($this->ensureIngressNoindex($deployment, $actor)) {
+            if ($this->ensureIngressNoindex($deployment, $cellId, $actor)) {
                 $repaired++;
             }
 
-            $observed = $this->runtimeAgent->observedState($deployment['id']);
+            $observed = $this->agent($cellId)->observedState($deployment['id']);
             if (($observed['ok'] ?? true) === false) {
                 $drift[] = [
                     'deployment_id' => $deployment['id'],
@@ -67,7 +75,7 @@ final class Reconciler
 
             foreach ($issues as $issue) {
                 $drift[] = array_merge(['deployment_id' => $deployment['id']], $issue);
-                if ($this->repairSafe($deployment, $issue, $actor)) {
+                if ($this->repairSafe($deployment, $cellId, $issue, $actor)) {
                     $repaired++;
                 }
             }
@@ -87,7 +95,7 @@ final class Reconciler
     }
 
     /** @param array<string, mixed> $deployment */
-    private function ensureRedisAcl(array $deployment, ?string $actor): bool
+    private function ensureRedisAcl(array $deployment, ?string $cellId, ?string $actor): bool
     {
         try {
             $payload = [
@@ -99,7 +107,7 @@ final class Reconciler
             return false;
         }
 
-        $response = $this->runtimeAgent->enqueue('ensure_redis_acl', $deployment['id'], $payload);
+        $response = $this->agent($cellId)->enqueue('ensure_redis_acl', $deployment['id'], $payload);
         if (($response['ok'] ?? true) === false) {
             $this->audit->log(
                 'reconcile.redis_acl_failed',
@@ -117,14 +125,14 @@ final class Reconciler
     }
 
     /** @param array<string, mixed> $deployment */
-    private function ensureIngressNoindex(array $deployment, ?string $actor): bool
+    private function ensureIngressNoindex(array $deployment, ?string $cellId, ?string $actor): bool
     {
         $hostname = trim((string) ($deployment['hostname'] ?? ''));
         if ($hostname === '') {
             return false;
         }
 
-        $response = $this->runtimeAgent->enqueue('configure_route', $deployment['id'], [
+        $response = $this->agent($cellId)->enqueue('configure_route', $deployment['id'], [
             'hostname' => $hostname,
             'environment' => (string) ($deployment['environment'] ?? ''),
             'noindex' => Tenant::asBool($deployment['tenant_noindex'] ?? false),
@@ -185,7 +193,7 @@ final class Reconciler
     /** @param array<string, mixed> $deployment
      * @param array<string, mixed> $issue
      */
-    private function repairSafe(array $deployment, array $issue, ?string $actor): bool
+    private function repairSafe(array $deployment, ?string $cellId, array $issue, ?string $actor): bool
     {
         $repairable = ['config_checksum_mismatch', 'release_mismatch'];
         if (!in_array($issue['issue'], $repairable, true)) {
@@ -197,7 +205,7 @@ final class Reconciler
             ? ['release_id' => $deployment['desired_release']]
             : ['config_checksum' => $deployment['config_checksum']];
 
-        $response = $this->runtimeAgent->enqueue($action, $deployment['id'], $payload);
+        $response = $this->agent($cellId)->enqueue($action, $deployment['id'], $payload);
         if (($response['ok'] ?? true) === false) {
             return false;
         }

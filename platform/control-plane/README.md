@@ -78,9 +78,13 @@ All responses are JSON unless noted. Pass `X-Actor: your-name` on mutating calls
 | POST | `/deployments/{id}/restore` | Body: `{ "snapshot_id?" }` |
 | POST | `/deployments/{id}/support-access` | Body: `{ "reason", "ttl_seconds" }` |
 | POST | `/reconcile` | Compare desired vs observed, repair safe drift |
-| GET | `/cells` | List capacity cells |
+| GET | `/cells` | List capacity cells (`agent_url`, `schedulable`, metadata) |
+| POST | `/cells` | Body: `{ "name", "agent_url", "provider?", "capacity_metadata?", "schedulable?" }` |
+| PATCH | `/cells/{id}` | Body: `{ "agent_url?", "schedulable?", "capacity_metadata?" }` |
+| POST | `/cells/{id}/drain` | Body: `{ "target_cell_id" }`. Marks source unschedulable, migrates live deployments one by one. |
 | GET | `/releases` | List image releases |
 | POST | `/releases` | Body: `{ "image_digest", "image_tag", "notes?" }` |
+| POST | `/deployments/{id}/migrate` | Body: `{ "target_cell_id" }`. Stop-copy-start move to another cell (same deployment id). |
 
 Example:
 
@@ -92,11 +96,18 @@ curl -s localhost:8080/tenants/demo/deployments -H 'Content-Type: application/js
   -d '{"environment":"development","seed_bundle":"taconazo"}'
 
 curl -s -X POST localhost:8080/deployments/{id}/provision
+
+# After make cell-b-up and POST /cells for local-b:
+curl -s -X POST localhost:8080/deployments/{id}/migrate \
+  -H 'Content-Type: application/json' \
+  -d '{"target_cell_id":"<cell-b-uuid>"}'
 ```
 
 ## Runtime agent contract
 
-The control plane does not run containers or databases itself. It calls the runtime agent at `RUNTIME_AGENT_URL` with a bearer token when configured.
+The control plane does not run containers or databases itself. It calls the
+runtime agent for the deployment's cell (`cells.agent_url`, falling back to
+`RUNTIME_AGENT_URL`) with a bearer token when configured.
 
 ### Enqueue task
 
@@ -121,6 +132,14 @@ Actions the provisioner emits in order:
 6. `health_check`
 
 Lifecycle actions: `suspend`, `resume`, `deploy_release`, `rollback_release`, `backup`, `restore`, `support_access`, `apply_config`.
+
+Migrate actions (same deployment id, stop-copy-start):
+
+1. `stop` / `export_snapshot` / `remove_runtime` on the source agent
+2. `create_database` / `create_secrets` / `import_snapshot` (dest pulls `GET /tenants/{id}/snapshot?file=...`) / `create_runtime` / `configure_route` / `health_check` on the dest agent
+3. Control plane updates `cell_id`, then `purge` on the source agent
+
+Redis keys are not copied. Sessions and cache reset on the destination.
 
 The payload includes resolved config (non-secret), checksum, hostname, database name, seed bundle, and desired release when set.
 

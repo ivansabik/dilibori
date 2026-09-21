@@ -25,25 +25,29 @@ tenants each), so roughly 40-65 cells, driven by one control plane.
 | Cells for 1000 tenants | ~63-72 | 1000 / 16 |
 | Seeded `max_deployments` | 50 (unchecked at reserve) | `control-plane/database/seed.sql` |
 
-`DeploymentController::pickCell()` returns the first cell row and ignores
-`capacity_metadata`. There is one runtime agent and one compose stack. The
-`cells` table models multi-cell; nothing else does yet.
+`DeploymentController::pickCell()` picks the least-loaded schedulable cell under
+`capacity_metadata.max_deployments` (default 16). Cells store `agent_url` so the
+control plane can call more than one runtime agent. Local PoC still ships one
+compose stack by default; `make cell-b-up` starts a second data plane for migrate
+tests.
 
 ## Culprits (ranked)
 
 Hard blockers on one host (fail around 20-50 tenants):
 
-1. **No capacity-aware placement.** Reserve never checks occupancy or agent
-   `/capacity`. Overpacking is silent.
+1. **Capacity-aware placement is in place**, but ProxySQL budget is still not
+   checked at reserve (only `max_deployments` occupancy).
 2. **Synchronous provisioning.** `ProvisioningStateMachine::advance()` walks
    the whole state machine inside one HTTP request, including a 900s install
-   wait. No queue, no parallelism across tenants.
+   wait. Migrate is synchronous the same way. No queue, no parallelism across
+   tenants.
 3. **Sequential reconcile.** `Reconciler::reconcile()` does 2+ sync HTTP calls
    per active deployment (ACL ensure + observe), each with a 900s client
    timeout, plus Redis `ACL SAVE` per tenant per pass. At 1000 actives that is
    hours per pass.
 4. **Shared Redis `maxmemory 256mb` with `allkeys-lru`.** One noisy tenant
-   evicts everyone else's cache and sessions.
+   evicts everyone else's cache and sessions on that cell. Mitigate by
+   migrating the noisy deployment to another cell.
 
 Isolation gaps that get worse with tenant count:
 
@@ -80,15 +84,22 @@ tenant already live.
 | MinIO admin user + policy attach (not disk-only JSON) | Credentials issued at provision; incomplete attach means fleet rotation | `minio_service.py` |
 | Unique short IDs for container/DB/user names | Names are permanent | control-plane allocate + `naming.py` |
 
-## Two-way doors (roadmap only)
+## Two-way doors
 
-Reversible later without touching provisioned tenants. Documented so we do not
-forget; not in the current implementation pass.
+Some items below are implemented; the rest stay roadmap so we do not forget.
 
-- Capacity-aware `pickCell()` using `max_deployments` / proxy budget; 409 when
+**Done (cell migrate cut):**
+
+- Capacity-aware `pickCell()` using `max_deployments` (default 16); 409 when
   the fleet is full. See `DeploymentController.php`.
-- `agent_url` (and token ref) per cell; `RuntimeAgentClient` resolves per
-  deployment instead of one env var.
+- `agent_url` (and `schedulable`) per cell; `Application::runtimeAgentForCell()`
+  resolves the agent from `deployments.cell_id`.
+- Operator migrate: `POST /deployments/{id}/migrate` (stop-copy-start, same
+  deployment id). Drain: `POST /cells/{id}/drain` with a target cell.
+- Local second cell: `make cell-b-up` (`docker-compose.cell-b.yml`).
+
+**Still roadmap:**
+
 - Replace the 180 MB idle assumption with live RSS from `make pilots` +
   `docker stats`, then re-run `make capacity`.
 - Per-cell Redis sized to tenant count; drop shared 256 MB `allkeys-lru` as a
@@ -100,8 +111,8 @@ forget; not in the current implementation pass.
   reconciler compares so repair actually fires.
 - Debounced Caddy reloads (or admin API), not N file writes × N full reloads.
 - Per-cell agent tokens via `SecretStore`.
-- Backups off local disk (MinIO/S3); cell add / drain / migrate runbook
-  (backup + restore + route flip).
+- Backups off local disk (MinIO/S3). Migrate today pulls a snapshot
+  agent-to-agent; that path still assumes local dump + bind mounts.
 
 ## Non-goals (for now)
 

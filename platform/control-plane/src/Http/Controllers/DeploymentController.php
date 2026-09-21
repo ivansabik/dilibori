@@ -64,7 +64,7 @@ final class DeploymentController
             ]);
 
             if ($hostnameChanged && in_array((string) ($row['status'] ?? ''), ['active', 'health_check', 'configuring_route'], true)) {
-                $this->app->runtimeAgent()->enqueue('configure_route', $deployment['id'], [
+                $this->app->runtimeAgentForCell($existing['cell_id'] ?? null)->enqueue('configure_route', $deployment['id'], [
                     'hostname' => $hostname,
                     'environment' => $environment,
                     'noindex' => Tenant::asBool($tenant['noindex']),
@@ -75,6 +75,9 @@ final class DeploymentController
         }
 
         $cell = $this->pickCell();
+        if ($cell === null) {
+            return Response::error('No schedulable cell with free capacity', 409);
+        }
         $deploymentId = $this->allocateUniqueDeploymentId();
         $databaseName = 'ti_' . str_replace('-', '_', $tenant['slug']) . '_' . substr(str_replace('-', '', $deploymentId), 0, 8);
 
@@ -115,9 +118,15 @@ final class DeploymentController
 
     public function show(Request $request): Response
     {
-        $deployment = $this->findDeployment($request->routeParams['id']);
-        if ($deployment === null) {
+        $row = $this->findDeploymentRow($request->routeParams['id']);
+        if ($row === null) {
             return Response::error('Deployment not found', 404);
+        }
+
+        $deployment = Deployment::toPublic($row);
+        $ingressBase = $this->ingressBaseForCell($row['cell_id'] ?? null);
+        if ($ingressBase !== null) {
+            $deployment['ingress_base_url'] = $ingressBase;
         }
 
         return Response::json(['deployment' => $deployment]);
@@ -130,11 +139,17 @@ final class DeploymentController
             return Response::error('Deployment not found', 404);
         }
 
-        $runtime = $this->app->runtimeAgent()->observedState($deployment['id']);
+        $runtime = $this->app->runtimeAgentForCell($deployment['cell_id'] ?? null)->observedState($deployment['id']);
         $secretsMeta = $this->app->secretStore()->listMeta($deployment['id']);
 
+        $public = Deployment::toPublic($deployment);
+        $ingressBase = $this->ingressBaseForCell($deployment['cell_id'] ?? null);
+        if ($ingressBase !== null) {
+            $public['ingress_base_url'] = $ingressBase;
+        }
+
         return Response::json([
-            'deployment' => Deployment::toPublic($deployment),
+            'deployment' => $public,
             'runtime' => $runtime,
             'secrets_meta' => $secretsMeta,
         ]);
@@ -146,6 +161,36 @@ final class DeploymentController
             $result = $this->app->provisioning()->start($deployment['id'], $this->actor($request));
 
             return Response::json(['deployment' => $result]);
+        });
+    }
+
+    public function migrate(Request $request): Response
+    {
+        return $this->wrapAction($request, function (array $deployment) use ($request) {
+            $targetCellId = trim((string) $request->input('target_cell_id', ''));
+            if ($targetCellId === '') {
+                return Response::error('target_cell_id is required');
+            }
+
+            try {
+                $result = $this->app->migration()->migrate(
+                    $deployment['id'],
+                    $targetCellId,
+                    $this->actor($request),
+                );
+
+                return Response::json(['deployment' => $result]);
+            } catch (\InvalidArgumentException $exception) {
+                return Response::error($exception->getMessage(), 400);
+            } catch (\RuntimeException $exception) {
+                $message = $exception->getMessage();
+                $code = str_contains(strtolower($message), 'not found') ? 404 : 409;
+                if (str_contains(strtolower($message), 'capacity') || str_contains(strtolower($message), 'schedulable')) {
+                    $code = 409;
+                }
+
+                return Response::error($message, $code);
+            }
         });
     }
 
@@ -176,7 +221,7 @@ final class DeploymentController
             );
             $statement->execute(['release_id' => $releaseId, 'id' => $deployment['id']]);
 
-            $response = $this->app->runtimeAgent()->enqueue('deploy_release', $deployment['id'], [
+            $response = $this->app->runtimeAgentForCell($deployment['cell_id'] ?? null)->enqueue('deploy_release', $deployment['id'], [
                 'release_id' => $releaseId,
             ]);
 
@@ -195,7 +240,7 @@ final class DeploymentController
     public function rollback(Request $request): Response
     {
         return $this->wrapAction($request, function (array $deployment) use ($request) {
-            $response = $this->app->runtimeAgent()->enqueue('rollback_release', $deployment['id']);
+            $response = $this->app->runtimeAgentForCell($deployment['cell_id'] ?? null)->enqueue('rollback_release', $deployment['id']);
             $this->app->audit()->log('deployment.rollback', $deployment['tenant_id'], $deployment['id'], null, [
                 'runtime' => $response,
             ], $this->actor($request));
@@ -208,7 +253,7 @@ final class DeploymentController
     {
         return $this->wrapAction($request, function (array $deployment) use ($request) {
             $this->setBackupState($deployment['id'], 'in_progress');
-            $response = $this->app->runtimeAgent()->enqueue('backup', $deployment['id']);
+            $response = $this->app->runtimeAgentForCell($deployment['cell_id'] ?? null)->enqueue('backup', $deployment['id']);
             $state = ($response['ok'] ?? true) === false ? 'failed' : 'completed';
             $this->setBackupState($deployment['id'], $state);
 
@@ -227,7 +272,7 @@ final class DeploymentController
     {
         return $this->wrapAction($request, function (array $deployment) use ($request) {
             $snapshotId = $request->input('snapshot_id');
-            $response = $this->app->runtimeAgent()->enqueue('restore', $deployment['id'], [
+            $response = $this->app->runtimeAgentForCell($deployment['cell_id'] ?? null)->enqueue('restore', $deployment['id'], [
                 'snapshot_id' => $snapshotId,
             ]);
 
@@ -270,7 +315,7 @@ final class DeploymentController
             ]);
 
             $grant = $statement->fetch();
-            $runtime = $this->app->runtimeAgent()->enqueue('support_access', $deployment['id'], [
+            $runtime = $this->app->runtimeAgentForCell($deployment['cell_id'] ?? null)->enqueue('support_access', $deployment['id'], [
                 'grant_id' => $grant['id'],
                 'expires_at' => $grant['expires_at'],
                 'actor' => $actor,
@@ -318,7 +363,7 @@ final class DeploymentController
                 'id' => $deployment['id'],
             ]);
 
-            $runtime = $this->app->runtimeAgent()->enqueue($action, $deployment['id']);
+            $runtime = $this->app->runtimeAgentForCell($deployment['cell_id'] ?? null)->enqueue($action, $deployment['id']);
             $this->app->audit()->log(
                 'deployment.' . $action,
                 $deployment['tenant_id'],
@@ -386,9 +431,48 @@ final class DeploymentController
     /** @return array<string, mixed>|null */
     private function pickCell(): ?array
     {
-        $row = $this->db->query('SELECT id, name, provider FROM cells ORDER BY created_at ASC LIMIT 1')->fetch();
+        // Least-loaded schedulable cell under max_deployments (default 16).
+        $row = $this->db->query(
+            "SELECT c.id, c.name, c.provider, c.capacity_metadata,
+                    COALESCE(occ.live_count, 0) AS live_count
+             FROM cells c
+             LEFT JOIN (
+                 SELECT cell_id, COUNT(*) AS live_count
+                 FROM deployments
+                 WHERE status NOT IN ('failed', 'suspended')
+                 GROUP BY cell_id
+             ) occ ON occ.cell_id = c.id
+             WHERE c.schedulable = TRUE
+               AND COALESCE(occ.live_count, 0) < COALESCE(
+                   NULLIF((c.capacity_metadata->>'max_deployments')::int, 0),
+                   16
+               )
+             ORDER BY COALESCE(occ.live_count, 0) ASC, c.created_at ASC
+             LIMIT 1",
+        )->fetch();
 
         return $row ?: null;
+    }
+
+    private function ingressBaseForCell(?string $cellId): ?string
+    {
+        if ($cellId === null || $cellId === '') {
+            return null;
+        }
+
+        $statement = $this->db->prepare('SELECT capacity_metadata FROM cells WHERE id = :id');
+        $statement->execute(['id' => $cellId]);
+        $row = $statement->fetch();
+        if (!$row) {
+            return null;
+        }
+
+        $meta = is_string($row['capacity_metadata'])
+            ? json_decode($row['capacity_metadata'], true)
+            : ($row['capacity_metadata'] ?? []);
+        $url = is_array($meta) ? ($meta['ingress_base_url'] ?? null) : null;
+
+        return is_string($url) && $url !== '' ? $url : null;
     }
 
     /**
