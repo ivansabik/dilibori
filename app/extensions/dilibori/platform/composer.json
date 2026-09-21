@@ -1,0 +1,23 @@
+{
+  "name": "dilibori/platform",
+  "type": "tastyigniter-package",
+  "description": "Multi-tenant platform guards: admin marketplace lockdown and tenant host checks.",
+  "license": "MIT",
+  "authors": [{ "name": "dilibori" }],
+  "autoload": {
+    "psr-4": {
+      "Dilibori\\Platform\\": "src/"
+    }
+  },
+  "extra": {
+    "tastyigniter-extension": {
+      "code": "dilibori.platform",
+      "name": "Platform Guards",
+      "icon": {
+        "class": "fa fa-shield-alt",
+        "backgroundColor": "#1B4332",
+        "color": "#FFFFFF"
+      }
+    }
+  }
+}

@@ -1,6 +1,8 @@
 # Dilibori app
 
-TastyIgniter v4.0.1 on Docker: PHP 8.3 + Apache, MariaDB, Redis. Based on [PR #11](https://github.com/ThisIsQasim/TastyIgniter/pull/11).
+TastyIgniter v4.0.1 on Docker: PHP 8.3 + Apache, MariaDB, Redis.
+
+For the multi-tenant control plane and shared cell, use [`../platform/`](../platform/) instead. This folder is the immutable application image plus the legacy single-tenant compose stack.
 
 Demo storefront: **El Taconazo**, El Paso, TX (USD) and Ciudad Juárez (MXN).
 

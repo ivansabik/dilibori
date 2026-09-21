@@ -2,15 +2,20 @@ name: tastyigniter-local
 
 services:
   app:
-    build: .
+    build:
+      context: ..
+      dockerfile: app/Dockerfile
     hostname: tasty
     ports:
       - "8001:80"
     volumes:
       - ./media:/var/www/persistent-media:rw
       - ./seed:/opt/seed:ro
+      - ../platform/seeds/taconazo:/opt/seed-manifest:ro
+      - ../platform/seeds/common:/opt/platform/seeds/common:ro
       - ./extensions:/opt/extensions:ro
       - ./docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh:ro
+      - ./bin/provision.sh:/usr/local/bin/provision.sh:ro
     environment:
       - APP_ENV=local
       - APP_DEBUG=true
@@ -25,6 +30,9 @@ services:
       - REDIS_HOST=redis
       - ADMIN_EMAIL=operations@taconazotaqueria.com
       - ADMIN_PASSWORD=12345678abc!
+      - AUTO_PROVISION=true
+      - SEED_MANIFEST=/opt/seed-manifest/manifest.json
+      - SEED_MODE=initial
       # CDP / analytics (driver-agnostic; rudderstack locally)
       - CDP_ENABLED=${CDP_ENABLED:-true}
       - EVENT_CLIENT_DRIVER=${EVENT_CLIENT_DRIVER:-rudderstack}
