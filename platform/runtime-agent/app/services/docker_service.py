@@ -30,6 +30,21 @@ logger = logging.getLogger(__name__)
 
 LABEL_PREFIX = "dilibori."
 
+# Host bind sources (HOST_*_PATH) are Mac/Windows paths the Docker daemon
+# resolves. Inside the agent container those paths usually do not exist; the
+# compose file mirrors them under AGENT_* so we can decide whether to mount.
+_AGENT_SEEDS_PATH = Path("/opt/platform/seeds")
+_AGENT_EXTENSIONS_PATH = Path("/opt/extensions")
+_AGENT_APP_SEED_PATH = Path("/opt/seed")
+
+
+def host_bind_ready(host_path: str, agent_mirror: Path) -> bool:
+    """True when a non-empty host bind should be attached to tenant containers."""
+    if not host_path.strip():
+        return False
+    return Path(host_path).exists() or agent_mirror.exists()
+
+
 # Compose service label -> DNS aliases on each tenant bridge.
 # Tenants stay off dilibori-shared so they cannot reach each other by name.
 _SHARED_SERVICE_ALIASES: tuple[tuple[str, list[str]], ...] = (
@@ -284,7 +299,7 @@ class DockerService:
         seeds_host = self._settings.host_seeds_path or ""
         extensions_host = self._settings.host_extensions_path or ""
         app_seed_host = self._settings.host_app_seed_path or ""
-        if seeds_host and Path(seeds_host).exists():
+        if host_bind_ready(seeds_host, _AGENT_SEEDS_PATH):
             host_config["mounts"].append(
                 docker.types.Mount(
                     target="/opt/platform/seeds",
@@ -293,7 +308,7 @@ class DockerService:
                     read_only=True,
                 )
             )
-        if extensions_host and Path(extensions_host).exists():
+        if host_bind_ready(extensions_host, _AGENT_EXTENSIONS_PATH):
             host_config["mounts"].append(
                 docker.types.Mount(
                     target="/opt/extensions",
@@ -302,7 +317,7 @@ class DockerService:
                     read_only=True,
                 )
             )
-        if app_seed_host and Path(app_seed_host).exists():
+        if host_bind_ready(app_seed_host, _AGENT_APP_SEED_PATH):
             host_config["mounts"].append(
                 docker.types.Mount(
                     target="/opt/seed",

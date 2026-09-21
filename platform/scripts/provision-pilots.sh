@@ -46,11 +46,9 @@ post_json() {
 ensure_tenant() {
   local slug="$1"
   local name="$2"
-  local alias_slug="${3:-}"
   local existing
   existing="$(curl -sf "${CP_URL}/tenants" | python3 -c "import sys,json; data=json.load(sys.stdin); items=data.get('tenants', data if isinstance(data,list) else []);
-slugs=['${slug}'] + [s for s in '${alias_slug}'.split(',') if s]
-print(next((t['id'] for t in items if t.get('slug') in slugs), ''))")"
+print(next((t['id'] for t in items if t.get('slug') == '${slug}'), ''))")"
   if [ -n "$existing" ]; then
     # Pilots are demos: always block search indexing on existing rows too.
     post_json PATCH "/tenants/${existing}" "{\"noindex\":true,\"slug\":\"${slug}\",\"name\":\"${name}\"}" >/dev/null || \
@@ -75,7 +73,7 @@ provision_deployment() {
   reused="$(echo "$dep" | python3 -c "import sys,json; print('yes' if json.load(sys.stdin).get('reused') else 'no')")"
   status_now="$(echo "$dep" | python3 -c "import sys,json; print(json.load(sys.stdin)['deployment'].get('status',''))")"
   if [ "$status_now" = "active" ] && [ "$reused" = "yes" ]; then
-    # Hostname may have changed (norte → pizza-rin); re-apply ingress.
+    # Hostname may have changed; re-apply ingress.
     curl -sS -X POST "${CP_URL}/deployments/${dep_id}/provision" \
       -H 'Content-Type: application/json' -d '{}' \
       -o "/tmp/dilibori-provision-${dep_id}.json" \
@@ -103,7 +101,7 @@ provision_deployment() {
 }
 
 TACONAZO_ID="$(ensure_tenant taconazo 'El Taconazo')"
-PIZZA_ID="$(ensure_tenant pizza-rin 'Pizza Rin' taqueria-norte)"
+PIZZA_ID="$(ensure_tenant pizza-rin 'Pizza Rin')"
 
 provision_deployment "$TACONAZO_ID" development taconazo taconazo.dev.localhost
 provision_deployment "$TACONAZO_ID" production taconazo taconazo.prod.localhost

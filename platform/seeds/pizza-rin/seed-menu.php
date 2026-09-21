@@ -31,7 +31,10 @@ if (!function_exists('say')) {
 }
 
 $menuJsonPath = dirname(__FILE__).'/menu.json';
-if (isset($argv[1]) && is_string($argv[1]) && $argv[1] !== '' && is_file($argv[1])) {
+// Only honor CLI argv when this file is the entrypoint. When required from
+// seed-from-manifest.php, $argv[1] is the manifest path and must not win.
+if (isset($argv[0]) && realpath((string) $argv[0]) === realpath(__FILE__)
+    && isset($argv[1]) && is_string($argv[1]) && $argv[1] !== '' && is_file($argv[1])) {
     $menuJsonPath = $argv[1];
 }
 

@@ -3,7 +3,7 @@ FROM python:3.12-slim
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates curl mariadb-client \
     && curl -fsSL -o /usr/local/bin/mc \
-        https://dl.min.io/client/mc/release/linux-amd64/mc \
+        https://dl.minio.io/client/mc/release/linux-amd64/mc \
     && chmod +x /usr/local/bin/mc \
     && rm -rf /var/lib/apt/lists/*
 

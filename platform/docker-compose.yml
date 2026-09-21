@@ -226,6 +226,7 @@ services:
       - ./seeds:/opt/platform/seeds:ro
       - ./profiles:/opt/platform/profiles:ro
       - ../app/extensions:/opt/extensions:ro
+      - ../app/seed:/opt/seed:ro
     depends_on:
       mariadb:
         condition: service_healthy
