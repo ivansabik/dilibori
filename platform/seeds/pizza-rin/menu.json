@@ -22,7 +22,7 @@
       "display_type": "checkbox",
       "required": false,
       "values": [
-        { "key": "orilla", "name": "Orilla", "price": 35 },
+        { "key": "orilla", "name": "Orilla de queso", "price": 35 },
         { "key": "extra_queso", "name": "Extra queso", "price": 30 },
         { "key": "ingrediente_extra", "name": "Ingrediente extra", "price": 25 }
       ]

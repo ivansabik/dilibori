@@ -53,6 +53,10 @@ final class Reconciler
                 $repaired++;
             }
 
+            if ($this->ensureProxysqlUser($deployment, $cellId, $actor)) {
+                $repaired++;
+            }
+
             if ($this->ensureIngressNoindex($deployment, $cellId, $actor)) {
                 $repaired++;
             }
@@ -114,6 +118,34 @@ final class Reconciler
                 $deployment['tenant_id'],
                 $deployment['id'],
                 (string) ($response['error'] ?? 'ensure_redis_acl failed'),
+                [],
+                $actor,
+            );
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /** @param array<string, mixed> $deployment */
+    private function ensureProxysqlUser(array $deployment, ?string $cellId, ?string $actor): bool
+    {
+        try {
+            $payload = [
+                'DB_PASSWORD' => $this->secretStore->decrypt($deployment['id'], 'DB_PASSWORD'),
+            ];
+        } catch (\Throwable) {
+            return false;
+        }
+
+        $response = $this->agent($cellId)->enqueue('ensure_proxysql_user', $deployment['id'], $payload);
+        if (($response['ok'] ?? true) === false) {
+            $this->audit->log(
+                'reconcile.proxysql_user_failed',
+                $deployment['tenant_id'],
+                $deployment['id'],
+                (string) ($response['error'] ?? 'ensure_proxysql_user failed'),
                 [],
                 $actor,
             );

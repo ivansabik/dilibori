@@ -170,11 +170,21 @@ foreach ($locations as $location) {
         $valuePrices = [];
         foreach ($group['values'] as $priority => $value) {
             $valuePrice = (float) ($value['price'] ?? 0);
-            $option->option_values()->create([
+            $optionValue = $option->option_values()->create([
                 'name' => es((string) $value['name']),
                 'price' => $valuePrice,
                 'priority' => $priority + 1,
             ]);
+            if ($optionValue->methodExists('setAttributeTranslatedValue')) {
+                foreach (['en', 'es_MX'] as $locale) {
+                    $optionValue->setAttributeTranslatedValue(
+                        'name',
+                        (string) $value['name'],
+                        $locale,
+                    );
+                }
+                $optionValue->save();
+            }
             $valuePrices[(string) $value['key']] = $valuePrice;
         }
         $option->locations()->sync([$locationId]);

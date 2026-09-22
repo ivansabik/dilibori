@@ -22,6 +22,11 @@ class InjectAnalyticsSnippet
             return $response;
         }
 
+        // Redirects (empty-cart /checkout → menus) must not inject/track.
+        if (method_exists($response, 'isRedirection') && $response->isRedirection()) {
+            return $response;
+        }
+
         if ($request->ajax() || $request->pjax()) {
             return $response;
         }

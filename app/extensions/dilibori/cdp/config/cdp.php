@@ -28,7 +28,7 @@ return [
             'js_config_url' => env('RUDDERSTACK_JS_CONFIG_URL', 'http://127.0.0.1:8090'),
             'http_write_key' => env('RUDDERSTACK_HTTP_WRITE_KEY', ''),
             'js_write_key' => env('RUDDERSTACK_JS_WRITE_KEY', ''),
-            'timeout' => (float) env('RUDDERSTACK_TIMEOUT', 0.5),
+            'timeout' => (float) env('RUDDERSTACK_TIMEOUT', 2.0),
             'ssl' => filter_var(env('RUDDERSTACK_SSL', false), FILTER_VALIDATE_BOOLEAN),
         ],
 

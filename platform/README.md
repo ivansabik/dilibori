@@ -9,7 +9,7 @@ Local Docker cell that provisions isolated TastyIgniter tenants from one control
 - Privileged runtime agent (Docker socket) that applies desired state with allowlisted operations
 - Two pilot seed profiles: bilingual Taconazo (USD/MXN) and Spanish-only Pizza Rin (MXN)
 - Development and production-like environment profiles with validated invariants
-- Tenant-aware event envelope interface (structured-log publisher in the PoC)
+- Tenant-aware CDP events (RudderStack locally → http://127.0.0.1:8090)
 
 Analytics delivery, AWS, billing, and payment orchestration are out of scope.
 

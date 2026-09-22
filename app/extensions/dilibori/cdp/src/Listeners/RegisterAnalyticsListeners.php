@@ -113,6 +113,9 @@ class RegisterAnalyticsListeners
     public static function onCartAdded(mixed $cart, mixed $cartItem = null): void
     {
         self::safe(function () use ($cart, $cartItem): void {
+            // Allow Checkout Started again after the customer re-engages the cart
+            // (covers sessions burned by earlier empty-cart /checkout bounces).
+            session()->forget('cdp_checkout_started');
             Analytics::track(Events::PRODUCT_ADDED, self::cartItemProperties($cartItem ?? $cart));
         });
     }
@@ -190,13 +193,19 @@ class RegisterAnalyticsListeners
     public static function onCheckoutStarted(mixed $order = null, mixed $data = null): void
     {
         self::safe(function () use ($order): void {
-            $props = [];
+            if (session('cdp_checkout_started')) {
+                return;
+            }
+
+            $props = ['producer' => 'backend'];
             if (is_object($order) && method_exists($order, 'getKey') && $order->getKey()) {
                 $props['order_id'] = (string) $order->getKey();
                 $props['order_type'] = (string) ($order->order_type ?? '');
                 $props['total'] = (float) ($order->order_total ?? 0);
             }
+
             Analytics::track(Events::CHECKOUT_STARTED, array_filter($props, static fn ($v) => $v !== null && $v !== ''));
+            session(['cdp_checkout_started' => true]);
         });
     }
 

@@ -232,6 +232,14 @@
     }
 
     function bindStorefrontEvents() {
+        // Reset JS dedupe when not on checkout so a prior empty/burned visit
+        // does not block the next real checkout.
+        if (!/checkout/i.test(location.pathname)) {
+            try {
+                sessionStorage.removeItem('cdp_checkout_started');
+            } catch (e) {}
+        }
+
         // Product List Viewed — menus / category pages
         if (/\/menus(\/|$)/.test(location.pathname) || document.querySelector('[data-menu-list], .menu-list, #category-menu-list')) {
             let category = '';
@@ -257,15 +265,32 @@
             }
         }
 
-        // Checkout Started — JS fallback if backend hook has not fired yet this session
-        if (/checkout/i.test(location.pathname)) {
+        // Checkout Started — JS fallback if backend hook has not fired yet this session.
+        // Skip empty-cart bounce pages (redirect target still briefly matches /checkout).
+        function maybeTrackCheckoutStarted() {
+            if (!/checkout/i.test(location.pathname) || /success/i.test(location.pathname)) {
+                return;
+            }
+            const hasCheckoutUi = document.querySelector(
+                'form[id*="checkout"], form[action*="checkout"], [data-control="checkout"], #checkout-form, .checkout'
+            );
+            if (!hasCheckoutUi) {
+                return;
+            }
             try {
-                if (!sessionStorage.getItem('cdp_checkout_started')) {
-                    sessionStorage.setItem('cdp_checkout_started', '1');
-                    window.diliboriAnalytics.track('Checkout Started', { path: location.pathname, producer: 'frontend' });
+                if (sessionStorage.getItem('cdp_checkout_started')) {
+                    return;
                 }
-            } catch (e) {}
+                // Set only after queueing so a later Product Added (new session
+                // flag from PHP) can still pair with a fresh checkout visit.
+                window.diliboriAnalytics.track('Checkout Started', { path: location.pathname, producer: 'frontend' });
+                sessionStorage.setItem('cdp_checkout_started', '1');
+            } catch (e) {
+                window.diliboriAnalytics.track('Checkout Started', { path: location.pathname, producer: 'frontend' });
+            }
         }
+        maybeTrackCheckoutStarted();
+        document.addEventListener('livewire:navigated', maybeTrackCheckoutStarted);
     }
 
     @if($driver === 'rudderstack')

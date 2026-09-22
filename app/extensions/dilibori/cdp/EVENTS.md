@@ -171,8 +171,8 @@ Source of truth for storefront analytics. Canonical names are Proper Case, objec
 | | |
 |--|--|
 | **Constant** | `Events::CHECKOUT_STARTED` |
-| **Producer** | Backend (authoritative); frontend fallback on `/checkout` once per session |
-| **Hook** | `igniter.checkout.beforeSaveOrder`; JS path `/checkout` |
+| **Producer** | Backend (authoritative on checkout page load); frontend fallback |
+| **Hook** | Checkout page render; `igniter.checkout.beforeSaveOrder`; JS path `/checkout` |
 | **Properties** | `order_id`, `order_type`, `total` when known; frontend may set `producer: frontend` |
 | **Question** | Funnel mid; checkout drop-off |
 

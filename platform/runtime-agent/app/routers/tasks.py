@@ -17,6 +17,7 @@ from app.services.caddy_snippet import effective_noindex
 from app.services.docker_service import DockerService
 from app.services.mariadb_service import MariaDbService
 from app.services.minio_service import MinioService
+from app.services.proxysql_service import ProxySqlService
 from app.services.purge_service import PurgeService
 from app.services.redis_service import RedisService
 from app.services.snapshot_service import SnapshotService
@@ -111,6 +112,19 @@ def enqueue_task(
                 key_prefix=prefix,
             )
             return {"ok": True}
+
+        if action == "ensure_proxysql_user":
+            username = str(payload.get("DB_USERNAME") or _db_user(deployment_id))
+            password = str(payload.get("DB_PASSWORD") or "")
+            max_conn = int(payload.get("MAX_USER_CONNECTIONS") or 10)
+            if not password:
+                raise HTTPException(status_code=400, detail="DB_PASSWORD is required")
+            ProxySqlService(settings).upsert_mysql_user(
+                username=username,
+                password=password,
+                max_connections=max_conn,
+            )
+            return {"ok": True, "username": username}
 
         if action == "create_secrets":
             prefix = str(payload.get("REDIS_PREFIX") or f"ti:{deployment_id_short(deployment_id)}:")
@@ -280,8 +294,14 @@ def _tenant_env(settings: Settings, deployment_id: str, payload: dict[str, Any])
         "APP_URL": _public_app_url(str(payload.get("hostname") or "localhost")),
         "MAIL_HOST": "mailpit",
         "MAIL_PORT": "1025",
-        "EVENT_CLIENT_DRIVER": "structured-log",
+        # Local CDP: PHP → host-published Rudder (Docker Desktop); browser → 127.0.0.1.
+        "EVENT_CLIENT_DRIVER": "rudderstack",
         "CDP_ENABLED": "true",
+        "RUDDERSTACK_DATA_PLANE_URL": "http://host.docker.internal:8080",
+        "RUDDERSTACK_JS_DATA_PLANE_URL": "http://127.0.0.1:8080",
+        "RUDDERSTACK_JS_CONFIG_URL": "http://127.0.0.1:8090",
+        "RUDDERSTACK_HTTP_WRITE_KEY": "dilibori_http_write_key_local",
+        "RUDDERSTACK_JS_WRITE_KEY": "dilibori_js_write_key_local",
         "FORBID_MARKETPLACE_INSTALL": "true",
         "FORBID_SELF_UPDATE": "true",
         "CACHE_DRIVER": "redis",
