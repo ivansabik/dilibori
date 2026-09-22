@@ -327,6 +327,7 @@ applyTheme($manifest, $manifestPath);
 applyHomeSlider($manifestPath);
 applyPages($manifest, $defaultLocale);
 applyFooterMenuTitles();
+applyCodPayment($defaultLocale);
 
 $adminEmail = getenv('ADMIN_EMAIL') ?: $manifest['admin']['email'];
 $adminPassword = getenv('ADMIN_PASSWORD') ?: 'ChangeMe-LocalOnly!';
@@ -538,5 +539,30 @@ function applyFooterMenuTitles(): void
         if ($updated) {
             say("Menu title → {$from} ⇒ {$to}");
         }
+    }
+}
+
+/**
+ * Checkout renders payments.name / payments.description from the DB, not lang files.
+ * Match the tenant default locale so COD is not stuck on Igniter's vendor English.
+ */
+function applyCodPayment(string $defaultLocale): void
+{
+    if (!Schema::hasTable('payments')) {
+        return;
+    }
+
+    $spanish = str_starts_with($defaultLocale, 'es');
+    $name = $spanish ? 'Pago contra entrega' : 'Cash on delivery';
+    $description = $spanish
+        ? 'Paga en efectivo al recoger tu pedido o cuando te lo entreguen.'
+        : 'Pay with cash when you pick up your order or when it is delivered.';
+
+    $updated = DB::table('payments')->where('code', 'cod')->update([
+        'name' => $name,
+        'description' => $description,
+    ]);
+    if ($updated) {
+        say("Payment COD → {$name}");
     }
 }
