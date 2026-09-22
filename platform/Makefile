@@ -56,12 +56,23 @@ build-app:
 	docker build -t $(TENANT_IMAGE) -f $(REPO_ROOT)/app/Dockerfile $(REPO_ROOT)
 
 up: env-copy
+	@set -e; \
 	HOST_SEEDS_PATH=$(HOST_SEEDS_PATH) \
 	HOST_EXTENSIONS_PATH=$(HOST_EXTENSIONS_PATH) \
 	HOST_DATA_PATH=$(HOST_DATA_PATH) \
 	HOST_APP_SEED_PATH=$(HOST_APP_SEED_PATH) \
 	TENANT_IMAGE=$(TENANT_IMAGE) \
-	docker compose -f $(PLATFORM_DIR)/docker-compose.yml --env-file $(PLATFORM_DIR)/.env up -d --build
+	docker compose -f $(PLATFORM_DIR)/docker-compose.yml --env-file $(PLATFORM_DIR)/.env up -d --build \
+	|| ( \
+		echo "Compose rename quirk (fixed container_name); recreating ingress and retrying..."; \
+		docker rm -f dilibori-caddy >/dev/null 2>&1 || true; \
+		HOST_SEEDS_PATH=$(HOST_SEEDS_PATH) \
+		HOST_EXTENSIONS_PATH=$(HOST_EXTENSIONS_PATH) \
+		HOST_DATA_PATH=$(HOST_DATA_PATH) \
+		HOST_APP_SEED_PATH=$(HOST_APP_SEED_PATH) \
+		TENANT_IMAGE=$(TENANT_IMAGE) \
+		docker compose -f $(PLATFORM_DIR)/docker-compose.yml --env-file $(PLATFORM_DIR)/.env up -d --build; \
+	)
 	@# Redis ACL users live in memory until SAVE; re-apply from control-plane secrets.
 	@echo "Reconciling Redis ACLs for active tenants..."
 	@for i in 1 2 3 4 5 6 7 8 9 10; do \

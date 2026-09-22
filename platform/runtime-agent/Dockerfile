@@ -1,9 +1,12 @@
+FROM quay.io/minio/mc:RELEASE.2025-04-16T18-13-26Z AS mc
+
 FROM python:3.12-slim
+
+# OSS dl.min.io/client path returns 410; use the same mc image compose pins.
+COPY --from=mc /bin/mc /usr/local/bin/mc
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates curl mariadb-client \
-    && curl -fsSL -o /usr/local/bin/mc \
-        https://dl.minio.io/client/mc/release/linux-amd64/mc \
     && chmod +x /usr/local/bin/mc \
     && rm -rf /var/lib/apt/lists/*
 
