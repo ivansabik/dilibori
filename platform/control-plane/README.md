@@ -95,6 +95,8 @@ curl -s localhost:8080/tenants -H 'Content-Type: application/json' \
 curl -s localhost:8080/tenants/demo/deployments -H 'Content-Type: application/json' \
   -d '{"environment":"development","seed_bundle":"taconazo"}'
 
+# Other local seed: pizza-rin (Spanish-only). Prefer `make -C platform pilots`.
+
 curl -s -X POST localhost:8080/deployments/{id}/provision
 
 # After make cell-b-up and POST /cells for local-b:

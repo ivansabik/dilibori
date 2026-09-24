@@ -1,6 +1,6 @@
 # Dilibori CDP
 
-Self-hosted RudderStack data plane for El Taconazo / TastyIgniter. No RudderStack Cloud account. Sources and destinations live in [`workspaceConfig.json`](workspaceConfig.json).
+Self-hosted RudderStack data plane for local TastyIgniter (legacy `app/` or platform pilots). No RudderStack Cloud account. Sources and destinations live in [`workspaceConfig.json`](workspaceConfig.json).
 
 ## Quick start
 

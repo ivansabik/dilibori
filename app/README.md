@@ -2,11 +2,11 @@
 
 TastyIgniter v4.0.1 on Docker: PHP 8.3 + Apache, MariaDB, Redis.
 
-For the multi-tenant control plane and shared cell, use [`../platform/`](../platform/) instead. This folder is the immutable application image plus the legacy single-tenant compose stack.
+This folder is the **immutable application image** (`Dockerfile`) plus extensions and the legacy **single-tenant** compose stack. For the multi-tenant control plane and the two pilots (El Taconazo + Pizza Rin), use [`../platform/`](../platform/).
 
-Demo storefront: **El Taconazo**, El Paso, TX (USD) and Ciudad Juárez (MXN).
+Legacy single-tenant demo: **El Taconazo** only (El Paso USD + Juárez MXN). Pizza Rin exists only under `platform/seeds/pizza-rin/`.
 
-## Install
+## Install (legacy single-tenant)
 
 From this directory (`app/`):
 
@@ -32,7 +32,16 @@ make reset
 | Admin login | `operations@taconazotaqueria.com` / `12345678abc!` |
 | Customer login | `juanagallo@gmail.com` / `customer123!` |
 
-## What `make seed` loads
+## Multi-tenant (preferred for pilots)
+
+```sh
+cd ../platform
+make env-copy && make build-app && make up && make pilots
+```
+
+Hosts and tenant differences: [`../platform/README.md`](../platform/README.md#pilots).
+
+## What `make seed` loads (legacy Taconazo)
 
 Locations & ops
 - **El Taconazo - Alameda Ave** @ 4500 Alameda Ave, El Paso, TX 79905. **USD**. Storefront photo + homepage slider; wordmark as header logo; black primary buttons
@@ -68,9 +77,9 @@ Re-run anytime: `make seed` (safe to repeat).
 
 TastyIgniter Translate (`tastyigniter/ti-ext-translate`) stores **separate** English and Spanish strings for menus, categories, options, mealtimes, ingredients, the location blurb, and CMS pages.
 
-Storefront chrome (nav, footer, cart, checkout, login, reservation, cookie banner) uses `es_MX` lang packs in `extensions/taconazo/locale/lang/es_MX/`. Footer About / Privacy titles are lang keys so they switch with the locale.
+Storefront chrome (nav, footer, cart, checkout, login, reservation, cookie banner) uses lang packs under `extensions/taconazo/locale/lang/{en,es_MX}/`. Those files are **shared** by every platform tenant (copied from `/opt/extensions` at container start). Menu and CMS copy stay in each tenant DB.
 
-- Storefront: **EN | ES** buttons in the header (session). Locale codes: `en` and `es_MX`.
+- Storefront: **EN | ES** buttons in the header when the tenant enables both locales (session). Codes: `en` and `es_MX`.
 - Admin: edit a menu item and switch locale on the translatable fields (`trltext` / `trltextarea`).
 - Browser auto-detect is **off** so the picker is not overridden (`es` from `Accept-Language` would not match `es_MX`). Turn it on under `Admin → Settings` if you want.
 - Full **UI language packs** from the TastyIgniter marketplace need a Carte key (`IGNITER_CARTE_KEY`) via `php artisan igniter:language-install es_MX`.
@@ -137,7 +146,7 @@ Watch http://127.0.0.1:8090 while you use the store:
 | Add an item to cart | `Product Added` |
 | Open `/cart` | `Cart Viewed` |
 | Log in (`juanagallo@gmail.com` / `customer123!`) | `identify`, `Account Logged In` |
-| Start checkout | `Checkout Started` |
+| Open `/checkout` with items in the cart | `Checkout Started` |
 | Complete an order | `Order Completed` |
 
 More detail: [`../cdp/README.md`](../cdp/README.md).
@@ -167,8 +176,8 @@ WHERE m.menu_id = 9;
 ├── Dockerfile
 ├── docker-compose.yml
 ├── docker-entrypoint.sh
-├── seed/el-taconazo.php    # demo data
-├── extensions/             # locale picker + CDP (copied into the container)
+├── seed/el-taconazo.php    # legacy Taconazo demo data
+├── extensions/             # locale packs + CDP (mounted into platform tenants)
 ├── db/                     # MariaDB (gitignored)
 └── media/                  # uploads (gitignored)
 ```
