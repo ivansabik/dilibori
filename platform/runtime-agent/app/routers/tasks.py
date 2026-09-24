@@ -76,10 +76,17 @@ def enqueue_task(
 
     try:
         if action == "create_database":
-            database_name = payload.get("database_name") or f"ti_{deployment_id_short(deployment_id)}"
+            database_name = (
+                payload.get("database_name")
+                or f"ti_{deployment_id_short(deployment_id)}"
+            )
             username = _db_user(deployment_id)
-            password = str(payload.get("db_password") or payload.get("DB_PASSWORD") or _password())
-            max_conn = int((payload.get("config") or {}).get("MAX_USER_CONNECTIONS") or 5)
+            password = str(
+                payload.get("db_password") or payload.get("DB_PASSWORD") or _password()
+            )
+            max_conn = int(
+                (payload.get("config") or {}).get("MAX_USER_CONNECTIONS") or 5
+            )
             MariaDbService(settings).create_database_user(
                 database_name=database_name,
                 username=username,
@@ -127,8 +134,14 @@ def enqueue_task(
             return {"ok": True, "username": username}
 
         if action == "create_secrets":
-            prefix = str(payload.get("REDIS_PREFIX") or f"ti:{deployment_id_short(deployment_id)}:")
-            redis_user = str(payload.get("REDIS_USERNAME") or f"r_{deployment_id_short(deployment_id)}")
+            prefix = str(
+                payload.get("REDIS_PREFIX")
+                or f"ti:{deployment_id_short(deployment_id)}:"
+            )
+            redis_user = str(
+                payload.get("REDIS_USERNAME")
+                or f"r_{deployment_id_short(deployment_id)}"
+            )
             redis_password = str(payload.get("REDIS_PASSWORD") or _password())
             RedisService(settings).create_acl_user(
                 username=redis_user,
@@ -136,7 +149,8 @@ def enqueue_task(
                 key_prefix=prefix,
             )
             access_key = str(
-                payload.get("MINIO_ACCESS_KEY") or f"AK{deployment_id_short(deployment_id).upper()}"
+                payload.get("MINIO_ACCESS_KEY")
+                or f"AK{deployment_id_short(deployment_id).upper()}"
             )
             secret_key = str(payload.get("MINIO_SECRET_KEY") or _password(32))
             media_prefix = str(
@@ -176,8 +190,12 @@ def enqueue_task(
         if action == "create_runtime":
             env = _tenant_env(settings, deployment_id, payload)
             cfg = payload.get("config") or {}
-            memory = int(cfg.get("MEMORY_LIMIT_MB") or (384 if profile == "development" else 256))
-            cpu = float(cfg.get("CPU_LIMIT") or (0.5 if profile == "development" else 0.25))
+            memory = int(
+                cfg.get("MEMORY_LIMIT_MB") or (384 if profile == "development" else 256)
+            )
+            cpu = float(
+                cfg.get("CPU_LIMIT") or (0.5 if profile == "development" else 0.25)
+            )
             data = docker_svc.deploy(
                 deployment_id=deployment_id,
                 image=settings.tenant_image,
@@ -189,6 +207,59 @@ def enqueue_task(
                 environment_profile=profile,
                 tenant_id=str(payload.get("tenant_id") or ""),
                 config_version=str(payload.get("config_checksum") or "1"),
+            )
+            return {"ok": True, "data": data}
+
+        if action == "ensure_cdp":
+            # Recreate from the live container env so existing tenants pick up CDP
+            # without the control plane re-sending secrets.
+            client = docker.from_env()
+            name = tenant_container_name(deployment_id)
+            try:
+                container = client.containers.get(name)
+            except docker.errors.NotFound as exc:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"runtime not found: {name}",
+                ) from exc
+
+            env: dict[str, str] = {}
+            for item in container.attrs.get("Config", {}).get("Env") or []:
+                if "=" not in item:
+                    continue
+                key, value = item.split("=", 1)
+                env[key] = value
+            env.update(_cdp_env())
+
+            labels = container.labels or {}
+            hostname = str(
+                payload.get("hostname")
+                or labels.get("dilibori.hostname_label")
+                or env.get("EXPECTED_HOST")
+                or "localhost"
+            )
+            tenant_id = str(
+                payload.get("tenant_id") or labels.get("dilibori.tenant_id") or ""
+            )
+            default_mem = 384 if profile == "development" else 256
+            default_cpu = 0.5 if profile == "development" else 0.25
+            memory = int(
+                payload.get("MEMORY_LIMIT_MB")
+                or env.get("MEMORY_LIMIT_MB")
+                or default_mem
+            )
+            cpu = float(payload.get("CPU_LIMIT") or env.get("CPU_LIMIT") or default_cpu)
+            data = docker_svc.deploy(
+                deployment_id=deployment_id,
+                image=settings.tenant_image,
+                env=env,
+                hostname_label=hostname,
+                memory_limit=f"{memory}m",
+                cpu_limit=cpu,
+                network_name=default_network_name(deployment_id),
+                environment_profile=profile,
+                tenant_id=tenant_id,
+                config_version=str(payload.get("config_checksum") or "cdp-ensure"),
             )
             return {"ok": True, "data": data}
 
@@ -233,7 +304,9 @@ def enqueue_task(
             source_url = str(payload.get("source_url") or "")
             source_token = str(payload.get("source_token") or "")
             if not source_url or not source_token:
-                raise HTTPException(status_code=400, detail="source_url and source_token are required")
+                raise HTTPException(
+                    status_code=400, detail="source_url and source_token are required"
+                )
             data = SnapshotService(settings).import_snapshot(
                 deployment_id=deployment_id,
                 database_name=str(payload.get("database_name") or ""),
@@ -271,7 +344,9 @@ def enqueue_task(
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
-def _tenant_env(settings: Settings, deployment_id: str, payload: dict[str, Any]) -> dict[str, str]:
+def _tenant_env(
+    settings: Settings, deployment_id: str, payload: dict[str, Any]
+) -> dict[str, str]:
     cfg = dict(payload.get("config") or {})
     # Flatten nested profile config if present
     if "config" in cfg and isinstance(cfg["config"], dict):
@@ -294,14 +369,6 @@ def _tenant_env(settings: Settings, deployment_id: str, payload: dict[str, Any])
         "APP_URL": _public_app_url(str(payload.get("hostname") or "localhost")),
         "MAIL_HOST": "mailpit",
         "MAIL_PORT": "1025",
-        # Local CDP: PHP → host-published Rudder (Docker Desktop); browser → 127.0.0.1.
-        "EVENT_CLIENT_DRIVER": "rudderstack",
-        "CDP_ENABLED": "true",
-        "RUDDERSTACK_DATA_PLANE_URL": "http://host.docker.internal:8080",
-        "RUDDERSTACK_JS_DATA_PLANE_URL": "http://127.0.0.1:8080",
-        "RUDDERSTACK_JS_CONFIG_URL": "http://127.0.0.1:8090",
-        "RUDDERSTACK_HTTP_WRITE_KEY": "dilibori_http_write_key_local",
-        "RUDDERSTACK_JS_WRITE_KEY": "dilibori_js_write_key_local",
         "FORBID_MARKETPLACE_INSTALL": "true",
         "FORBID_SELF_UPDATE": "true",
         "CACHE_DRIVER": "redis",
@@ -315,11 +382,33 @@ def _tenant_env(settings: Settings, deployment_id: str, payload: dict[str, Any])
         elif value is not None and not isinstance(value, (dict, list)):
             env[str(key)] = str(value)
 
-    for key in ("DB_PASSWORD", "APP_KEY", "REDIS_PASSWORD", "ADMIN_PASSWORD", "REDIS_PREFIX", "REDIS_USERNAME"):
+    for key in (
+        "DB_PASSWORD",
+        "APP_KEY",
+        "REDIS_PASSWORD",
+        "ADMIN_PASSWORD",
+        "REDIS_PREFIX",
+        "REDIS_USERNAME",
+    ):
         if payload.get(key):
             env[key] = str(payload[key])
 
+    # Always last: every tenant (new and recreated) ships CDP to the local plane.
+    env.update(_cdp_env())
+
     return env
+
+
+def _cdp_env() -> dict[str, str]:
+    return {
+        "EVENT_CLIENT_DRIVER": "rudderstack",
+        "CDP_ENABLED": "true",
+        "RUDDERSTACK_DATA_PLANE_URL": "http://host.docker.internal:8080",
+        "RUDDERSTACK_JS_DATA_PLANE_URL": "http://127.0.0.1:8080",
+        "RUDDERSTACK_JS_CONFIG_URL": "http://127.0.0.1:8090",
+        "RUDDERSTACK_HTTP_WRITE_KEY": "dilibori_http_write_key_local",
+        "RUDDERSTACK_JS_WRITE_KEY": "dilibori_js_write_key_local",
+    }
 
 
 @router.get("/{deployment_id}/state")
@@ -344,6 +433,10 @@ def health(
     validate_deployment_id(deployment_id)
     try:
         observed = DockerService(settings).observe(deployment_id)
-        return {"ok": True, "healthy": bool(observed.get("running")), "observed": observed}
+        return {
+            "ok": True,
+            "healthy": bool(observed.get("running")),
+            "observed": observed,
+        }
     except Exception as exc:
         return {"ok": False, "healthy": False, "error": str(exc)}

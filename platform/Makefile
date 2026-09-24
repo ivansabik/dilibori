@@ -11,7 +11,8 @@ HOST_EXTENSIONS_PATH ?= $(REPO_ROOT)/app/extensions
 HOST_DATA_PATH ?= $(PLATFORM_DIR)/data
 HOST_APP_SEED_PATH ?= $(REPO_ROOT)/app/seed
 
-.PHONY: help build-app up down logs ps test lint pilots capacity env-copy reconcile cell-b-up cell-b-down migrate-schema install-hooks
+.PHONY: help build-app up down logs ps test lint pilots capacity env-copy reconcile cell-b-up cell-b-down migrate-schema install-hooks ensure-cdp admin-pass
+
 
 help:
 	@echo ""
@@ -28,6 +29,8 @@ help:
 	@echo "  make lint         Ruff check + format --check (platform + cdp)"
 	@echo "  make install-hooks  Point git core.hooksPath at scripts/git-hooks"
 	@echo "  make pilots       Provision both pilot tenants via control plane"
+	@echo "  make admin-pass HOST=taconazo.prod.localhost"
+	@echo "  make ensure-cdp   Recreate active runtimes so CDP env is present"
 	@echo "  make reconcile    Ask control plane to reconcile desired vs actual"
 	@echo "  make capacity     Print density estimate for the local cell"
 	@echo ""
@@ -116,6 +119,18 @@ capacity:
 pilots:
 	chmod +x $(PLATFORM_DIR)/scripts/provision-pilots.sh
 	CONTROL_PLANE_URL=http://127.0.0.1:$${CONTROL_PLANE_PORT:-8099} $(PLATFORM_DIR)/scripts/provision-pilots.sh
+
+admin-pass:
+	@test -n "$(HOST)" || (echo "Usage: make admin-pass HOST=taconazo.prod.localhost" >&2; exit 1)
+	chmod +x $(PLATFORM_DIR)/scripts/print-admin-password.sh
+	CONTROL_PLANE_URL=http://127.0.0.1:$${CONTROL_PLANE_PORT:-8099} \
+	$(PLATFORM_DIR)/scripts/print-admin-password.sh "$(HOST)"
+
+ensure-cdp:
+	chmod +x $(PLATFORM_DIR)/scripts/ensure-cdp-env.sh
+	CONTROL_PLANE_URL=http://127.0.0.1:$${CONTROL_PLANE_PORT:-8099} \
+	RUNTIME_AGENT_URL=http://127.0.0.1:$${RUNTIME_AGENT_PORT:-8100} \
+	$(PLATFORM_DIR)/scripts/ensure-cdp-env.sh
 
 reconcile:
 	curl -sf -X POST http://127.0.0.1:$${CONTROL_PLANE_PORT:-8099}/reconcile -H 'Content-Type: application/json' -d '{}' | python3 -m json.tool

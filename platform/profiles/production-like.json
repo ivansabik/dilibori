@@ -21,7 +21,14 @@
     "DB_PERSISTENT": false,
     "MEMORY_LIMIT_MB": 256,
     "CPU_LIMIT": 0.25,
-    "MAX_USER_CONNECTIONS": 5
+    "MAX_USER_CONNECTIONS": 5,
+    "CDP_ENABLED": true,
+    "EVENT_CLIENT_DRIVER": "rudderstack",
+    "RUDDERSTACK_DATA_PLANE_URL": "http://host.docker.internal:8080",
+    "RUDDERSTACK_JS_DATA_PLANE_URL": "http://127.0.0.1:8080",
+    "RUDDERSTACK_JS_CONFIG_URL": "http://127.0.0.1:8090",
+    "RUDDERSTACK_HTTP_WRITE_KEY": "dilibori_http_write_key_local",
+    "RUDDERSTACK_JS_WRITE_KEY": "dilibori_js_write_key_local"
   },
   "invariants": {
     "APP_DEBUG": false,

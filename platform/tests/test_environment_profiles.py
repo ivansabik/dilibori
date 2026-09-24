@@ -71,6 +71,17 @@ def main() -> int:
         pass
 
     enforce_invariants(production, production["config"])
+
+    for name, profile in (
+        ("development", development),
+        ("production-like", production),
+    ):
+        cfg = profile["config"]
+        assert cfg.get("EVENT_CLIENT_DRIVER") == "rudderstack", name
+        assert cfg.get("CDP_ENABLED") is True, name
+        assert cfg.get("RUDDERSTACK_JS_WRITE_KEY"), name
+        assert cfg.get("RUDDERSTACK_HTTP_WRITE_KEY"), name
+
     print("OK: environment profile policy tests passed")
     return 0
 

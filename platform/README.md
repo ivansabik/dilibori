@@ -56,7 +56,7 @@ Ingress is on **port 8088**, not 80. URLs without `:8088` refuse to connect.
 | Timezone | `America/Denver` | `America/Ciudad_Juarez` |
 | Locations | Alameda Ave (TX), Tecnológico (Juárez) | Centro, Pradera (Juárez) |
 | Admin email | `operations@taconazotaqueria.com` | `ops@pizzarin.example` |
-| Admin password | `ChangeMe-LocalOnly!` (unless `ADMIN_PASSWORD` is set) | same |
+| Admin password | random per deployment (see below) | same |
 
 Taconazo reuses the rich catalog from `app/seed/el-taconazo.php` via the seed bundle. Pizza Rin seeds from `seeds/pizza-rin/menu.json` (flyer catalog, Spanish copy).
 
@@ -66,7 +66,19 @@ Example URLs after pilots (always include **:8088**):
 
 - http://taconazo.dev.localhost:8088/el-taconazo-alameda-ave/menus
 - http://pizza-rin.prod.localhost:8088/pizza-rin-centro/menus
-- Admin: http://pizza-rin.prod.localhost:8088/admin
+- Admin: http://taconazo.prod.localhost:8088/admin
+
+### Admin login
+
+Provision generates a random `ADMIN_PASSWORD` per deployment and stores it encrypted under `data/secrets/{deployment_id}/`. The API never returns that value. Print it locally:
+
+```sh
+make admin-pass HOST=taconazo.prod.localhost
+make admin-pass HOST=pizza-rin.prod.localhost
+# or: ./scripts/print-admin-password.sh taconazo.prod.localhost
+```
+
+Uses `APP_SECRET_KEY` from `platform/.env` (same default as `make env-copy`) to decrypt `data/secrets/.../ADMIN_PASSWORD.json`.
 
 If you get connection refused, you omitted `:8088` or the hosts line above. If you get **502**, the tenant container is down (`docker ps` / `make pilots` again).
 
