@@ -56,6 +56,14 @@
         }
     </style>
 @endif
+@unless($headerAccent)
+    <style>
+        body:has(#euCookieBanner[style*="display: block"]) .footer,
+        body:has(#euCookieBanner:not([style*="display: none"])) .footer {
+            padding-bottom: 6rem;
+        }
+    </style>
+@endunless
 <nav class="navbar navbar-light navbar-top navbar-expand-md py-sm-2 py-md-0 position-relative" style="z-index: 1040; --logo-height: {{ $logoHeight }};">
     <div class="container">
         <a class="navbar-brand" href="{{ page_url('home') }}">

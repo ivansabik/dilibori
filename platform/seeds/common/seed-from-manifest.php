@@ -328,6 +328,7 @@ applyHomeSlider($manifestPath);
 applyPages($manifest, $defaultLocale);
 applyFooterMenuTitles();
 applyCodPayment($defaultLocale);
+applyMenusPageShowFooter();
 
 $adminEmail = getenv('ADMIN_EMAIL') ?: $manifest['admin']['email'];
 $adminPassword = getenv('ADMIN_PASSWORD') ?: 'ChangeMe-LocalOnly!';
@@ -565,4 +566,30 @@ function applyCodPayment(string $defaultLocale): void
     if ($updated) {
         say("Payment COD → {$name}");
     }
+}
+
+/**
+ * Orange theme menus page defaults to hideFooter. Show the site footer on
+ * menus for every tenant (About / Privacy / social / newsletter).
+ */
+function applyMenusPageShowFooter(): void
+{
+    $target = base_path(
+        'vendor/tastyigniter/ti-theme-orange/resources/views/_pages/local/menus.blade.php'
+    );
+    $override = __DIR__.'/menus-page.blade.php';
+    if (!is_file($override)) {
+        $override = '/opt/platform/seeds/common/menus-page.blade.php';
+    }
+    if (!is_file($target) || !is_file($override) || !is_writable($target)) {
+        say('Menus page footer skipped (missing or not writable)');
+
+        return;
+    }
+
+    copy($override, $target);
+    foreach (glob(storage_path('igniter/cache/*/*/menus.blade.php')) ?: [] as $cached) {
+        @unlink($cached);
+    }
+    say('Menus page → site footer enabled');
 }
