@@ -20,14 +20,14 @@ make test
 make pilots
 ```
 
-Two pilots on ingress http://127.0.0.1:8088:
+Two pilots on ingress **http://127.0.0.1:8088** (port **8088** is required; bare `:80` will refuse to connect):
 
-| Tenant | Locales | Currency | Example host |
-|--------|---------|----------|--------------|
+| Tenant | Locales | Currency | Example URL |
+|--------|---------|----------|-------------|
 | El Taconazo | `en` + `es_MX` | USD / MXN | http://taconazo.dev.localhost:8088 |
 | Pizza Rin | `es_MX` only | MXN | http://pizza-rin.prod.localhost:8088 |
 
-Add hosts from [`platform/README.md`](platform/README.md). Control plane: http://127.0.0.1:8099.
+Add the hosts line from [`platform/README.md`](platform/README.md). Control plane: http://127.0.0.1:8099.
 
 ## Standalone storefront (legacy single-tenant)
 

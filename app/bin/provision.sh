@@ -74,9 +74,11 @@ apply_runtime_env
 
 if [ -d /opt/extensions ]; then
     mkdir -p /var/www/html/extensions
-    if ! cp -a /opt/extensions/. /var/www/html/extensions/ 2>/dev/null; then
-        cp -R /opt/extensions/. /var/www/html/extensions/
-    fi
+    chmod -R u+w /var/www/html/extensions 2>/dev/null || true
+    chown -R www-data:www-data /var/www/html/extensions 2>/dev/null || true
+    cp -a /opt/extensions/. /var/www/html/extensions/ 2>/dev/null \
+        || cp -R /opt/extensions/. /var/www/html/extensions/ 2>/dev/null \
+        || true
     chown -R www-data:www-data /var/www/html/extensions || true
 fi
 

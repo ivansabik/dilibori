@@ -33,7 +33,9 @@ def test_ready_when_only_agent_mirror_exists() -> None:
 
 
 def test_not_ready_when_neither_exists() -> None:
-    assert host_bind_ready("/Users/nobody/missing-seeds", Path("/no/such/mirror")) is False
+    assert (
+        host_bind_ready("/Users/nobody/missing-seeds", Path("/no/such/mirror")) is False
+    )
 
 
 if __name__ == "__main__":

@@ -73,7 +73,9 @@ def main() -> int:
     ):
         assert f'action == "{action}"' in tasks, f"missing task action {action}"
 
-    tenants = (ROOT / "runtime-agent/app/routers/tenants.py").read_text(encoding="utf-8")
+    tenants = (ROOT / "runtime-agent/app/routers/tenants.py").read_text(
+        encoding="utf-8"
+    )
     assert "/{deployment_id}/snapshot" in tenants
 
     docker_src = (ROOT / "runtime-agent/app/services/docker_service.py").read_text(
@@ -88,9 +90,9 @@ def main() -> int:
     assert "dilibori-control" in cell_b
     assert "CELL_B_RUNTIME_AGENT_PORT" in cell_b
 
-    snapshot_src = (
-        ROOT / "runtime-agent/app/services/snapshot_service.py"
-    ).read_text(encoding="utf-8")
+    snapshot_src = (ROOT / "runtime-agent/app/services/snapshot_service.py").read_text(
+        encoding="utf-8"
+    )
     assert "pack_dirs_roundtrip" in snapshot_src
     assert "database.sql.gz" in snapshot_src
 

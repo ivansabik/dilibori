@@ -24,6 +24,8 @@ make test
 make pilots
 ```
 
+One-time on a clone: `make install-hooks` so commits that touch platform CI paths run `make lint` and `make test` before push.
+
 | Service | URL |
 |---------|-----|
 | Control plane | http://127.0.0.1:8099 |
@@ -32,20 +34,23 @@ make pilots
 | MinIO console | http://127.0.0.1:9001 |
 | CDP inspector (optional) | http://127.0.0.1:8090 |
 
-Add pilot hosts:
+Add pilot hosts (required so the names resolve to this machine):
 
 ```text
 127.0.0.1 taconazo.dev.localhost taconazo.prod.localhost pizza-rin.dev.localhost pizza-rin.prod.localhost
 ```
 
-`make pilots` creates both tenants with a **development** and **production** deployment each. Host header selects the tenant on port 8088.
+Ingress is on **port 8088**, not 80. URLs without `:8088` refuse to connect.
+
+`make pilots` creates both tenants with a **development** and **production** deployment each. The Host header selects the tenant on port 8088.
 
 ## Pilots
 
 | | El Taconazo | Pizza Rin |
 |--|-------------|-----------|
 | Seed bundle | `seeds/taconazo/` | `seeds/pizza-rin/` |
-| Hosts | `taconazo.{dev,prod}.localhost:8088` | `pizza-rin.{dev,prod}.localhost:8088` |
+| Storefront URL | http://taconazo.dev.localhost:**8088**/ | http://pizza-rin.prod.localhost:**8088**/ |
+| Also | http://taconazo.prod.localhost:8088/ | http://pizza-rin.dev.localhost:8088/ |
 | Locales | English (default) + `es_MX`, header picker | `es_MX` only (no picker) |
 | Currency | USD (El Paso) + MXN (Juárez) | MXN only |
 | Timezone | `America/Denver` | `America/Ciudad_Juarez` |
@@ -57,11 +62,13 @@ Taconazo reuses the rich catalog from `app/seed/el-taconazo.php` via the seed bu
 
 Storefront UI chrome translations (`en` / `es_MX` checkout labels, etc.) live in the shared extension `app/extensions/taconazo/locale/`. Every tenant container mounts that tree. Menu and page text stay in each tenant database.
 
-Example URLs after pilots:
+Example URLs after pilots (always include **:8088**):
 
 - http://taconazo.dev.localhost:8088/el-taconazo-alameda-ave/menus
 - http://pizza-rin.prod.localhost:8088/pizza-rin-centro/menus
-- Admin: `http://<host>:8088/admin`
+- Admin: http://pizza-rin.prod.localhost:8088/admin
+
+If you get connection refused, you omitted `:8088` or the hosts line above. If you get **502**, the tenant container is down (`docker ps` / `make pilots` again).
 
 CDP smoke: `make -C ../cdp up`, then browse a pilot storefront and watch http://127.0.0.1:8090. Event names and hooks: [`../app/extensions/dilibori/cdp/EVENTS.md`](../app/extensions/dilibori/cdp/EVENTS.md).
 

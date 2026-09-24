@@ -122,7 +122,7 @@ def main() -> int:
     pizza_extras = menu["option_groups"]["pizza_extras"]
     assert pizza_extras["display_type"] == "checkbox"
     assert {v["name"]: v["price"] for v in pizza_extras["values"]} == {
-        "Orilla": 35,
+        "Orilla de queso": 35,
         "Extra queso": 30,
         "Ingrediente extra": 25,
     }

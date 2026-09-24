@@ -11,7 +11,7 @@ HOST_EXTENSIONS_PATH ?= $(REPO_ROOT)/app/extensions
 HOST_DATA_PATH ?= $(PLATFORM_DIR)/data
 HOST_APP_SEED_PATH ?= $(REPO_ROOT)/app/seed
 
-.PHONY: help build-app up down logs ps test lint pilots capacity env-copy reconcile cell-b-up cell-b-down migrate-schema
+.PHONY: help build-app up down logs ps test lint pilots capacity env-copy reconcile cell-b-up cell-b-down migrate-schema install-hooks
 
 help:
 	@echo ""
@@ -26,6 +26,7 @@ help:
 	@echo "  make migrate-schema  Apply control-plane SQL migrations"
 	@echo "  make test         Run contract and policy tests"
 	@echo "  make lint         Ruff check + format --check (platform + cdp)"
+	@echo "  make install-hooks  Point git core.hooksPath at scripts/git-hooks"
 	@echo "  make pilots       Provision both pilot tenants via control plane"
 	@echo "  make reconcile    Ask control plane to reconcile desired vs actual"
 	@echo "  make capacity     Print density estimate for the local cell"
@@ -100,6 +101,11 @@ test:
 lint:
 	cd $(REPO_ROOT) && python3 -m ruff check platform cdp/event-sink
 	cd $(REPO_ROOT) && python3 -m ruff format --check platform cdp/event-sink
+
+install-hooks:
+	@chmod +x $(REPO_ROOT)/scripts/git-hooks/pre-commit
+	@git -C $(REPO_ROOT) config core.hooksPath scripts/git-hooks
+	@echo "git core.hooksPath -> scripts/git-hooks (pre-commit runs make lint + make test)"
 
 capacity:
 	@python3 $(PLATFORM_DIR)/scripts/capacity_model.py --tenants 2 --idle-memory-mb 180 --proxy-budget 80

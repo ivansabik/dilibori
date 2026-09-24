@@ -42,3 +42,20 @@ ruff format --check platform cdp/event-sink
 ```
 
 Or from `platform/`: `make lint`.
+
+## Before commit (Platform CI)
+
+When changing `platform/`, `cdp/event-sink/`, Python files, or the app image entrypoints/extensions that CI watches, run the same gates as GitHub Actions:
+
+```bash
+make -C platform lint
+make -C platform test
+```
+
+Install the shared git hook once so commits fail locally first:
+
+```bash
+make -C platform install-hooks
+```
+
+That sets `core.hooksPath` to `scripts/git-hooks/` (runs ruff + `make test` when staged paths match Platform CI).

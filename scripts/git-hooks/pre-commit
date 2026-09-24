@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# Git pre-commit: same checks as Platform CI (ruff + contract/seed tests).
+set -euo pipefail
+
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
+
+changed="$(git diff --cached --name-only --diff-filter=ACMR || true)"
+if [ -z "$changed" ]; then
+  exit 0
+fi
+
+need_platform_ci=0
+while IFS= read -r path; do
+  case "$path" in
+    platform/*|cdp/event-sink/*|ruff.toml|*.py|\
+    app/Dockerfile|app/docker-entrypoint.sh|app/bin/*|app/extensions/*|app/supervisor/*)
+      need_platform_ci=1
+      break
+      ;;
+  esac
+done <<< "$changed"
+
+if [ "$need_platform_ci" -eq 0 ]; then
+  exit 0
+fi
+
+echo "pre-commit: platform CI checks (ruff + make test)..."
+make -C platform lint
+make -C platform test
+echo "pre-commit: OK"
