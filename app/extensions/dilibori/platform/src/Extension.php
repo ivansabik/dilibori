@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace Dilibori\Platform;
 
+use Dilibori\Platform\Health\TenantPhpExecutionProbe;
+use Dilibori\Platform\Health\TenantWebServerSecurityProbes;
 use Dilibori\Platform\Http\Middleware\BlockTenantCodeInstall;
 use Dilibori\Platform\Http\Middleware\VerifyExpectedHost;
 use Igniter\System\Classes\BaseExtension;
+use Igniter\System\Health\PhpExecutionProbe;
+use Igniter\System\Health\WebServerSecurityProbes;
 use Illuminate\Support\Facades\URL;
 use Override;
 
@@ -15,6 +19,9 @@ class Extension extends BaseExtension
     #[Override]
     public function register(): void
     {
+        $this->app->bind(WebServerSecurityProbes::class, TenantWebServerSecurityProbes::class);
+        $this->app->bind(PhpExecutionProbe::class, TenantPhpExecutionProbe::class);
+
         $this->app['router']->pushMiddlewareToGroup('web', VerifyExpectedHost::class);
         $this->app['router']->pushMiddlewareToGroup('igniter', VerifyExpectedHost::class);
         $this->app['router']->pushMiddlewareToGroup('web', BlockTenantCodeInstall::class);

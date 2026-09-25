@@ -73,6 +73,7 @@ def main() -> int:
         {
             "APP_DEBUG": "false",
             "APP_ENV": "production",
+            "APP_URL": "https://live.example",
             "TENANT_ID": "t1",
             "UNKNOWN_KEY": "x",
         },
@@ -80,6 +81,18 @@ def main() -> int:
     )
     assert "UNKNOWN_KEY" not in filtered
     assert filtered["APP_DEBUG"] == "false"
+    assert filtered["APP_ENV"] == "production"
+
+    local_http = validate_env(
+        {
+            "APP_DEBUG": "false",
+            "APP_ENV": "production",
+            "APP_URL": "http://taconazo.prod.localhost:8088",
+        },
+        environment_profile="production",
+    )
+    assert local_http["APP_ENV"] == "staging"
+    assert local_http["APP_DEBUG"] == "false"
 
     # Tenant Redis ACL users must land on a writable path (ACL SAVE).
     redis_conf = (ROOT / "redis" / "redis.conf").read_text(encoding="utf-8")

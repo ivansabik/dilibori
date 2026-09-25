@@ -457,6 +457,12 @@ class DockerService:
         )
         mounts = host_config.pop("mounts")
 
+        # *.localhost resolves to loopback inside the container; map the tenant
+        # hostname to the Docker host so APP_URL health probes reach Caddy.
+        extra_hosts: dict[str, str] = {}
+        if hostname_label:
+            extra_hosts[hostname_label] = "host-gateway"
+
         container = self._client.containers.run(
             image=image,
             name=name,
@@ -473,6 +479,7 @@ class DockerService:
             network=network_name,
             restart_policy={"Name": "unless-stopped"},
             mounts=mounts,
+            extra_hosts=extra_hosts or None,
             **host_config,
         )
 

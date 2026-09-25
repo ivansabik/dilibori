@@ -20,7 +20,7 @@ RUN set -ex; \
     rm -rf /var/lib/apt/lists/*; \
     \
     docker-php-ext-configure gd --with-jpeg=/usr; \
-    docker-php-ext-install -j$(nproc) pdo_mysql curl xml gd mbstring intl zip exif
+    docker-php-ext-install -j$(nproc) pdo_mysql curl xml gd mbstring intl zip exif bcmath
 
 RUN pecl install -o -f redis \
     && rm -rf /tmp/pear \
@@ -39,6 +39,12 @@ RUN { \
         echo 'mysqli.allow_persistent = Off'; \
         echo 'pgsql.allow_persistent = Off'; \
     } > /usr/local/etc/php/conf.d/dilibori-connections.ini
+
+# TastyIgniter System Information checks (PhpCheck).
+RUN { \
+        echo 'memory_limit = 256M'; \
+        echo 'expose_php = Off'; \
+    } > /usr/local/etc/php/conf.d/dilibori-php.ini
 
 RUN a2enmod rewrite headers
 

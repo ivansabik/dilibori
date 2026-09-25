@@ -125,7 +125,12 @@ def validate_env(
 
     if environment_profile == "production":
         filtered["APP_DEBUG"] = "false"
-        filtered["APP_ENV"] = "production"
+        app_url = filtered.get("APP_URL", "")
+        # Local HTTP ingress (*.localhost) cannot pass TI's production HTTPS check.
+        if app_url.startswith("http://") and ".localhost" in app_url:
+            filtered["APP_ENV"] = "staging"
+        else:
+            filtered["APP_ENV"] = "production"
 
     return filtered
 

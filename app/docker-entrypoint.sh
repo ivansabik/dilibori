@@ -7,9 +7,16 @@ echo "Starting TastyIgniter runtime (TENANT_ID=${TENANT_ID:-unset} ENV=${DEPLOYM
 setup_writable_dirs() {
     mkdir -p /var/www/html/storage/app/public/media/uploads \
         /var/www/html/storage/app/public/media/attachments \
-        /var/www/html/storage/framework/{cache,sessions,views} \
+        /var/www/html/storage/framework/{cache/data,sessions,views} \
         /var/www/html/storage/logs \
         /var/www/html/bootstrap/cache
+    # Deny PHP execution under public media (TI WebServerSecurityCheck probes).
+    cat > /var/www/html/storage/app/public/.htaccess <<'EOF'
+Options -Indexes
+<FilesMatch "\.ph(p[3457]?|t|tml)$">
+    Require all denied
+</FilesMatch>
+EOF
     chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache 2>/dev/null || true
     chmod -R ug+rwX /var/www/html/storage /var/www/html/bootstrap/cache
 }
