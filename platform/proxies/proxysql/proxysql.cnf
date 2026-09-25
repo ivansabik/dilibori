@@ -2,7 +2,8 @@ datadir="/var/lib/proxysql"
 
 admin_variables=
 {
-    admin_credentials="admin:platform-proxysql-admin"
+    # admin is localhost-only in ProxySQL; radmin is for the runtime agent.
+    admin_credentials="admin:platform-proxysql-admin;radmin:platform-proxysql-admin"
     mysql_ifaces="0.0.0.0:6032"
 }
 

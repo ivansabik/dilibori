@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     proxysql_mysql_port: int = Field(default=6033, alias="PROXYSQL_MYSQL_PORT")
     proxysql_admin_host: str = Field(default="proxysql", alias="PROXYSQL_ADMIN_HOST")
     proxysql_admin_port: int = Field(default=6032, alias="PROXYSQL_ADMIN_PORT")
-    proxysql_admin_user: str = Field(default="admin", alias="PROXYSQL_ADMIN_USER")
+    proxysql_admin_user: str = Field(default="radmin", alias="PROXYSQL_ADMIN_USER")
     proxysql_admin_password: str = Field(
         default="platform-proxysql-admin",
         alias="PROXYSQL_ADMIN_PASSWORD",

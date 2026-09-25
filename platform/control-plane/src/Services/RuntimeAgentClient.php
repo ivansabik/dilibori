@@ -15,9 +15,10 @@ final class RuntimeAgentClient implements RuntimeAgentClientInterface
     /** @param array<string, mixed> $payload */
     public function enqueue(string $action, string $deploymentId, array $payload = []): array
     {
+        // PHP json_encode([]) is a JSON array; the agent expects an object.
         return $this->request('POST', "/deployments/{$deploymentId}/tasks", [
             'action' => $action,
-            'payload' => $payload,
+            'payload' => $payload === [] ? new \stdClass() : $payload,
         ]);
     }
 
