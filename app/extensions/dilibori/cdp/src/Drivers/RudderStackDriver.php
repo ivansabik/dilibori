@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Dilibori\Cdp\Drivers;
 
 use Dilibori\Cdp\Contracts\EventClient;
+use Dilibori\Cdp\Support\EventContext;
 use Illuminate\Support\Facades\Http;
 use Throwable;
 
@@ -77,6 +78,14 @@ class RudderStackDriver implements EventClient
 
         $baseUrl = rtrim($this->dataPlaneUrl, '/');
         $url = "{$baseUrl}{$path}";
+
+        $payload['context'] = array_replace_recursive(
+            EventContext::requestContext(),
+            is_array($payload['context'] ?? null) ? $payload['context'] : [],
+        );
+        if ($payload['context'] === []) {
+            unset($payload['context']);
+        }
 
         try {
             Http::withBasicAuth($this->writeKey, '')

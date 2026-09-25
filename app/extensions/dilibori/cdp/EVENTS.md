@@ -4,6 +4,8 @@ Source of truth for storefront analytics. Canonical names are Proper Case, objec
 
 **Shared context** (merged into almost every `track` via `EventContext`): `location_id`, `location_name`, `currency`, `locale`, `order_type` (when known).
 
+**Request context** (Segment `context` on the wire): backend events add `userAgent`, `userAgentData` (Client Hints when present), `device.type`, `os.name`, `ip`, `locale`, and `page` from the HTTP request. Browser events get the same from the RudderStack JS SDK (`screen`, `timezone`, etc.).
+
 **Identity:** `identify` + cookie `dilibori_anonymous_id` stitch anonymous and logged-in activity. Backend reads the cookie; JS SDK writes it.
 
 **Producers:** one place per event (no dual-write of `Order Completed` from the browser).
