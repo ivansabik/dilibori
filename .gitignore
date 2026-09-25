@@ -19,3 +19,4 @@ platform/data/ingress/tenants/*.caddy
 platform/data/minio-policies/*.json
 platform/data-cell-b/
 !platform/data/**/.gitkeep
+.tmp/

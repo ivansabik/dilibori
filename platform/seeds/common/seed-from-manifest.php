@@ -328,6 +328,7 @@ applyHomeSlider($manifestPath);
 applyPages($manifest, $defaultLocale);
 applyFooterMenuTitles();
 applyCodPayment($defaultLocale);
+applyStatuses($defaultLocale);
 applyMenusPageShowFooter();
 
 $adminEmail = getenv('ADMIN_EMAIL') ?: $manifest['admin']['email'];
@@ -569,6 +570,49 @@ function applyCodPayment(string $defaultLocale): void
     ]);
     if ($updated) {
         say("Payment COD → {$name}");
+    }
+}
+
+/**
+ * Status names and comments live in the statuses table, not lang files.
+ * Match the tenant default locale so admin and customer-facing status text
+ * are not stuck on Igniter's vendor English.
+ */
+function applyStatuses(string $defaultLocale): void
+{
+    if (!Schema::hasTable('statuses')) {
+        return;
+    }
+
+    if (!str_starts_with($defaultLocale, 'es')) {
+        return;
+    }
+
+    $rows = [
+        ['status_id' => 1, 'status_for' => 'order', 'status_name' => 'Recibido', 'status_comment' => 'Tu pedido ha sido recibido.'],
+        ['status_id' => 2, 'status_for' => 'order', 'status_name' => 'Pendiente', 'status_comment' => 'Tu pedido está pendiente'],
+        ['status_id' => 3, 'status_for' => 'order', 'status_name' => 'Preparación', 'status_comment' => 'Tu pedido está en la cocina'],
+        ['status_id' => 4, 'status_for' => 'order', 'status_name' => 'En camino', 'status_comment' => 'Tu pedido llegará pronto.'],
+        ['status_id' => 5, 'status_for' => 'order', 'status_name' => 'Completado', 'status_comment' => ''],
+        ['status_id' => 6, 'status_for' => 'reservation', 'status_name' => 'Confirmada', 'status_comment' => 'Tu reserva de mesa ha sido confirmada.'],
+        ['status_id' => 7, 'status_for' => 'reservation', 'status_name' => 'Cancelada', 'status_comment' => 'Tu reserva de mesa ha sido cancelada.'],
+        ['status_id' => 8, 'status_for' => 'reservation', 'status_name' => 'Pendiente', 'status_comment' => 'Tu reserva de mesa está pendiente.'],
+        ['status_id' => 9, 'status_for' => 'order', 'status_name' => 'Cancelado', 'status_comment' => ''],
+    ];
+
+    $updated = 0;
+    foreach ($rows as $row) {
+        $count = DB::table('statuses')
+            ->where('status_id', $row['status_id'])
+            ->where('status_for', $row['status_for'])
+            ->update([
+                'status_name' => $row['status_name'],
+                'status_comment' => $row['status_comment'],
+            ]);
+        $updated += $count;
+    }
+    if ($updated) {
+        say("Statuses → es_MX ({$updated} rows)");
     }
 }
 
