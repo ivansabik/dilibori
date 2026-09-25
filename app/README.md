@@ -79,10 +79,11 @@ TastyIgniter Translate (`tastyigniter/ti-ext-translate`) stores **separate** Eng
 
 Storefront chrome (nav, footer, cart, checkout, login, reservation, cookie banner) uses lang packs under `extensions/taconazo/locale/lang/{en,es_MX}/`. Those files are **shared** by every platform tenant (copied from `/opt/extensions` at container start). Menu and CMS copy stay in each tenant DB.
 
+Admin UI Spanish (`es_MX`) also lives in that extension (`igniter/admin.php`, `system.php`, plus extension packs). Strings come from the community translation project and are committed here, so no Carte key or `igniter:language-install` is required. Seeded staff language follows the tenant default locale (Pizza Rin → Spanish; El Taconazo → English). Switch later under Profile → My Account → Language.
+
 - Storefront: **EN | ES** buttons in the header when the tenant enables both locales (session). Codes: `en` and `es_MX`.
-- Admin: edit a menu item and switch locale on the translatable fields (`trltext` / `trltextarea`).
+- Admin content: edit a menu item and switch locale on the translatable fields (`trltext` / `trltextarea`).
 - Browser auto-detect is **off** so the picker is not overridden (`es` from `Accept-Language` would not match `es_MX`). Turn it on under `Admin → Settings` if you want.
-- Full **UI language packs** from the TastyIgniter marketplace need a Carte key (`IGNITER_CARTE_KEY`) via `php artisan igniter:language-install es_MX`.
 
 ## Make commands
 

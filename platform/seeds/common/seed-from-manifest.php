@@ -364,6 +364,10 @@ if (!$admin) {
     if ($admin->isFillable('status') || array_key_exists('status', $admin->getAttributes())) {
         $admin->status = 1;
     }
+    $languageId = Language::query()->where('code', $defaultLocale)->value('language_id');
+    if ($languageId) {
+        $admin->language_id = $languageId;
+    }
     $admin->save();
     if (method_exists($admin, 'locations')) {
         $admin->locations()->sync($locationIds);
