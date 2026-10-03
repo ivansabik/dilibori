@@ -1,13 +1,17 @@
 #!/usr/bin/env bash
-# Provision both pilot tenants (dev + production each). Reuses live deployments.
+# Provision pilot tenants for one stack environment (ENV=dev|prod).
+# Reuses the live deployment when present.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
+PLATFORM_ENV="${PLATFORM_ENV:-dev}"
+DEPLOYMENT_ENVIRONMENT="${DEPLOYMENT_ENVIRONMENT:-development}"
+INGRESS_HTTP_PORT="${INGRESS_HTTP_PORT:-8088}"
 CP_URL="${CONTROL_PLANE_URL:-http://127.0.0.1:8099}"
 
-echo "Waiting for control plane at ${CP_URL}..."
+echo "Waiting for control plane at ${CP_URL} (env=${DEPLOYMENT_ENVIRONMENT})..."
 for i in $(seq 1 60); do
   if curl -sf "${CP_URL}/health" >/dev/null; then
     break
@@ -103,13 +107,11 @@ provision_deployment() {
 TACONAZO_ID="$(ensure_tenant taconazo 'El Taconazo')"
 PIZZA_ID="$(ensure_tenant pizza-rin 'Pizza Rin')"
 
-provision_deployment "$TACONAZO_ID" development taconazo taconazo.dev.localhost
-provision_deployment "$TACONAZO_ID" production taconazo taconazo.prod.localhost
-provision_deployment "$PIZZA_ID" development pizza-rin pizza-rin.dev.localhost
-provision_deployment "$PIZZA_ID" production pizza-rin pizza-rin.prod.localhost
+provision_deployment "$TACONAZO_ID" "$DEPLOYMENT_ENVIRONMENT" taconazo "taconazo.${PLATFORM_ENV}.localhost"
+provision_deployment "$PIZZA_ID" "$DEPLOYMENT_ENVIRONMENT" pizza-rin "pizza-rin.${PLATFORM_ENV}.localhost"
 
 echo ""
-echo "Pilots requested. Add to /etc/hosts if needed:"
-echo "  127.0.0.1 taconazo.dev.localhost taconazo.prod.localhost pizza-rin.dev.localhost pizza-rin.prod.localhost"
-echo "Ingress: http://127.0.0.1:8088 (Host header selects tenant)"
+echo "Pilots requested for ${DEPLOYMENT_ENVIRONMENT}. Add to /etc/hosts if needed:"
+echo "  127.0.0.1 taconazo.${PLATFORM_ENV}.localhost pizza-rin.${PLATFORM_ENV}.localhost"
+echo "Ingress: http://127.0.0.1:${INGRESS_HTTP_PORT} (Host header selects tenant)"
 echo "Control plane: ${CP_URL}"

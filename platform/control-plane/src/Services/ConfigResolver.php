@@ -56,7 +56,7 @@ final class ConfigResolver
     private function loadProfile(string $environment): array
     {
         $file = match ($environment) {
-            'production', 'staging' => 'production-like.json',
+            'production' => 'production-like.json',
             default => 'development.json',
         };
 
@@ -101,7 +101,7 @@ final class ConfigResolver
             throw new RuntimeException('Production invariant violated: secure cookies required');
         }
 
-        if (in_array($environment, ['production', 'staging'], true)) {
+        if ($environment === 'production') {
             $effective['APP_DEBUG'] = false;
             $effective['APP_ENV'] = 'production';
         }

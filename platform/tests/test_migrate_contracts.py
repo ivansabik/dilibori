@@ -87,7 +87,7 @@ def main() -> int:
     assert (ROOT / "docker-compose.cell-b.yml").is_file()
     cell_b = (ROOT / "docker-compose.cell-b.yml").read_text(encoding="utf-8")
     assert "dilibori-cell-b-shared" in cell_b
-    assert "dilibori-control" in cell_b
+    assert "dilibori-dev-control" in cell_b
     assert "CELL_B_RUNTIME_AGENT_PORT" in cell_b
 
     snapshot_src = (ROOT / "runtime-agent/app/services/snapshot_service.py").read_text(

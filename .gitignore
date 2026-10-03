@@ -8,15 +8,8 @@
 __pycache__/
 *.pyc
 *.log
-platform/data/mariadb/
-platform/data/postgres/
-platform/data/redis/
-platform/data/minio/
-platform/data/secrets/
-platform/data/tenants/
-platform/data/backups/
-platform/data/ingress/tenants/*.caddy
-platform/data/minio-policies/*.json
+# Per-env stack data (dev/prod) plus any leftover single-stack paths.
+platform/data/
 platform/data-cell-b/
 !platform/data/**/.gitkeep
 .tmp/

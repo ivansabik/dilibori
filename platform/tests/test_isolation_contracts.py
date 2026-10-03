@@ -123,7 +123,6 @@ def main() -> int:
         (False, "production", False),
         (True, "production", True),
         (False, "development", True),
-        (False, "staging", True),
         (False, "", True),
         (False, "unknown", True),
     ]

@@ -19,7 +19,7 @@
     "cell_id": { "type": "string" },
     "environment": {
       "type": "string",
-      "enum": ["development", "staging", "production"]
+      "enum": ["development", "production"]
     },
     "event": { "type": "string", "minLength": 1 },
     "timestamp": { "type": "string", "format": "date-time" },

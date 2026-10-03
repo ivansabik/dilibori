@@ -81,7 +81,7 @@ Copy `.env.example` and set at least `RUNTIME_AGENT_TOKEN`. Shared service hosts
 | `RUNTIME_AGENT_TOKEN` | Bearer token for all routes |
 | `DATA_DIR` | State root (default `/var/lib/dilibori`) |
 | `TENANT_IMAGE` / `ALLOWED_IMAGES` | Tenant image allowlist |
-| `SHARED_NETWORK` | Shared services network (default `dilibori-shared`). Used to pick the right compose services when multiple cells share a Docker daemon. |
+| `SHARED_NETWORK` | Shared services network (default `dilibori-shared`; compose sets `dilibori-{env}-shared`). Used to pick the right compose services when multiple stacks share a Docker daemon. |
 | `MARIADB_*` | Admin connection for DDL and backups |
 | `REDIS_*` | Admin Redis for ACL |
 | `MINIO_*` | Root MinIO credentials |

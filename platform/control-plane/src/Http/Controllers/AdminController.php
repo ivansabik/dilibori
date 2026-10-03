@@ -100,7 +100,7 @@ final class AdminController
 
         <label>
             <input type="checkbox" name="noindex" value="1">
-            Block search indexing in production (dev and staging are always blocked)
+            Block search indexing in production (development is always blocked)
         </label>
 
         <button type="submit">Create tenant</button>
@@ -147,12 +147,7 @@ final class AdminController
         <label for="deployment-tenant">Tenant ID</label>
         <input id="deployment-tenant" name="tenant_id" required placeholder="tenant uuid">
 
-        <label for="deployment-env">Environment</label>
-        <select id="deployment-env" name="environment">
-            <option value="development">development</option>
-            <option value="staging">staging</option>
-            <option value="production">production</option>
-        </select>
+        <p class="muted">Environment is fixed for this control plane (DEPLOYMENT_ENVIRONMENT).</p>
 
         <label for="deployment-hostname">Hostname</label>
         <input id="deployment-hostname" name="hostname" placeholder="optional">
@@ -242,7 +237,6 @@ final class AdminController
             event.preventDefault();
             const form = event.target;
             postJson('/tenants/' + encodeURIComponent(form.tenant_id.value) + '/deployments', {
-                environment: form.environment.value,
                 hostname: form.hostname.value || undefined,
                 seed_bundle: form.seed_bundle.value,
             });

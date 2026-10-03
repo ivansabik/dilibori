@@ -190,8 +190,9 @@ class DockerService:
                 on_shared.append(container)
         if on_shared:
             return on_shared[0]
-        # Fallback for agents that share one compose project.
-        return matches[0]
+        # No fallback: with multiple env stacks on one daemon, picking any match
+        # can wire a tenant into the wrong MariaDB / Redis / Caddy.
+        return None
 
     def _assert_short_id_available(self, deployment_id: str) -> None:
         short = deployment_id_short(deployment_id)

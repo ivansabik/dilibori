@@ -15,8 +15,6 @@ class ConfigResolver:
     def load_profile(self, environment: str) -> dict:
         # Map deployment environment to profile file
         name = "production-like" if environment == "production" else "development"
-        if environment == "staging":
-            name = "production-like"
         path = self.profiles_path / f"{name}.json"
         return json.loads(path.read_text())
 

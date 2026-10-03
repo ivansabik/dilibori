@@ -23,7 +23,7 @@ tenants each), so roughly 40-65 cells, driven by one control plane.
 | Binding constraint | ProxySQL backend budget 80, 5 conns/tenant, 10 reserved | same |
 | Idle memory assumption | 180 MB/tenant (unmeasured) | same |
 | Cells for 1000 tenants | ~63-72 | 1000 / 16 |
-| Seeded `max_deployments` | 50 (unchecked at reserve) | `control-plane/database/seed.sql` |
+| Seeded `max_deployments` | 50 (unchecked at reserve) | `control-plane/database/seed.sh` |
 
 `DeploymentController::pickCell()` picks the least-loaded schedulable cell under
 `capacity_metadata.max_deployments` (default 16). Cells store `agent_url` so the

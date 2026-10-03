@@ -1,16 +1,16 @@
-# Shared multi-tenant cell (local PoC).
+# One full stack per environment (make ENV=dev|prod).
 # Tenants are created by the runtime agent, not declared here.
-name: dilibori-platform
+name: dilibori-${PLATFORM_ENV:-dev}
 
 services:
   ingress:
     image: caddy:2.8-alpine
-    container_name: dilibori-caddy
+    container_name: dilibori-${PLATFORM_ENV:-dev}-caddy
     ports:
       - "${INGRESS_HTTP_PORT:-8088}:80"
     volumes:
       - ./ingress/Caddyfile:/etc/caddy/Caddyfile:ro
-      - ./data/ingress/tenants:/etc/caddy/tenants:ro
+      - ./data/${PLATFORM_ENV:-dev}/ingress/tenants:/etc/caddy/tenants:ro
     networks:
       - dilibori-ingress
       - dilibori-shared
@@ -66,7 +66,7 @@ services:
     volumes:
       - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
       - ./redis/users.acl:/seed/users.acl:ro
-      - ./data/redis:/data
+      - ./data/${PLATFORM_ENV:-dev}/redis:/data
     networks:
       dilibori-shared:
         aliases: [redis]
@@ -84,7 +84,7 @@ services:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-platformminio}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-platform-minio-change-me}
     volumes:
-      - ./data/minio:/data
+      - ./data/${PLATFORM_ENV:-dev}/minio:/data
     networks:
       dilibori-shared:
         aliases: [minio]
@@ -121,10 +121,12 @@ services:
       POSTGRES_DB: controlplane
       POSTGRES_USER: controlplane
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-platform-pg-change-me}
+      PLATFORM_ENV: ${PLATFORM_ENV:-dev}
+      INGRESS_HTTP_PORT: ${INGRESS_HTTP_PORT:-8088}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./control-plane/database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
-      - ./control-plane/database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+      - ./control-plane/database/seed.sh:/docker-entrypoint-initdb.d/02-seed.sh:ro
     networks:
       dilibori-control:
         aliases: [postgres]
@@ -178,10 +180,11 @@ services:
       SEEDS_PATH: /opt/platform/seeds
       SECRETS_PATH: /var/lib/dilibori/secrets
       CELL_ID: local-cell
+      DEPLOYMENT_ENVIRONMENT: ${DEPLOYMENT_ENVIRONMENT:-development}
     volumes:
       - ./profiles:/opt/platform/profiles:ro
       - ./seeds:/opt/platform/seeds:ro
-      - ./data/secrets:/var/lib/dilibori/secrets
+      - ./data/${PLATFORM_ENV:-dev}/secrets:/var/lib/dilibori/secrets
     depends_on:
       - pgbouncer
       - runtime-agent
@@ -207,7 +210,8 @@ services:
       TENANT_IMAGE: ${TENANT_IMAGE:-dilibori/tastyigniter:poc}
       ALLOWED_IMAGES: ${ALLOWED_IMAGES:-dilibori/tastyigniter:poc}
       DATA_DIR: /var/lib/dilibori
-      SHARED_NETWORK: dilibori-shared
+      SHARED_NETWORK: dilibori-${PLATFORM_ENV:-dev}-shared
+      CADDY_CONTAINER_NAME: dilibori-${PLATFORM_ENV:-dev}-caddy
       PROXYSQL_HOST: proxysql
       PROXYSQL_MYSQL_PORT: "6033"
       PROXYSQL_ADMIN_HOST: proxysql
@@ -222,7 +226,7 @@ services:
       INGRESS_HTTP_PORT: ${INGRESS_HTTP_PORT:-8088}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./data:/var/lib/dilibori
+      - ./data/${PLATFORM_ENV:-dev}:/var/lib/dilibori
       - ./seeds:/opt/platform/seeds:ro
       - ./profiles:/opt/platform/profiles:ro
       - ../app/extensions:/opt/extensions:ro
@@ -241,11 +245,11 @@ services:
 
 networks:
   dilibori-shared:
-    name: dilibori-shared
+    name: dilibori-${PLATFORM_ENV:-dev}-shared
   dilibori-control:
-    name: dilibori-control
+    name: dilibori-${PLATFORM_ENV:-dev}-control
   dilibori-ingress:
-    name: dilibori-ingress
+    name: dilibori-${PLATFORM_ENV:-dev}-ingress
 
 volumes:
   mariadb_data:

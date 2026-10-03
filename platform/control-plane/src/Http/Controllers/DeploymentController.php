@@ -27,9 +27,17 @@ final class DeploymentController
             return Response::error('Tenant not found', 404);
         }
 
-        $environment = (string) $request->input('environment', 'development');
-        if (!in_array($environment, ['development', 'staging', 'production'], true)) {
-            return Response::error('Invalid environment');
+        $pinned = (string) (getenv('DEPLOYMENT_ENVIRONMENT') ?: 'development');
+        if (!in_array($pinned, ['development', 'production'], true)) {
+            return Response::error('DEPLOYMENT_ENVIRONMENT must be development or production', 500);
+        }
+
+        $environment = (string) $request->input('environment', $pinned);
+        if ($environment !== $pinned) {
+            return Response::error(
+                "This control plane only manages '{$pinned}' deployments",
+                400,
+            );
         }
 
         $hostname = trim((string) $request->input('hostname', ''));

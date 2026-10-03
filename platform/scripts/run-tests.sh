@@ -21,6 +21,9 @@ python3 tests/test_migrate_contracts.py
 echo "== one live deployment =="
 python3 tests/test_one_live_deployment.py
 
+echo "== per-env stacks =="
+python3 tests/test_env_stacks.py
+
 echo "== connection budgets =="
 python3 tests/test_connection_budgets.py
 

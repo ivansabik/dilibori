@@ -4,7 +4,7 @@ Local workspace for the Dilibori stack and related data tools.
 
 | Folder | Purpose |
 |--------|---------|
-| [`platform/`](platform/) | Multi-tenant PoC: control plane, runtime agent, shared cell, pilot seeds |
+| [`platform/`](platform/) | Multi-tenant PoC: per-env stacks (dev/prod), control plane, runtime agent, pilot seeds |
 | [`app/`](app/) | TastyIgniter 4 image, shared extensions, legacy single-tenant compose |
 | [`cdp/`](cdp/) | Optional RudderStack data plane + event inspector |
 | [`mailpit/`](mailpit/) | Standalone Mailpit (also included under `platform/`) |
@@ -15,19 +15,21 @@ Local workspace for the Dilibori stack and related data tools.
 cd platform
 make env-copy
 make build-app
-make up
+make up              # ENV=dev (default)
+make up ENV=prod     # separate full stack
 make test
 make pilots
+make pilots ENV=prod
 ```
 
-Two pilots on ingress **http://127.0.0.1:8088** (port **8088** is required; bare `:80` will refuse to connect):
+Dev ingress **http://127.0.0.1:8088**, prod **http://127.0.0.1:8188** (port required; bare `:80` will refuse to connect):
 
-| Tenant | Locales | Currency | Example URL |
-|--------|---------|----------|-------------|
-| El Taconazo | `en` + `es_MX` | USD / MXN | http://taconazo.dev.localhost:8088 |
-| Pizza Rin | `es_MX` only | MXN | http://pizza-rin.prod.localhost:8088 |
+| Tenant | Locales | Currency | Dev URL | Prod URL |
+|--------|---------|----------|---------|----------|
+| El Taconazo | `en` + `es_MX` | USD / MXN | http://taconazo.dev.localhost:8088 | http://taconazo.prod.localhost:8188 |
+| Pizza Rin | `es_MX` only | MXN | http://pizza-rin.dev.localhost:8088 | http://pizza-rin.prod.localhost:8188 |
 
-Add the hosts line from [`platform/README.md`](platform/README.md). Control plane: http://127.0.0.1:8099.
+Add the hosts line from [`platform/README.md`](platform/README.md). Control planes: http://127.0.0.1:8099 (dev), http://127.0.0.1:8199 (prod).
 
 ## Standalone storefront (legacy single-tenant)
 

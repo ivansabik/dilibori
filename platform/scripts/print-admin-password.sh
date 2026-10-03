@@ -8,6 +8,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TARGET="${1:-}"
 CP_URL="${CONTROL_PLANE_URL:-http://127.0.0.1:8099}"
+PLATFORM_ENV="${PLATFORM_ENV:-dev}"
+INGRESS_HTTP_PORT="${INGRESS_HTTP_PORT:-8088}"
 
 if [ -z "$TARGET" ]; then
   echo "Usage: $0 <hostname|deployment_id>" >&2
@@ -20,7 +22,7 @@ if [ -f "${ROOT}/.env" ]; then
 fi
 APP_SECRET_KEY="${APP_SECRET_KEY:-0123456789abcdef0123456789abcdef}"
 
-export ROOT TARGET CP_URL APP_SECRET_KEY
+export ROOT TARGET CP_URL APP_SECRET_KEY PLATFORM_ENV INGRESS_HTTP_PORT
 
 node <<'NODE'
 const crypto = require("crypto");
@@ -31,7 +33,9 @@ const path = require("path");
 const target = process.env.TARGET;
 const cp = process.env.CP_URL;
 const secretKey = process.env.APP_SECRET_KEY;
-const secretsRoot = path.join(process.env.ROOT, "data", "secrets");
+const platformEnv = process.env.PLATFORM_ENV || "dev";
+const ingressPort = process.env.INGRESS_HTTP_PORT || "8088";
+const secretsRoot = path.join(process.env.ROOT, "data", platformEnv, "secrets");
 
 function get(url) {
   return new Promise((resolve, reject) => {
@@ -111,7 +115,7 @@ function decryptAdmin(depId) {
   } catch (_) {}
 
   console.log(`Hostname:  ${hostname}`);
-  console.log(`Admin URL: http://${hostname}:8088/admin`);
+  console.log(`Admin URL: http://${hostname}:${ingressPort}/admin`);
   if (email) console.log(`Email:     ${email}`);
   console.log(`Password:  ${password}`);
 })().catch((err) => {

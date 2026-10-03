@@ -2,7 +2,7 @@
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
-CREATE TYPE deployment_environment AS ENUM ('development', 'staging', 'production');
+CREATE TYPE deployment_environment AS ENUM ('development', 'production');
 CREATE TYPE deployment_status AS ENUM (
     'reserved',
     'creating_db',

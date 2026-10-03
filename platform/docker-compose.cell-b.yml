@@ -175,7 +175,8 @@ networks:
     name: dilibori-cell-b-shared
   dilibori-control:
     external: true
-    name: dilibori-control
+    # Cell B joins the dev control plane only (migrate / drain PoC).
+    name: dilibori-dev-control
 
 volumes:
   mariadb_b_data:

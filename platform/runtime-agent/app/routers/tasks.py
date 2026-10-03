@@ -46,7 +46,7 @@ def _db_user(deployment_id: str) -> str:
 
 
 def _map_profile(environment: str) -> str:
-    if environment in ("production", "staging"):
+    if environment == "production":
         return "production"
     return "development"
 

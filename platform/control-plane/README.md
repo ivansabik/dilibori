@@ -9,21 +9,21 @@ No Laravel install. Plain PHP 8.2+, PDO, and a PSR-4 autoloader in `bootstrap.ph
 ```bash
 # Schema
 psql "$DATABASE_URL" -f database/schema.sql
-psql "$DATABASE_URL" -f database/seed.sql
+PLATFORM_ENV=dev INGRESS_HTTP_PORT=8088 ./database/seed.sh
 
 # Local profiles (Docker uses /opt/platform/profiles)
-export PROFILES_PATH="$(pwd)/config/profiles"
+export PROFILES_PATH="$(pwd)/../profiles"
 export APP_SECRET_KEY="$(openssl rand -base64 32)"
 export DATABASE_URL=postgres://postgres:postgres@127.0.0.1:5432/control_plane
 export RUNTIME_AGENT_URL=http://127.0.0.1:8100
-export PROFILES_PATH="$(pwd)/../profiles"
+export DEPLOYMENT_ENVIRONMENT=development
 
 php -S 127.0.0.1:8080 -t public
 ```
 
 Open `http://127.0.0.1:8080/` for the admin UI, or `GET /health` for a JSON probe.
 
-Preferred path: `make -C platform up` (control plane on host port `8099`, agent on `8100`).
+Preferred path: `make -C platform up` (dev control plane on `8099`) or `make -C platform up ENV=prod` (`8199`).
 
 ### Docker
 
@@ -34,6 +34,7 @@ docker run --rm -p 8080:8080 \
   -e APP_SECRET_KEY=your-32-byte-secret-key-here-minimum \
   -e RUNTIME_AGENT_URL=http://host.docker.internal:8100 \
   -e RUNTIME_AGENT_TOKEN=platform-agent-token-change-me \
+  -e DEPLOYMENT_ENVIRONMENT=development \
   -v "$(pwd)/../profiles:/opt/platform/profiles:ro" \
   dilibori-control-plane
 ```
@@ -51,6 +52,7 @@ For php-fpm, point the vhost document root at `public/` and route all requests t
 | `RUNTIME_AGENT_TOKEN` | Optional bearer token sent to the agent |
 | `PROFILES_PATH` | Directory with `{environment}.json` config profiles |
 | `SECRETS_PATH` | Root for encrypted secret files (default `/var/lib/dilibori/secrets`) |
+| `DEPLOYMENT_ENVIRONMENT` | Fixed env for this plane (`development` or `production`). Create-deployment rejects any other value. |
 | `DEFAULT_ACTOR` | Audit log actor when `X-Actor` header is missing |
 
 ## API
@@ -62,10 +64,10 @@ All responses are JSON unless noted. Pass `X-Actor: your-name` on mutating calls
 | GET | `/` | HTML admin dashboard |
 | GET | `/health` | Liveness + DB check |
 | GET | `/tenants` | List tenants (includes `noindex`) |
-| POST | `/tenants` | Body: `{ "slug", "name", "noindex?" }` (`noindex` defaults false; blocks production indexing; development and staging are always blocked at ingress) |
+| POST | `/tenants` | Body: `{ "slug", "name", "noindex?" }` (`noindex` defaults false; blocks production indexing; development is always blocked at ingress) |
 | GET | `/tenants/{id}` | Tenant by UUID or slug, includes deployments |
 | PATCH | `/tenants/{id}` | Body: `{ "noindex": true or false }`; rewrites Caddy routes for live deployments (effective noindex also depends on deployment environment) |
-| POST | `/tenants/{id}/deployments` | Body: `{ "environment", "seed_bundle", "hostname?" }`. Reuses the live row for that tenant+environment when one already exists. |
+| POST | `/tenants/{id}/deployments` | Body: `{ "seed_bundle", "hostname?", "environment?" }`. `environment` must match `DEPLOYMENT_ENVIRONMENT` (defaults to it). Reuses the live row when one already exists. |
 
 | GET | `/deployments/{id}` | Deployment record |
 | GET | `/deployments/{id}/status` | Desired state + runtime observation + secret metadata (no values) |
@@ -203,7 +205,7 @@ Production rejects `APP_DEBUG=true` and similar flags. Output includes a SHA-256
 
 Safe repairs enqueue `deploy_release` or `apply_config`. Unhealthy or unreachable runtimes are reported but not auto-healed. `make -C platform up` calls reconcile after compose is up.
 
-At most one live deployment exists per tenant and environment (`failed` / `suspended` excluded). Becoming `active` suspends any siblings in that pair. `make pilots` reuses those rows instead of creating duplicates.
+At most one live deployment exists per tenant and environment (`failed` / `suspended` excluded). With one plane per env, that is effectively one live deployment per tenant. Becoming `active` suspends any siblings in that pair. `make pilots` reuses those rows instead of creating duplicates.
 
 ### Audit log
 
@@ -216,6 +218,7 @@ public/index.php          Front controller + router
 src/Http/Controllers/     JSON and admin handlers
 src/Services/             Provisioning, config, secrets, reconcile
 database/schema.sql       PostgreSQL DDL
+database/seed.sh          Local cell row (reads PLATFORM_ENV)
 config/profiles/          Example environment profiles
 ```
 

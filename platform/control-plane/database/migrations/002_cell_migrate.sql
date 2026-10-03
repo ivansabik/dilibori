@@ -5,7 +5,7 @@ ALTER TABLE cells ADD COLUMN IF NOT EXISTS schedulable BOOLEAN NOT NULL DEFAULT 
 
 UPDATE cells
 SET agent_url = COALESCE(NULLIF(agent_url, ''), 'http://runtime-agent:8100')
-WHERE name = 'local-dev';
+WHERE name LIKE 'local-%';
 
 DO $$
 BEGIN
