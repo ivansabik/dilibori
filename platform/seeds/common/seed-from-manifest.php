@@ -272,8 +272,24 @@ config(['localization.supportedLocales' => $localeCodes]);
 say('Locales → '.implode(', ', $localeCodes)." (default {$defaultLocale})");
 
 $locationIds = [];
+$keepSlugs = array_map(fn ($loc) => (string) $loc['slug'], $manifest['locations']);
 foreach ($manifest['locations'] as $loc) {
-    $location = Location::query()->where('permalink_slug', $loc['slug'])->first() ?? new Location;
+    $location = Location::query()
+        ->where('permalink_slug', $loc['slug'])
+        ->orderByDesc('is_default')
+        ->orderBy('location_id')
+        ->first();
+    if (!$location) {
+        $location = Location::query()
+            ->where(function ($query) use ($keepSlugs) {
+                $query->whereNull('permalink_slug')
+                    ->orWhere('permalink_slug', '')
+                    ->orWhereNotIn('permalink_slug', $keepSlugs);
+            })
+            ->when($locationIds !== [], fn ($query) => $query->whereNotIn('location_id', $locationIds))
+            ->orderBy('location_id')
+            ->first() ?? new Location;
+    }
     $description = $loc['description'] ?? [];
     $descValue = $description[$defaultLocale]
         ?? $description['es_MX']
@@ -320,8 +336,12 @@ foreach ($manifest['locations'] as $loc) {
     say("Location #{$location->getKey()}: {$loc['name']} ({$currencyCode})");
 }
 
-$keepSlugs = array_map(fn ($loc) => (string) $loc['slug'], $manifest['locations']);
 Location::query()->whereNotIn('permalink_slug', $keepSlugs)->update(['location_status' => 0]);
+Location::query()
+    ->whereIn('permalink_slug', $keepSlugs)
+    ->whereNotIn('location_id', $locationIds)
+    ->get()
+    ->each(fn (Location $extra) => $extra->delete());
 
 applyTheme($manifest, $manifestPath);
 applyHomeSlider($manifestPath);

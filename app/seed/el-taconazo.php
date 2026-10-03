@@ -233,7 +233,13 @@ say('Languages → English (default) + Español México (storefront picker)');
 // ---------------------------------------------------------------------------
 // Location
 // ---------------------------------------------------------------------------
-$location = Location::query()->orderBy('location_id')->first() ?? new Location;
+$location = Location::query()
+    ->where('permalink_slug', 'el-taconazo-alameda-ave')
+    ->orderByDesc('is_default')
+    ->orderBy('location_id')
+    ->first()
+    ?? Location::query()->orderBy('location_id')->first()
+    ?? new Location;
 $location->fill([
     'location_name' => 'El Taconazo - Alameda Ave',
     'location_email' => 'hola@eltaconazo.example',
@@ -257,6 +263,11 @@ $location->fill([
 ]);
 $location->save();
 $locationId = (int)$location->getKey();
+Location::query()
+    ->where('permalink_slug', 'el-taconazo-alameda-ave')
+    ->where('location_id', '!=', $locationId)
+    ->get()
+    ->each(fn (Location $extra) => $extra->delete());
 say("Location #{$locationId}: El Taconazo - Alameda Ave, El Paso, TX");
 
 // Cd Juárez location (same brand, MXN menu)
