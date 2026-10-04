@@ -1,6 +1,8 @@
 # One full stack per environment (make ENV=dev|prod).
 # Tenants are created by the runtime agent, not declared here.
-name: dilibori-${PLATFORM_ENV:-dev}
+# Project name comes from Make (COMPOSE_PROJECT_NAME=dilibori-$(ENV)).
+# Compose v2.7 mishandles ${VAR} inside top-level `name:` (uses the
+# literal variable name), so do not set `name:` here.
 
 services:
   ingress:

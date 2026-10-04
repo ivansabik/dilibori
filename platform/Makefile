@@ -15,6 +15,11 @@ HOST_DATA_PATH := $(PLATFORM_DIR)/data/$(ENV)
 HOST_APP_SEED_PATH ?= $(REPO_ROOT)/app/seed
 PLATFORM_ENV ?= $(ENV)
 CELL_NAME := local-$(PLATFORM_ENV)
+# Compose v2.7 breaks ${VAR} in top-level `name:`; set the project via env instead.
+COMPOSE_PROJECT_NAME := dilibori-$(ENV)
+export COMPOSE_PROJECT_NAME
+
+COMPOSE := docker compose -p $(COMPOSE_PROJECT_NAME) -f $(PLATFORM_DIR)/docker-compose.yml --env-file $(PLATFORM_DIR)/.env --env-file $(PLATFORM_DIR)/envs/$(ENV).env
 
 .PHONY: help build-app up down logs ps test lint pilots capacity env-copy reconcile cell-b-up cell-b-down migrate-schema install-hooks ensure-cdp admin-pass
 
@@ -75,7 +80,7 @@ up: env-copy
 	HOST_DATA_PATH=$(HOST_DATA_PATH) \
 	HOST_APP_SEED_PATH=$(HOST_APP_SEED_PATH) \
 	TENANT_IMAGE=$(TENANT_IMAGE) \
-	docker compose -f $(PLATFORM_DIR)/docker-compose.yml --env-file $(PLATFORM_DIR)/.env --env-file $(PLATFORM_DIR)/envs/$(ENV).env up -d --build \
+	$(COMPOSE) up -d --build \
 	|| ( \
 		echo "Compose rename quirk (fixed container_name); recreating ingress and retrying..."; \
 		docker rm -f dilibori-$(PLATFORM_ENV)-caddy >/dev/null 2>&1 || true; \
@@ -84,7 +89,7 @@ up: env-copy
 		HOST_DATA_PATH=$(HOST_DATA_PATH) \
 		HOST_APP_SEED_PATH=$(HOST_APP_SEED_PATH) \
 		TENANT_IMAGE=$(TENANT_IMAGE) \
-		docker compose -f $(PLATFORM_DIR)/docker-compose.yml --env-file $(PLATFORM_DIR)/.env --env-file $(PLATFORM_DIR)/envs/$(ENV).env up -d --build; \
+		$(COMPOSE) up -d --build; \
 	)
 	@# Redis ACL users live in memory until SAVE; re-apply from control-plane secrets.
 	@echo "Reconciling Redis ACLs for active tenants..."
@@ -94,18 +99,18 @@ up: env-copy
 		sleep 2; \
 	done
 	@python3 -m json.tool </tmp/dilibori-reconcile.json 2>/dev/null || cat /tmp/dilibori-reconcile.json 2>/dev/null || true
-	@echo "ENV=$(ENV) stack: dilibori-$(PLATFORM_ENV)"
+	@echo "ENV=$(ENV) stack: $(COMPOSE_PROJECT_NAME)"
 	@echo "Control plane: http://127.0.0.1:$${CONTROL_PLANE_PORT:-8099}"
 	@echo "Ingress:       http://127.0.0.1:$${INGRESS_HTTP_PORT:-8088}"
 
 down:
-	docker compose -f $(PLATFORM_DIR)/docker-compose.yml --env-file $(PLATFORM_DIR)/.env --env-file $(PLATFORM_DIR)/envs/$(ENV).env down
+	$(COMPOSE) down
 
 logs:
-	docker compose -f $(PLATFORM_DIR)/docker-compose.yml --env-file $(PLATFORM_DIR)/.env --env-file $(PLATFORM_DIR)/envs/$(ENV).env logs -f --tail=200
+	$(COMPOSE) logs -f --tail=200
 
 ps:
-	docker compose -f $(PLATFORM_DIR)/docker-compose.yml --env-file $(PLATFORM_DIR)/.env --env-file $(PLATFORM_DIR)/envs/$(ENV).env ps
+	$(COMPOSE) ps
 
 test:
 	chmod +x $(PLATFORM_DIR)/scripts/run-tests.sh $(PLATFORM_DIR)/scripts/*.py $(PLATFORM_DIR)/tests/*.py || true
@@ -170,8 +175,8 @@ cell-b-down:
 
 migrate-schema:
 	@echo "Applying control-plane migrations for ENV=$(ENV)..."
-	@docker compose -f $(PLATFORM_DIR)/docker-compose.yml --env-file $(PLATFORM_DIR)/.env --env-file $(PLATFORM_DIR)/envs/$(ENV).env exec -T postgres \
+	@$(COMPOSE) exec -T postgres \
 		psql -U controlplane -d controlplane < $(PLATFORM_DIR)/control-plane/database/migrations/002_cell_migrate.sql
-	@docker compose -f $(PLATFORM_DIR)/docker-compose.yml --env-file $(PLATFORM_DIR)/.env --env-file $(PLATFORM_DIR)/envs/$(ENV).env exec -T postgres \
+	@$(COMPOSE) exec -T postgres \
 		psql -U controlplane -d controlplane -c "UPDATE cells SET agent_url = COALESCE(NULLIF(agent_url, ''), 'http://runtime-agent:8100'), name = '$(CELL_NAME)', capacity_metadata = capacity_metadata || '{\"ingress_base_url\":\"http://127.0.0.1:$(INGRESS_HTTP_PORT)\"}'::jsonb WHERE id = '11111111-1111-4111-8111-111111111111' OR name LIKE 'local-%';"
 	@echo "Done."

@@ -22,7 +22,10 @@ def _parse_env(path: Path) -> dict[str, str]:
 
 def main() -> int:
     compose = (ROOT / "docker-compose.yml").read_text(encoding="utf-8")
-    assert "name: dilibori-${PLATFORM_ENV" in compose
+    makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+    # Top-level compose `name:` breaks on Compose v2.7 (${VAR} → literal).
+    assert not re.search(r"(?m)^name:\s*", compose)
+    assert "COMPOSE_PROJECT_NAME := dilibori-$(ENV)" in makefile
     assert "dilibori-${PLATFORM_ENV" in compose
     assert "./data/${PLATFORM_ENV" in compose
     assert "DEPLOYMENT_ENVIRONMENT" in compose
