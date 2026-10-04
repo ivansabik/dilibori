@@ -488,6 +488,14 @@ if ($theme) {
 
     try {
         Assets::buildBundles($theme->getTheme());
+        $combiner = storage_path('igniter/combiner');
+        if (is_dir($combiner)) {
+            foreach (glob($combiner.'/*') ?: [] as $path) {
+                if (is_file($path)) {
+                    @unlink($path);
+                }
+            }
+        }
         say('Theme → black primary + Instagram / Facebook / TikTok');
     } catch (Throwable $e) {
         say('Theme CSS rebuild skipped: '.$e->getMessage());

@@ -9,6 +9,10 @@
     "hero_title": "Order authentic tacos in El Paso",
     "hero_subtitle": "El Taconazo · El Paso, TX"
   },
+  "theme": {
+    "color_primary": "#000000",
+    "heading_color": "#000000"
+  },
   "locales": [
     { "code": "en", "name": "English", "default": true },
     { "code": "es_MX", "name": "Español (México)", "default": false }

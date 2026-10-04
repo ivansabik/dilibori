@@ -343,7 +343,6 @@ Location::query()
     ->get()
     ->each(fn (Location $extra) => $extra->delete());
 
-applyTheme($manifest, $manifestPath);
 applyHomeSlider($manifestPath);
 applyPages($manifest, $defaultLocale);
 applyFooterMenuTitles();
@@ -403,6 +402,9 @@ $menuSeed = dirname($manifestPath).'/seed-menu.php';
 if (is_file($menuSeed)) {
     require $menuSeed;
 }
+
+// Theme last so rich catalog seeds cannot leave Orange default CSS cached.
+applyTheme($manifest, $manifestPath);
 
 say('Seed complete (orders/customers untouched)');
 
@@ -489,9 +491,23 @@ function applyTheme(array $manifest, string $manifestPath): void
 
     try {
         Assets::buildBundles($theme->getTheme());
+        clearThemeCombinerCache();
         say('Theme colors applied');
     } catch (Throwable $e) {
         say('Theme CSS rebuild skipped: '.$e->getMessage());
+    }
+}
+
+function clearThemeCombinerCache(): void
+{
+    $combiner = storage_path('igniter/combiner');
+    if (!is_dir($combiner)) {
+        return;
+    }
+    foreach (glob($combiner.'/*') ?: [] as $path) {
+        if (is_file($path)) {
+            @unlink($path);
+        }
     }
 }
 
