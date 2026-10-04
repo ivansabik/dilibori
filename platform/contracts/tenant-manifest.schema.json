@@ -39,7 +39,19 @@
         "heading_color": { "type": "string" },
         "header_accent": { "type": "string" },
         "logo": { "type": "string" },
-        "logo_height": { "type": "string" }
+        "logo_height": { "type": "string" },
+        "social": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["class", "url"],
+            "properties": {
+              "class": { "type": "string" },
+              "title": { "type": "string" },
+              "url": { "type": "string" }
+            }
+          }
+        }
       }
     },
     "pages": {

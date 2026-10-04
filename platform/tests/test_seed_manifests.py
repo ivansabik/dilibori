@@ -67,6 +67,12 @@ def main() -> int:
     assert all(loc["currency"] == "MXN" for loc in pizza["locations"])
     assert [loc["code"] for loc in pizza["locales"]] == ["es_MX"]
     assert pizza["theme"]["color_primary"] == "#DA442E"
+    social = pizza["theme"].get("social") or []
+    assert [item["title"] for item in social] == [
+        "Instagram",
+        "Facebook",
+        "TikTok",
+    ]
     seed_dir = SEEDS / "pizza-rin"
     assert (seed_dir / pizza["theme"]["logo"]).is_file()
     for loc in pizza["locations"]:

@@ -448,6 +448,29 @@ function applyTheme(array $manifest, string $manifestPath): void
         $data['logo_height'] = (string) $themeCfg['logo_height'];
     }
 
+    if (!empty($themeCfg['social']) && is_array($themeCfg['social'])) {
+        $social = [];
+        foreach ($themeCfg['social'] as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+            $url = trim((string) ($item['url'] ?? ''));
+            $class = trim((string) ($item['class'] ?? ''));
+            $title = trim((string) ($item['title'] ?? ''));
+            if ($url === '' || $class === '') {
+                continue;
+            }
+            $social[] = [
+                'class' => $class,
+                'title' => $title !== '' ? $title : $url,
+                'url' => $url,
+            ];
+        }
+        if ($social !== []) {
+            $data['social'] = $social;
+        }
+    }
+
     $data['enable_gdpr'] = true;
 
     $logoName = (string) ($themeCfg['logo'] ?? '');

@@ -14,7 +14,24 @@
     "heading_color": "#DA442E",
     "header_accent": "#DA442E",
     "logo": "logo.png",
-    "logo_height": "96px"
+    "logo_height": "96px",
+    "social": [
+      {
+        "class": "fab fa-instagram",
+        "title": "Instagram",
+        "url": "https://www.instagram.com/pizzarin/"
+      },
+      {
+        "class": "fab fa-facebook",
+        "title": "Facebook",
+        "url": "https://www.facebook.com/pizzarin/"
+      },
+      {
+        "class": "fab fa-tiktok",
+        "title": "TikTok",
+        "url": "https://www.tiktok.com/@pizzarin"
+      }
+    ]
   },
   "locales": [
     { "code": "es_MX", "name": "Español (México)", "default": true }
