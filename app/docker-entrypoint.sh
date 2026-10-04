@@ -151,6 +151,9 @@ if [ "${AUTO_PROVISION:-false}" = "true" ] && [ ! -f /var/www/html/storage/dilib
     /usr/local/bin/provision.sh
 fi
 
+# Root artisan/seed can recreate storage files after the early chown.
+setup_writable_dirs
+
 if [ "${1:-}" = "apache2-foreground" ] || [ $# -eq 0 ]; then
     if command -v supervisord >/dev/null 2>&1 && [ -f /etc/supervisor/conf.d/dilibori.conf ]; then
         echo "Starting supervisord (apache + queue + scheduler)..."

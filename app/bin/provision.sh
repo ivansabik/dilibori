@@ -126,4 +126,7 @@ if [ ! -e /var/www/html/public/storage ]; then
     php artisan storage:link || ln -sfn /var/www/html/storage/app/public /var/www/html/public/storage
 fi
 
+# Artisan/seed run as root; hand storage back to the web user before exit.
+setup_writable_dirs
+
 echo "Provisioning complete"
