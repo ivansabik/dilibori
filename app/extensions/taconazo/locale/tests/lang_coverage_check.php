@@ -3,7 +3,8 @@
 declare(strict_types=1);
 
 /**
- * Fail if es_MX lang coverage slips vs vendor English keys.
+ * Fail if es_MX lang coverage slips vs vendor English keys,
+ * or if locale override values still contain product brand tokens.
  *
  * Run in a tenant container:
  *   php extensions/taconazo/locale/tests/lang_coverage_check.php
@@ -108,5 +109,37 @@ foreach ($map as $enRel => $esRel) {
     }
 }
 
+function lang_coverage_scan_brand(string $localeRoot, string $label): int
+{
+    $brandFailures = 0;
+    if (!is_dir($localeRoot)) {
+        return 0;
+    }
+
+    $iterator = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($localeRoot, FilesystemIterator::SKIP_DOTS)
+    );
+    foreach ($iterator as $file) {
+        if (!$file->isFile() || $file->getExtension() !== 'php') {
+            continue;
+        }
+        $rel = substr($file->getPathname(), strlen($localeRoot) + 1);
+        $lines = lang_coverage_flat(include $file->getPathname());
+        foreach ($lines as $key => $value) {
+            $brandHaystack = preg_replace('#https?://[^\s"\'<>]+#i', '', $value) ?? $value;
+            if (preg_match('/TastyIgniter|\bPorton\b/i', $brandHaystack)) {
+                fwrite(STDERR, "BRAND {$label}/{$rel}: {$key}\n");
+                $brandFailures++;
+            }
+        }
+    }
+
+    return $brandFailures;
+}
+
+$langRoot = dirname(__DIR__).'/lang';
+$failures += lang_coverage_scan_brand("{$langRoot}/en/igniter", 'en');
+$failures += lang_coverage_scan_brand("{$langRoot}/es_MX/igniter", 'es_MX');
+
 assert($failures === 0, "lang coverage failed with {$failures} error(s)");
-echo "OK: es_MX lang coverage ({$warnings} same-as-en warnings)\n";
+echo "OK: es_MX lang coverage ({$warnings} same-as-en warnings); en/es_MX brand scan clean\n";

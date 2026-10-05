@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 return [
     'system_name' => 'Sistema',
-    'system_powered' => '<a target="_blank" href="https://tastyigniter.com">Desarrollado por el sistema</a>',
-    'copyright' => 'Gracias por usar el <a target="_blank" href="https://tastyigniter.com">sistema</a>',
+    'system_powered' => 'Desarrollado por el sistema',
+    'copyright' => 'Gracias por usar el sistema',
     'version' => 'Versión',
 
     'no_database' => [
@@ -699,7 +699,7 @@ return [
         'button_return_to_list' => 'No, volver a la lista',
         'button_reset_to_default' => 'Restablecer valores predeterminados',
 
-        'help_components' => 'Muestre el componente en un diseño o página agregando <code>@themeComponent(&#x27;componentAlias&#x27;)</code> o <code>&#x3C;livewire:component-code /&#x3E;</code> al markup. Más información <a href="https://tastyigniter.com/docs/extend/components">aquí</a>.',
+        'help_components' => 'Muestre el componente en un diseño o página agregando <code>@themeComponent(&#x27;componentAlias&#x27;)</code> o <code>&#x3C;livewire:component-code /&#x3E;</code> al markup.',
         'help_component_alias' => 'NO CAMBIE. Salvo que sepa lo que hace.',
         'help_override_partial' => 'El archivo parcial del componente seleccionado se copiará al directorio de parciales del tema activo en <code>%s</code>.',
 
@@ -784,7 +784,7 @@ return [
         'error_meta_package' => 'El paquete no es compatible con esta versión del sistema.',
         'error_missing_app_url' => 'APP_URL no está configurada. Establezca APP_URL en su archivo .env con la URL de su sitio antes de usar el marketplace.',
 
-        'help_carte_key' => 'Se requiere una clave Carte para agregar y actualizar elementos del marketplace. <br>Obtenga una creando un sitio desde su <a href="https://tastyigniter.com/signin" target="_blank">cuenta</a>, si aún no lo ha hecho. Para más información, vea la <a href="https://tastyigniter.com/support/articles/carte-key" target="_blank">guía de clave Carte</a>',
+        'help_carte_key' => 'Se requiere una clave Carte para agregar y actualizar elementos del marketplace. Adjunte una clave si las instalaciones del marketplace están habilitadas en este sitio.',
         'alert_item_to_ignore' => 'Seleccione el o los elementos a ignorar.',
         'alert_item_to_update' => 'Seleccione el o los elementos a actualizar.',
         'alert_no_carte_key' => 'No se especificó ninguna clave Carte.',
