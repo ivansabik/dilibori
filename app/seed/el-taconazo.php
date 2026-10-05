@@ -300,10 +300,17 @@ $bothLocationIds = [$locationId, $juarezId];
 // without this the admin UI stays on Initial Setup)
 // ---------------------------------------------------------------------------
 $adminEmail = getenv('ADMIN_EMAIL') ?: 'operations@taconazotaqueria.com';
-$adminPassword = getenv('ADMIN_PASSWORD') ?: '12345678abc!';
+$adminPassword = getenv('ADMIN_PASSWORD') ?: '';
 $admin = User::query()->where('email', $adminEmail)->first()
     ?? User::query()->orderBy('user_id')->first();
 if (!$admin) {
+    if ($adminPassword === '') {
+        $adminPassword = bin2hex(random_bytes(12));
+        $passwordFile = base_path('storage/dilibori-admin-password');
+        file_put_contents($passwordFile, $adminPassword);
+        chmod($passwordFile, 0600);
+        say('Generated admin password → storage/dilibori-admin-password');
+    }
     $roleId = UserRole::query()->orderBy('user_role_id')->value('user_role_id');
     $groupId = UserGroup::query()->orderBy('user_group_id')->value('user_group_id');
     $languageId = Language::query()->where('code', 'en')->value('language_id')
@@ -323,10 +330,13 @@ if (!$admin) {
         'locations' => $bothLocationIds,
     ], true);
     $admin = User::query()->where('email', $adminEmail)->first();
-    say("Admin created → {$adminEmail} / {$adminPassword}");
+    say("Admin created → {$adminEmail}");
 } else {
     $admin->email = $adminEmail;
-    $admin->password = $adminPassword;
+    // Only reset when ADMIN_PASSWORD is set; avoid clobbering a random secret on re-seed.
+    if ($adminPassword !== '') {
+        $admin->password = $adminPassword;
+    }
     if ($admin->isFillable('status') || array_key_exists('status', $admin->getAttributes())) {
         $admin->status = 1;
     }
@@ -1357,6 +1367,6 @@ try {
 
 echo "\nDone. Alameda Ave → http://127.0.0.1:8001/el-taconazo-alameda-ave/menus (USD)\n";
 echo "Tecnológico → http://127.0.0.1:8001/el-taconazo-tecnologico/menus (MXN)\n";
-echo "Admin → http://127.0.0.1:8001/admin  (operations@taconazotaqueria.com / 12345678abc!)\n";
+echo "Admin → http://127.0.0.1:8001/admin  (operations@taconazotaqueria.com; make admin-pass)\n";
 echo "Catalog only — demo orders/customers/coupons come from seed-demo-activity.php\n";
 echo "Language → EN/ES picker in the header (en + es_MX)\n";

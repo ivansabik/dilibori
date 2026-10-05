@@ -2,3 +2,5 @@ db/*
 !db/.gitkeep
 media/*
 !media/.gitkeep
+media/.dilibori-admin-password
+

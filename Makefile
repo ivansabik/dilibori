@@ -1,7 +1,7 @@
 # Proxy common targets into app/ or platform/.
 .DEFAULT_GOAL := help
 
-.PHONY: help up down stop start build rebuild logs shell ps passwd reset clean wait seed \
+.PHONY: help up down stop start build rebuild logs shell ps passwd admin-pass reset clean wait seed \
 	cdp-up cdp-down cdp-logs cdp-health cdp-ps \
 	mailpit-up mailpit-down mailpit-logs mailpit-ps mailpit-smoke \
 	platform-up platform-down platform-test platform-pilots platform-build
@@ -38,7 +38,7 @@ platform-test:
 platform-pilots:
 	@$(MAKE) -C platform pilots
 
-up down stop start build rebuild logs shell ps passwd reset clean wait seed:
+up down stop start build rebuild logs shell ps passwd admin-pass reset clean wait seed:
 	@$(MAKE) -C app $@ $(filter-out $@,$(MAKECMDGOALS))
 
 cdp-up:

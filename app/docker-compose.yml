@@ -29,7 +29,8 @@ services:
       - CACHE_DRIVER=redis
       - REDIS_HOST=redis
       - ADMIN_EMAIL=operations@taconazotaqueria.com
-      - ADMIN_PASSWORD=12345678abc!
+      # ADMIN_PASSWORD: omitted on purpose. provision.sh generates a random
+      # value and writes it to storage/dilibori-admin-password (make admin-pass).
       - AUTO_PROVISION=true
       - SEED_MANIFEST=/opt/seed-manifest/manifest.json
       - SEED_MODE=initial

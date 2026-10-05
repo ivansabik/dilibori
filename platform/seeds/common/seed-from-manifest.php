@@ -351,14 +351,21 @@ applyStatuses($defaultLocale);
 applyMenusPageShowFooter();
 
 $adminEmail = getenv('ADMIN_EMAIL') ?: $manifest['admin']['email'];
-$adminPassword = getenv('ADMIN_PASSWORD') ?: 'ChangeMe-LocalOnly!';
+$adminPassword = getenv('ADMIN_PASSWORD') ?: '';
 $adminName = $manifest['admin']['name'] ?? 'Admin';
 $adminUsername = $manifest['admin']['username'] ?? 'admin';
+$adminPasswordFile = base_path('storage/dilibori-admin-password');
 
 $admin = User::query()->where('email', $adminEmail)->first()
     ?? User::query()->orderBy('user_id')->first();
 
 if (!$admin) {
+    if ($adminPassword === '') {
+        $adminPassword = bin2hex(random_bytes(12));
+        file_put_contents($adminPasswordFile, $adminPassword);
+        chmod($adminPasswordFile, 0600);
+        say('Generated admin password → storage/dilibori-admin-password');
+    }
     $roleId = UserRole::query()->orderBy('user_role_id')->value('user_role_id');
     $groupId = UserGroup::query()->orderBy('user_group_id')->value('user_group_id');
     $languageId = Language::query()->where('code', $defaultLocale)->value('language_id')
@@ -380,7 +387,11 @@ if (!$admin) {
     say("Admin created → {$adminEmail}");
 } else {
     $admin->email = $adminEmail;
-    $admin->password = $adminPassword;
+    // Only reset the password when ADMIN_PASSWORD is explicitly provided.
+    // Re-seed without it must not clobber a random provisioned secret.
+    if ($adminPassword !== '') {
+        $admin->password = $adminPassword;
+    }
     if ($admin->isFillable('status') || array_key_exists('status', $admin->getAttributes())) {
         $admin->status = 1;
     }

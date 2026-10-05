@@ -115,3 +115,6 @@ echo "Pilots requested for ${DEPLOYMENT_ENVIRONMENT}. Add to /etc/hosts if neede
 echo "  127.0.0.1 taconazo.${PLATFORM_ENV}.localhost pizza-rin.${PLATFORM_ENV}.localhost"
 echo "Ingress: http://127.0.0.1:${INGRESS_HTTP_PORT} (Host header selects tenant)"
 echo "Control plane: ${CP_URL}"
+echo "Admin passwords (random per deployment):"
+echo "  make admin-pass HOST=taconazo.${PLATFORM_ENV}.localhost ENV=${PLATFORM_ENV}"
+echo "  make admin-pass HOST=pizza-rin.${PLATFORM_ENV}.localhost ENV=${PLATFORM_ENV}"

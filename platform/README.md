@@ -64,7 +64,7 @@ Use the ingress port for that env (`:8088` for dev, `:8188` for prod). URLs with
 | Timezone | `America/Denver` | `America/Ciudad_Juarez` |
 | Locations | Alameda Ave (TX), Tecnológico (Juárez) | Centro, Pradera (Juárez) |
 | Admin email | `operations@taconazotaqueria.com` | `ops@pizzarin.example` |
-| Admin password | random per deployment (see below) | same |
+| Admin password | random per deployment (never in compose) | same |
 
 Taconazo reuses the rich catalog from `app/seed/el-taconazo.php` via the seed bundle. Pizza Rin seeds from `seeds/pizza-rin/menu.json` (flyer catalog, Spanish copy).
 
@@ -80,17 +80,38 @@ Example URLs after pilots:
 
 ### Admin login
 
-Provision generates a random `ADMIN_PASSWORD` per deployment and stores it encrypted under `data/{env}/secrets/{deployment_id}/`. The API never returns that value. Print it locally:
+Every deployment (Taconazo, Pizza Rin, and any later tenant) gets a random `ADMIN_PASSWORD` at provision time. Nothing is hardcoded in compose or seed manifests. The control plane stores the secret encrypted under `data/{env}/secrets/{deployment_id}/ADMIN_PASSWORD.json` and never returns it from the API.
+
+After `make pilots` (or any new deployment), print credentials:
 
 ```sh
+# Dev (default ENV=dev, ingress :8088)
 make admin-pass HOST=taconazo.dev.localhost
+make admin-pass HOST=pizza-rin.dev.localhost
+
+# Prod stack
 make admin-pass HOST=taconazo.prod.localhost ENV=prod
-# or: ./scripts/print-admin-password.sh taconazo.prod.localhost
+make admin-pass HOST=pizza-rin.prod.localhost ENV=prod
+
+# Same script by hostname or deployment UUID
+./scripts/print-admin-password.sh taconazo.prod.localhost
+./scripts/print-admin-password.sh 48926f5b-2d1f-4d73-aed1-c47deb6682c4
 ```
 
-Uses `APP_SECRET_KEY` from `platform/.env` (same default as `make env-copy`) to decrypt `data/{env}/secrets/.../ADMIN_PASSWORD.json`.
+Needs the control plane up (`make up`) so the script can resolve hostname → deployment id. Decryption uses `APP_SECRET_KEY` from `platform/.env` (same default as `make env-copy`).
 
-If you get connection refused, you omitted the ingress port or the hosts line above. If you get **502**, the tenant container is down (`docker ps` / `make pilots` again).
+Example output:
+
+```text
+Hostname:  pizza-rin.dev.localhost
+Admin URL: http://pizza-rin.dev.localhost:8088/admin
+Email:     ops@pizzarin.example
+Password:  <24 hex chars>
+```
+
+Admin emails come from each seed manifest (`seeds/*/manifest.json` → `admin.email`). Re-seed without `ADMIN_PASSWORD` in the container env does not rotate the password.
+
+If you get connection refused on the storefront, you omitted the ingress port or the hosts line above. If you get **502**, the tenant container is down (`docker ps` / `make pilots` again).
 
 CDP smoke: `make -C ../cdp up`, then browse a pilot storefront and watch http://127.0.0.1:8090. Event names and hooks: [`../app/extensions/dilibori/cdp/EVENTS.md`](../app/extensions/dilibori/cdp/EVENTS.md).
 

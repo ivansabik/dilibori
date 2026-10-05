@@ -31,6 +31,13 @@ Dev ingress **http://127.0.0.1:8088**, prod **http://127.0.0.1:8188** (port requ
 
 Add the hosts line from [`platform/README.md`](platform/README.md). Control planes: http://127.0.0.1:8099 (dev), http://127.0.0.1:8199 (prod).
 
+Admin passwords are random per deployment. After pilots:
+
+```sh
+make -C platform admin-pass HOST=taconazo.dev.localhost
+make -C platform admin-pass HOST=pizza-rin.dev.localhost
+```
+
 ## Standalone storefront (legacy single-tenant)
 
 El Taconazo only (no Pizza Rin):
@@ -39,6 +46,7 @@ El Taconazo only (no Pizza Rin):
 cd app
 make up
 make seed
+make admin-pass   # random password from first provision
 ```
 
 - Store: http://127.0.0.1:8001

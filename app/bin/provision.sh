@@ -59,6 +59,36 @@ apply_runtime_env() {
     done
 }
 
+# Random admin password when unset (platform injects ADMIN_PASSWORD; legacy compose does not).
+# Mirror to persistent-media so legacy container recreates keep the same secret.
+ensure_admin_password() {
+    local persistent="/var/www/persistent-media/.dilibori-admin-password"
+    local storage="/var/www/html/storage/dilibori-admin-password"
+    mkdir -p /var/www/html/storage
+
+    write_password_files() {
+        printf '%s' "$ADMIN_PASSWORD" > "$storage"
+        chmod 600 "$storage" 2>/dev/null || true
+        if [ -d /var/www/persistent-media ] && [ -w /var/www/persistent-media ]; then
+            printf '%s' "$ADMIN_PASSWORD" > "$persistent"
+            chmod 600 "$persistent" 2>/dev/null || true
+        fi
+    }
+
+    if [ -z "${ADMIN_PASSWORD:-}" ]; then
+        if [ -f "$persistent" ] && [ -s "$persistent" ]; then
+            ADMIN_PASSWORD="$(tr -d '\n' < "$persistent")"
+        elif [ -f "$storage" ] && [ -s "$storage" ]; then
+            ADMIN_PASSWORD="$(tr -d '\n' < "$storage")"
+        else
+            ADMIN_PASSWORD="$(openssl rand -hex 12)"
+            echo "Generated ADMIN_PASSWORD (retrieve with make admin-pass)"
+        fi
+        export ADMIN_PASSWORD
+    fi
+    write_password_files
+}
+
 if [ ! -f /var/www/html/public/index.php ]; then
     echo "Copying application files from image..."
     if ! cp -a /usr/src/tastyigniter/. /var/www/html/ 2>/dev/null; then
@@ -118,6 +148,7 @@ fi
 
 if [ -n "${SEED_MANIFEST:-}" ] && [ -f "${SEED_MANIFEST}" ]; then
     export SEED_MODE="${SEED_MODE:-initial}"
+    ensure_admin_password
     echo "Applying seed manifest ${SEED_MANIFEST} (mode=${SEED_MODE})..."
     php /opt/platform/seeds/common/seed-from-manifest.php "$SEED_MANIFEST"
 fi

@@ -41,7 +41,7 @@ help:
 	@echo "  make lint         Ruff check + format --check (platform + cdp)"
 	@echo "  make install-hooks  Point git core.hooksPath at scripts/git-hooks"
 	@echo "  make pilots       Provision pilot tenants on the ENV stack"
-	@echo "  make admin-pass HOST=taconazo.prod.localhost"
+	@echo "  make admin-pass HOST=taconazo.dev.localhost   # print random admin password"
 	@echo "  make ensure-cdp   Recreate active runtimes so CDP env is present"
 	@echo "  make reconcile    Ask control plane to reconcile desired vs actual"
 	@echo "  make capacity     Print density estimate for the local cell"

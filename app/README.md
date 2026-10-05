@@ -29,8 +29,21 @@ make reset
 | Alameda Ave menus | http://127.0.0.1:8001/el-taconazo-alameda-ave/menus |
 | Tecnológico menus | http://127.0.0.1:8001/el-taconazo-tecnologico/menus |
 | Admin | http://127.0.0.1:8001/admin |
-| Admin login | `operations@taconazotaqueria.com` / `12345678abc!` |
+| Admin email | `operations@taconazotaqueria.com` |
+| Admin password | random on first provision (`make admin-pass`) |
 | Customer login | `juanagallo@gmail.com` / `customer123!` |
+
+### Admin password
+
+First provision generates a random `ADMIN_PASSWORD` (same hex length as platform pilots). It is not in `docker-compose.yml`. The value is stored under `media/.dilibori-admin-password` (persists across container recreates) and mirrored to `storage/dilibori-admin-password` in the container.
+
+```sh
+make admin-pass                 # print email + password
+make passwd                     # rotate to a new random password
+make passwd PASSWORD='newpass'  # set an explicit password
+```
+
+Re-running `make seed` does not change the password unless you pass `ADMIN_PASSWORD` into the container.
 
 ## Multi-tenant (preferred for pilots)
 
@@ -91,8 +104,9 @@ Admin UI Spanish (`es_MX`) also lives in that extension (`igniter/admin.php`, `s
 make help
 make up / make down
 make seed
-make passwd                     # reset admin to default password
-make passwd PASSWORD='newpass'
+make admin-pass                 # print provisioned admin password
+make passwd                     # rotate to a new random password
+make passwd PASSWORD='newpass'  # set an explicit password
 make logs / make shell / make ps
 make reset                      # wipe DB, reinstall, seed
 ```
