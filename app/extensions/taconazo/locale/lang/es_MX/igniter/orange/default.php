@@ -50,7 +50,7 @@ return [
     'text_guest' => 'Invitado',
     'text_login' => 'Iniciar sesión',
     'text_no_delivery_address' => 'No se proporcionó dirección a domicilio',
-    'text_register' => 'Regístrate <small>Es fácil y siempre lo será.</small>',
+    'text_register' => 'Regístrate <small>Para pedir más rápido.</small>',
     'text_forgot' => '¿Olvidaste tu contraseña?',
     'text_please_wait_info' => 'Reservando tu mesa. Espera...',
 
@@ -189,11 +189,11 @@ return [
     ],
 
     'newsletter' => [
-        'text_subscribe' => 'Suscríbete a nuestro boletín',
+        'text_subscribe' => 'Déjanos tu correo para ofertas',
 
         'label_email' => 'Correo',
 
-        'alert_success_subscribed' => 'Gracias, tu correo ya está suscrito a nuestras ofertas',
-        'alert_success_existing' => 'Gracias, tu correo ya estaba suscrito a nuestras ofertas',
+        'alert_success_subscribed' => 'Gracias, tu correo ya está suscrito',
+        'alert_success_existing' => 'Gracias, tu correo ya estaba suscrito',
     ],
 ];

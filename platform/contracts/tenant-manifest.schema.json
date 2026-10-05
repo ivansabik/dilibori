@@ -28,8 +28,26 @@
     "storefront": {
       "type": "object",
       "properties": {
-        "hero_title": { "type": "string" },
-        "hero_subtitle": { "type": "string" }
+        "hero_title": {
+          "oneOf": [
+            { "type": "string" },
+            {
+              "type": "object",
+              "minProperties": 1,
+              "additionalProperties": { "type": "string" }
+            }
+          ]
+        },
+        "hero_subtitle": {
+          "oneOf": [
+            { "type": "string" },
+            {
+              "type": "object",
+              "minProperties": 1,
+              "additionalProperties": { "type": "string" }
+            }
+          ]
+        }
       }
     },
     "theme": {

@@ -57,7 +57,7 @@
     {
       "name": "Pepperoni",
       "category": "pizza",
-      "description": "Pepperoni",
+      "description": "Pizza de pepperoni.",
       "photo": "menu/pepperoni.jpg",
       "option_groups": ["tamano", "pizza_extras"],
       "prices": { "gde": 139, "exg": 149, "fam": 209 }
@@ -65,7 +65,7 @@
     {
       "name": "Hawaiana",
       "category": "pizza",
-      "description": "Jamón piña",
+      "description": "Jamón y piña.",
       "photo": "menu/hawaiana.jpg",
       "option_groups": ["tamano", "pizza_extras"],
       "prices": { "gde": 139, "exg": 149, "fam": 209 }
@@ -73,6 +73,7 @@
     {
       "name": "Tocinos",
       "category": "especialidades",
+      "description": "Con tocino.",
       "photo": "menu/tocinos.jpg",
       "option_groups": ["tamano", "pizza_extras"],
       "prices": { "gde": 149, "exg": 169, "fam": 219 }
@@ -80,6 +81,7 @@
     {
       "name": "Suprema",
       "category": "especialidades",
+      "description": "Especialidad de la casa.",
       "photo": "menu/suprema.jpg",
       "option_groups": ["tamano", "pizza_extras"],
       "prices": { "gde": 149, "exg": 169, "fam": 219 }
@@ -87,6 +89,7 @@
     {
       "name": "Pastor",
       "category": "especialidades",
+      "description": "Pizza al pastor.",
       "photo": "menu/pastor.jpg",
       "option_groups": ["tamano", "pizza_extras"],
       "prices": { "gde": 159, "exg": 189, "fam": 239 }
@@ -94,6 +97,7 @@
     {
       "name": "4 Carnes",
       "category": "especialidades",
+      "description": "Cuatro carnes.",
       "photo": "menu/4-carnes.jpg",
       "option_groups": ["tamano", "pizza_extras"],
       "prices": { "gde": 149, "exg": 169, "fam": 219 }
@@ -101,6 +105,7 @@
     {
       "name": "4 Quesos",
       "category": "especialidades",
+      "description": "Cuatro quesos.",
       "photo": "menu/4-quesos.jpg",
       "option_groups": ["tamano", "pizza_extras"],
       "prices": { "gde": 149, "exg": 169, "fam": 219 }
@@ -108,6 +113,7 @@
     {
       "name": "Mexicana",
       "category": "especialidades",
+      "description": "Estilo mexicana.",
       "photo": "menu/mexicana.jpg",
       "option_groups": ["tamano", "pizza_extras"],
       "prices": { "gde": 149, "exg": 169, "fam": 219 }
@@ -115,11 +121,18 @@
     {
       "name": "Boneless",
       "category": "boneless",
+      "description": "Boneless empanizados. Elige porción y salsa.",
       "photo": "menu/boneless.jpg",
       "option_groups": ["porcion", "salsa"],
       "prices": { "10pz": 125, "15pz": 180, "20pz": 220, "25pz": 275, "30pz": 315 }
     },
-    { "name": "Papas", "category": "extras", "price": 45, "photo": "menu/papas.jpg" },
+    {
+      "name": "Papas",
+      "category": "extras",
+      "description": "Papas fritas.",
+      "price": 45,
+      "photo": "menu/papas.jpg"
+    },
     { "name": "Coca Cola", "category": "refrescos", "price": 25 },
     { "name": "Sprite", "category": "refrescos", "price": 25 }
   ]

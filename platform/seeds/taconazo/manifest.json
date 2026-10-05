@@ -6,8 +6,14 @@
   "default_currency": "USD",
   "show_language_picker": true,
   "storefront": {
-    "hero_title": "Order authentic tacos in El Paso",
-    "hero_subtitle": "El Taconazo · El Paso, TX"
+    "hero_title": {
+      "en": "Order tacos for pickup or delivery",
+      "es_MX": "Pide tacos para recoger o a domicilio"
+    },
+    "hero_subtitle": {
+      "en": "El Taconazo · El Paso, TX",
+      "es_MX": "El Taconazo · El Paso, TX"
+    }
   },
   "theme": {
     "color_primary": "#000000",
@@ -43,8 +49,8 @@
       "lng": -106.4431,
       "is_default": true,
       "description": {
-        "en": "Authentic Mexican taquería in El Paso, Texas.",
-        "es_MX": "Taquería auténtica en El Paso, Texas."
+        "en": "Taquería on Alameda. Pastor, suadero, breakfast from 7am. Pickup or delivery.",
+        "es_MX": "Taquería en Alameda. Pastor, suadero, desayuno desde las 7am. Para llevar o a domicilio."
       }
     },
     {
@@ -63,8 +69,8 @@
       "lng": -106.4245,
       "is_default": false,
       "description": {
-        "en": "El Taconazo in Ciudad Juárez, priced in Mexican pesos.",
-        "es_MX": "El Taconazo en Ciudad Juárez, precios en pesos mexicanos."
+        "en": "Near Tecnológico in Ciudad Juárez. Same trompo kitchen. Prices in pesos.",
+        "es_MX": "Cerca del Tecnológico en Ciudad Juárez. La misma cocina de trompo. Precios en pesos."
       }
     }
   ],
@@ -91,7 +97,7 @@
         "type": "P",
         "discount": 10,
         "min_total": 20,
-        "description": "10% off first order over $20 (El Paso)",
+        "description": "10% off your first order of $20+ (El Paso)",
         "customer_redemptions": 1,
         "validity": "forever",
         "locations": ["el-taconazo-alameda-ave"]
@@ -102,7 +108,7 @@
         "type": "P",
         "discount": 10,
         "min_total": 200,
-        "description": "10% de descuento en pedidos de $200+ (Cd Juárez)",
+        "description": "10% de descuento en tu primer pedido de $200+ (Cd Juárez)",
         "customer_redemptions": 1,
         "validity": "forever",
         "locations": ["el-taconazo-tecnologico"]
@@ -113,7 +119,7 @@
         "type": "F",
         "discount": 5,
         "min_total": 15,
-        "description": "$5 off $15+ every Wednesday (El Paso)",
+        "description": "$5 off orders of $15+ every Wednesday (El Paso)",
         "customer_redemptions": 0,
         "validity": "recurring",
         "recurring_every": ["3"],
@@ -127,7 +133,7 @@
         "type": "F",
         "discount": 50,
         "min_total": 150,
-        "description": "$50 de descuento en $150+ los miércoles (Cd Juárez)",
+        "description": "$50 de descuento en pedidos de $150+ los miércoles (Cd Juárez)",
         "customer_redemptions": 0,
         "validity": "recurring",
         "recurring_every": ["3"],
@@ -141,7 +147,7 @@
         "type": "F",
         "discount": 4.99,
         "min_total": 25,
-        "description": "Covers Central El Paso delivery fee on $25+",
+        "description": "Covers the Central El Paso delivery fee on orders of $25+",
         "customer_redemptions": 0,
         "validity": "forever",
         "apply_coupon_on": "delivery_fee",
@@ -153,7 +159,7 @@
         "type": "F",
         "discount": 55,
         "min_total": 250,
-        "description": "Cubre envío en Centro Juárez en pedidos de $250+",
+        "description": "Cubre el envío en Centro Juárez en pedidos de $250+",
         "customer_redemptions": 0,
         "validity": "forever",
         "apply_coupon_on": "delivery_fee",

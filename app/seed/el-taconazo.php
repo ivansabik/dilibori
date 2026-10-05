@@ -238,8 +238,8 @@ $location->fill([
     'location_name' => 'El Taconazo - Alameda Ave',
     'location_email' => 'hola@eltaconazo.example',
     'description' => t(
-        'Authentic Mexican taquería in El Paso, Texas. Breakfast (pambazo, torta de chilaquil), trompo al pastor, suadero, cabeza & costilla.',
-        'Taquería auténtica en El Paso, Texas. Desayunos (pambazo, torta de chilaquil), trompo al pastor, suadero, cabeza y costilla.',
+        'Taquería on Alameda Ave. Breakfast (pambazo, torta de chilaquil), trompo al pastor, suadero, cabeza, and costilla. Come in, pick up, or get delivery.',
+        'Taquería en Alameda Ave. Desayunos (pambazo, torta de chilaquil), trompo al pastor, suadero, cabeza y costilla. Pasa, pide para llevar o a domicilio.',
     ),
     'location_address_1' => '4500 Alameda Ave',
     'location_address_2' => 'Suite B',
@@ -272,8 +272,8 @@ $locationJuarez->fill([
     'location_name' => 'El Taconazo - Tecnológico',
     'location_email' => 'juarez@eltaconazo.example',
     'description' => t(
-        'El Taconazo in Ciudad Juárez, Chihuahua. Same trompo al pastor, suadero, cabeza & costilla — priced in Mexican pesos.',
-        'El Taconazo en Ciudad Juárez, Chihuahua. El mismo trompo al pastor, suadero, cabeza y costilla — precios en pesos mexicanos.',
+        'Near Tecnológico in Ciudad Juárez. Same trompo: pastor, suadero, cabeza, and costilla. Prices in pesos. Come in, pick up, or get delivery.',
+        'Cerca del Tecnológico en Ciudad Juárez. El mismo trompo: pastor, suadero, cabeza y costilla. Precios en pesos. Pasa, pide para llevar o a domicilio.',
     ),
     'location_address_1' => 'Av. Tecnológico 1545',
     'location_address_2' => '',
@@ -384,15 +384,15 @@ DB::statement('SET FOREIGN_KEY_CHECKS=1');
 // Truncate dropped translation rows; reload so the next save is dirty.
 $location = $location->fresh() ?? $location;
 $location->description = t(
-    'Authentic Mexican taquería in El Paso, Texas. Breakfast (pambazo, torta de chilaquil), trompo al pastor, suadero, cabeza & costilla.',
-    'Taquería auténtica en El Paso, Texas. Desayunos (pambazo, torta de chilaquil), trompo al pastor, suadero, cabeza y costilla.',
+    'Taquería on Alameda Ave. Breakfast (pambazo, torta de chilaquil), trompo al pastor, suadero, cabeza, and costilla. Come in, pick up, or get delivery.',
+    'Taquería en Alameda Ave. Desayunos (pambazo, torta de chilaquil), trompo al pastor, suadero, cabeza y costilla. Pasa, pide para llevar o a domicilio.',
 );
 $location->save();
 
 $locationJuarez = $locationJuarez->fresh() ?? $locationJuarez;
 $locationJuarez->description = t(
-    'El Taconazo in Ciudad Juárez, Chihuahua. Same trompo al pastor, suadero, cabeza & costilla — priced in Mexican pesos.',
-    'El Taconazo en Ciudad Juárez, Chihuahua. El mismo trompo al pastor, suadero, cabeza y costilla — precios en pesos mexicanos.',
+    'Near Tecnológico in Ciudad Juárez. Same trompo: pastor, suadero, cabeza, and costilla. Prices in pesos. Come in, pick up, or get delivery.',
+    'Cerca del Tecnológico en Ciudad Juárez. El mismo trompo: pastor, suadero, cabeza y costilla. Precios en pesos. Pasa, pide para llevar o a domicilio.',
 );
 $locationJuarez->save();
 
@@ -738,8 +738,8 @@ foreach ([
     'cebolla' => [t('Onion', 'Cebolla'), t('White onion', 'Cebolla blanca'), 0],
     'pina' => [t('Pineapple', 'Piña'), t('Pineapple', 'Piña'), 0],
     'achiote' => [t('Achiote', 'Achiote'), t('Achiote marinade', 'Marinado de achiote'), 0],
-    'trigo' => [t('Wheat', 'Trigo'), t('Flour tortilla — contains wheat', 'Tortilla de harina — contiene trigo'), 1],
-    'lacteos' => [t('Dairy', 'Lácteos'), t('Crema / cheese — contains dairy', 'Crema / queso — contiene lácteos'), 1],
+    'trigo' => [t('Wheat', 'Trigo'), t('Flour tortilla, contains wheat', 'Tortilla de harina, contiene trigo'), 1],
+    'lacteos' => [t('Dairy', 'Lácteos'), t('Crema / cheese, contains dairy', 'Crema / queso, contiene lácteos'), 1],
 ] as $key => [$name, $description, $allergen]) {
     $ingredient = Ingredient::create([
         'name' => $name,
@@ -756,11 +756,11 @@ say('Ingredients + allergens seeded');
 // ---------------------------------------------------------------------------
 $categoryIds = [];
 foreach ([
-    [t('Breakfast', 'Desayunos'), 'desayunos', t('Morning favorites 7–11am: pambazo & torta de chilaquil.', 'Antojitos de la mañana (7–11am): pambazo y torta de chilaquil.'), 0],
-    [t('Tacos', 'Tacos'), 'tacos', t('Suadero, trompo al pastor, cabeza & costilla.', 'Suadero, pastor en trompo, cabeza y costilla.'), 1],
-    [t('Combos', 'Combos'), 'combos', t('Plates and shareables.', 'Órdenes y platos para compartir.'), 2],
-    [t('Drinks', 'Bebidas'), 'bebidas', t('Aguas frescas & soft drinks.', 'Aguas frescas y refrescos.'), 3],
-    [t('Sides', 'Extras'), 'extras', t('Guacamole, grilled onions & more.', 'Guacamole, cebollitas y más.'), 4],
+    [t('Breakfast', 'Desayunos'), 'desayunos', t('Breakfast 7-11am: pambazo and torta de chilaquil.', 'Desayunos de 7 a 11am: pambazo y torta de chilaquil.'), 0],
+    [t('Tacos', 'Tacos'), 'tacos', t('Suadero, trompo al pastor, cabeza, and costilla.', 'Suadero, pastor en trompo, cabeza y costilla.'), 1],
+    [t('Combos', 'Combos'), 'combos', t('Plates and orders to share.', 'Órdenes y platos para compartir.'), 2],
+    [t('Drinks', 'Bebidas'), 'bebidas', t('Aguas frescas and soft drinks.', 'Aguas frescas y refrescos.'), 3],
+    [t('Sides', 'Extras'), 'extras', t('Guacamole, grilled onions, and more.', 'Guacamole, cebollitas y más.'), 4],
 ] as [$name, $slug, $description, $priority]) {
     $category = Category::create([
         'name' => $name,
@@ -834,7 +834,7 @@ $menuDefs = [
     [
         'menu_name' => 'Pambazo',
         'menu_description' => t(
-            'Guajillo-dipped bolillo stuffed with potato & chorizo, lettuce, crema and cheese. Mexico City breakfast classic.',
+            'Bolillo dipped in guajillo, stuffed with potato and chorizo, lettuce, crema, and cheese. Mexico City breakfast classic.',
             'Bolillo bañado en salsa guajillo, relleno de papa y chorizo, con lechuga, crema y queso. Clásico de desayuno chilango.',
         ),
         'menu_price' => 8.50,
@@ -852,8 +852,8 @@ $menuDefs = [
     [
         'menu_name' => 'Torta de Chilaquil',
         'menu_description' => t(
-            'Hearty torta of green or red chilaquiles with crema, cheese, onion, and chicken or egg.',
-            'Torta generosa de chilaquiles verdes o rojos, con crema, queso, cebolla y un toque de pollo o huevo al gusto.',
+            'Torta of green or red chilaquiles with crema, cheese, onion, and chicken or egg.',
+            'Torta de chilaquiles verdes o rojos, con crema, queso, cebolla y pollo o huevo al gusto.',
         ),
         'menu_price' => 9.25,
         'menu_price_mxn' => 95,
@@ -870,7 +870,7 @@ $menuDefs = [
     [
         'menu_name' => 'Taco de Suadero',
         'menu_description' => t(
-            'Slow-cooked suadero on a corn tortilla with cilantro & onion.',
+            'Slow-cooked suadero on a corn tortilla with cilantro and onion.',
             'Suadero suave, cocido lento al estilo capitalino. En tortilla de maíz con cilantro y cebolla.',
         ),
         'menu_price' => 3.50,
@@ -889,7 +889,7 @@ $menuDefs = [
         'menu_name' => t('Taco al Pastor (trompo)', 'Taco al pastor (trompo)'),
         'menu_description' => t(
             'Achiote-marinated pastor carved from the trompo, with pineapple.',
-            'Pastor marinados en achiote, asados en trompo, con piña. Auténtico sabor de taquería.',
+            'Pastor marinado en achiote, asado en trompo, con piña.',
         ),
         'menu_price' => 3.75,
         'menu_price_mxn' => 38,
@@ -906,8 +906,8 @@ $menuDefs = [
     [
         'menu_name' => 'Taco de Cabeza',
         'menu_description' => t(
-            'Tender, well-seasoned beef cabeza — a trompo & plancha classic.',
-            'Cabeza de res suave y jugosa, bien sazonada. Un clásico de trompo y plancha.',
+            'Tender, well-seasoned beef cabeza. A trompo and plancha classic.',
+            'Cabeza de res suave y jugosa, bien sazonada. Clásico de trompo y plancha.',
         ),
         'menu_price' => 3.50,
         'menu_price_mxn' => 35,
@@ -924,8 +924,8 @@ $menuDefs = [
     [
         'menu_name' => 'Taco de Costilla',
         'menu_description' => t(
-            'Shredded beef rib, juicy and rich — perfect with green salsa.',
-            'Costilla de res deshebrada, jugosa y con hueso de sabor. Ideal con salsa verde.',
+            'Shredded beef rib, juicy and rich. Good with green salsa.',
+            'Costilla de res deshebrada, jugosa y con hueso de sabor. Va bien con salsa verde.',
         ),
         'menu_price' => 4.25,
         'menu_price_mxn' => 42,
@@ -960,8 +960,8 @@ $menuDefs = [
     [
         'menu_name' => 'Plato Taconazo',
         'menu_description' => t(
-            'Four pastor tacos with rice, beans and guacamole.',
-            'Cuatro tacos al pastor, arroz, frijoles y guacamole. Para el antojo grande.',
+            'Four pastor tacos with rice, beans, and guacamole.',
+            'Cuatro tacos al pastor, arroz, frijoles y guacamole.',
         ),
         'menu_price' => 14.95,
         'menu_price_mxn' => 150,
@@ -1222,8 +1222,8 @@ $about = Page::query()->where('permalink_slug', 'about-us')->first();
 if ($about) {
     // Page::getContentAttribute + Translate: without an `en` content translation,
     // Purify mutates null→'' and the storefront body renders blank.
-    $aboutContentEn = '<p><strong>El Taconazo</strong> started with Don Lucio, a cook who learned the trompo in Mexico City. He moved north looking for work, opened a small kitchen near Tecnológico in Ciudad Juárez, and kept the trompo turning for neighbors who came back for suadero, cabeza, pastor, and costilla.</p><p>Years later the line spilled past Juárez. Don Lucio opened on Alameda Ave in El Paso so the same trompo could feed both sides of the border. Same recipes: carve all day, breakfast from 7am with pambazo and torta de chilaquil.</p><p>Come in, pick up, or order delivery. We cook like it\'s for family, because it is.</p>';
-    $aboutMetaEn = 'Don Lucio\'s taquería: Mexico City trompo, Juárez roots, El Paso on Alameda. Pastor, suadero, breakfast from 7am.';
+    $aboutContentEn = '<p><strong>El Taconazo</strong> started with Don Lucio, a cook who learned the trompo in Mexico City. He moved north looking for work, opened a small kitchen near Tecnológico in Ciudad Juárez, and kept the trompo turning for neighbors who came back for suadero, cabeza, pastor, and costilla.</p><p>Years later the line spilled past Juárez. Don Lucio opened on Alameda Ave in El Paso so the same trompo could feed both sides of the border. Same recipes: carve all day, breakfast from 7am with pambazo and torta de chilaquil.</p><p>Come in, pick up, or order delivery.</p>';
+    $aboutMetaEn = 'Don Lucio\'s taquería on Alameda: Mexico City trompo, Juárez roots. Pastor, suadero, breakfast from 7am.';
     $about->language_id = $enId;
     $about->title = 'About El Taconazo';
     $about->content = $aboutContentEn;
@@ -1233,8 +1233,8 @@ if ($about) {
     $about->setAttributeTranslatedValue('content', $aboutContentEn, 'en');
     $about->setAttributeTranslatedValue('meta_description', $aboutMetaEn, 'en');
     $about->setAttributeTranslatedValue('title', 'Acerca de El Taconazo', 'es_MX');
-    $about->setAttributeTranslatedValue('content', '<p><strong>El Taconazo</strong> empezó con Don Lucio, un cocinero que aprendió el trompo en la Ciudad de México. Se vino al norte buscando jale, abrió una cocina chica cerca del Tecnológico en Ciudad Juárez y mantuvo el trompo girando para el barrio que regresaba por suadero, cabeza, pastor y costilla.</p><p>Con el tiempo la fila ya no cabía en Juárez. Don Lucio abrió en Alameda Ave en El Paso para que el mismo trompo alimentara de los dos lados. Las mismas recetas: pastor todo el día, desayuno desde las 7am con pambazo y torta de chilaquil.</p><p>Pasa, pide para llevar o a domicilio. Cocina de familia, de verdad.</p>', 'es_MX');
-    $about->setAttributeTranslatedValue('meta_description', 'La taquería de Don Lucio: trompo de la CDMX, raíces en Juárez, El Paso en Alameda. Pastor, suadero, desayuno desde las 7am.', 'es_MX');
+    $about->setAttributeTranslatedValue('content', '<p><strong>El Taconazo</strong> empezó con Don Lucio, un cocinero que aprendió el trompo en la Ciudad de México. Se vino al norte buscando jale, abrió una cocina chica cerca del Tecnológico en Ciudad Juárez y mantuvo el trompo girando para el barrio que regresaba por suadero, cabeza, pastor y costilla.</p><p>Con el tiempo la fila ya no cabía en Juárez. Don Lucio abrió en Alameda Ave en El Paso para que el mismo trompo alimentara de los dos lados. Las mismas recetas: pastor todo el día, desayuno desde las 7am con pambazo y torta de chilaquil.</p><p>Pasa, pide para llevar o a domicilio.</p>', 'es_MX');
+    $about->setAttributeTranslatedValue('meta_description', 'Taquería de Don Lucio en Alameda: trompo de la CDMX, raíces en Juárez. Pastor, suadero, desayuno desde las 7am.', 'es_MX');
     $about->save();
 }
 

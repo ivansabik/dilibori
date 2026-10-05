@@ -63,7 +63,7 @@
       "is_default": true,
       "photo": "centro.jpg",
       "description": {
-        "es_MX": "Pizzería en el centro de Ciudad Juárez. Menú en español, precios en pesos."
+        "es_MX": "Pizzería en el centro de Juárez. Pide para llevar, a domicilio o pasa con tus cuates."
       }
     },
     {
@@ -83,15 +83,15 @@
       "is_default": false,
       "photo": "pradera.png",
       "description": {
-        "es_MX": "Sucursal Pradera. Mismo menú en español, precios en pesos."
+        "es_MX": "Sucursal Pradera. Mismo menú, para llevar o a domicilio."
       }
     }
   ],
   "pages": {
     "about-us": {
       "title": "Acerca de Pizza Rin",
-      "content": "<p><strong>Pizza Rin</strong> es una pizzería en Ciudad Juárez. Pide para llevar, a domicilio o pasa con tus cuates.</p>",
-      "meta_description": "Pizzería en Ciudad Juárez. Invita a tus cuates."
+      "content": "<p><strong>Pizza Rin</strong> es pizzería en Ciudad Juárez. Pide para llevar, a domicilio o pasa con tus cuates.</p>",
+      "meta_description": "Pizza en Ciudad Juárez: pepperoni, pastor, boneless. Invita a tus cuates."
     },
     "policy": {
       "title": "Aviso de privacidad",
@@ -124,7 +124,7 @@
         "type": "P",
         "discount": 15,
         "min_total": 200,
-        "description": "15% de descuento en tu primer pedido de $200+",
+        "description": "15% de descuento en tu primer pedido de $200 o más",
         "customer_redemptions": 1,
         "validity": "forever",
         "locations": ["pizza-rin-centro", "pizza-rin-pradera"]
@@ -135,7 +135,7 @@
         "type": "F",
         "discount": 50,
         "min_total": 250,
-        "description": "$50 de descuento en $250+ los martes",
+        "description": "$50 de descuento en pedidos de $250 o más los martes",
         "customer_redemptions": 0,
         "validity": "recurring",
         "recurring_every": ["2"],
@@ -149,7 +149,7 @@
         "type": "F",
         "discount": 45,
         "min_total": 300,
-        "description": "Cubre el envío en pedidos de $300+",
+        "description": "Cubre el envío en pedidos de $300 o más",
         "customer_redemptions": 0,
         "validity": "forever",
         "apply_coupon_on": "delivery_fee",

@@ -10,4 +10,8 @@ return [
     'menu_about' => 'About Us',
     'menu_privacy' => 'Privacy Policy',
     'menu_terms' => 'Terms & Conditions',
+
+    'newsletter' => [
+        'text_subscribe' => 'Leave your email for offers',
+    ],
 ];

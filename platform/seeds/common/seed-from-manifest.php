@@ -84,6 +84,28 @@ function saveLocationSettings(Location $location, string $item, array $data): vo
     $settings->save();
 }
 
+/** Plain string or locale map → settings hero_title / hero_title_{locale}. */
+function applyLocalizedHeroSetting(string $key, mixed $value, string $defaultLocale): void
+{
+    if (is_array($value)) {
+        $defaultText = $value[$defaultLocale] ?? reset($value);
+        if (is_string($defaultText) && $defaultText !== '') {
+            settingSet($key, $defaultText);
+        }
+        foreach ($value as $code => $text) {
+            if (is_string($text) && $text !== '') {
+                settingSet("{$key}_{$code}", $text);
+            }
+        }
+
+        return;
+    }
+
+    if (is_string($value) && $value !== '') {
+        settingSet($key, $value);
+    }
+}
+
 function attachMediaFile(object $model, string $sourcePath, string $tag, string $label): void
 {
     if (!is_file($sourcePath)) {
@@ -218,12 +240,6 @@ settingSet('site_name', $manifest['name']);
 settingSet('site_email', $manifest['mail']['from_address']);
 settingSet('sender_name', $manifest['mail']['from_name']);
 settingSet('sender_email', $manifest['mail']['from_address']);
-if (!empty($manifest['storefront']['hero_title'])) {
-    settingSet('hero_title', (string) $manifest['storefront']['hero_title']);
-}
-if (!empty($manifest['storefront']['hero_subtitle'])) {
-    settingSet('hero_subtitle', (string) $manifest['storefront']['hero_subtitle']);
-}
 settingSet('protocol', 'smtp');
 settingSet('smtp_host', getenv('MAIL_HOST') ?: 'mailpit');
 settingSet('smtp_port', getenv('MAIL_PORT') ?: '1025');
@@ -270,6 +286,10 @@ Language::clearInternalCache();
 Language::applySupportedLanguages();
 config(['localization.supportedLocales' => $localeCodes]);
 say('Locales → '.implode(', ', $localeCodes)." (default {$defaultLocale})");
+
+$storefront = $manifest['storefront'] ?? [];
+applyLocalizedHeroSetting('hero_title', $storefront['hero_title'] ?? null, $defaultLocale);
+applyLocalizedHeroSetting('hero_subtitle', $storefront['hero_subtitle'] ?? null, $defaultLocale);
 
 $locationIds = [];
 $keepSlugs = array_map(fn ($loc) => (string) $loc['slug'], $manifest['locations']);
