@@ -9,9 +9,9 @@ Local Docker stacks that provision isolated TastyIgniter tenants. Each environme
 - Privileged runtime agent (Docker socket) that applies desired state with allowlisted operations
 - Two pilot seed profiles (see Pilots below)
 - Development and production-like environment profiles with validated invariants
-- Tenant-aware CDP events when RudderStack is up (`cdp/`) → http://127.0.0.1:8090
+- Tenant-aware CDP events when RudderStack is up locally (`cdp/`) → http://127.0.0.1:8090
 
-Billing, AWS, and payment orchestration are out of scope.
+AWS deploy (single box per env, PR-driven): [`../infra/README.md`](../infra/README.md). Component map: [`docs/architecture.md`](docs/architecture.md). Billing and payment orchestration are out of scope.
 
 ## Quick start
 

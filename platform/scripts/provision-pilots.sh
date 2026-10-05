@@ -9,6 +9,7 @@ cd "$ROOT"
 PLATFORM_ENV="${PLATFORM_ENV:-dev}"
 DEPLOYMENT_ENVIRONMENT="${DEPLOYMENT_ENVIRONMENT:-development}"
 INGRESS_HTTP_PORT="${INGRESS_HTTP_PORT:-8088}"
+PILOT_DOMAIN="${PILOT_DOMAIN:-${PLATFORM_ENV}.localhost}"
 CP_URL="${CONTROL_PLANE_URL:-http://127.0.0.1:8099}"
 
 echo "Waiting for control plane at ${CP_URL} (env=${DEPLOYMENT_ENVIRONMENT})..."
@@ -107,14 +108,19 @@ provision_deployment() {
 TACONAZO_ID="$(ensure_tenant taconazo 'El Taconazo')"
 PIZZA_ID="$(ensure_tenant pizza-rin 'Pizza Rin')"
 
-provision_deployment "$TACONAZO_ID" "$DEPLOYMENT_ENVIRONMENT" taconazo "taconazo.${PLATFORM_ENV}.localhost"
-provision_deployment "$PIZZA_ID" "$DEPLOYMENT_ENVIRONMENT" pizza-rin "pizza-rin.${PLATFORM_ENV}.localhost"
+provision_deployment "$TACONAZO_ID" "$DEPLOYMENT_ENVIRONMENT" taconazo "taconazo.${PILOT_DOMAIN}"
+provision_deployment "$PIZZA_ID" "$DEPLOYMENT_ENVIRONMENT" pizza-rin "pizza-rin.${PILOT_DOMAIN}"
 
 echo ""
-echo "Pilots requested for ${DEPLOYMENT_ENVIRONMENT}. Add to /etc/hosts if needed:"
-echo "  127.0.0.1 taconazo.${PLATFORM_ENV}.localhost pizza-rin.${PLATFORM_ENV}.localhost"
-echo "Ingress: http://127.0.0.1:${INGRESS_HTTP_PORT} (Host header selects tenant)"
+echo "Pilots requested for ${DEPLOYMENT_ENVIRONMENT} (domain=${PILOT_DOMAIN})."
+if [[ "${PILOT_DOMAIN}" == *.localhost ]]; then
+  echo "Add to /etc/hosts if needed:"
+  echo "  127.0.0.1 taconazo.${PILOT_DOMAIN} pizza-rin.${PILOT_DOMAIN}"
+  echo "Ingress: http://127.0.0.1:${INGRESS_HTTP_PORT} (Host header selects tenant)"
+else
+  echo "Storefronts: https://taconazo.${PILOT_DOMAIN}/ https://pizza-rin.${PILOT_DOMAIN}/"
+fi
 echo "Control plane: ${CP_URL}"
 echo "Admin passwords (random per deployment):"
-echo "  make admin-pass HOST=taconazo.${PLATFORM_ENV}.localhost ENV=${PLATFORM_ENV}"
-echo "  make admin-pass HOST=pizza-rin.${PLATFORM_ENV}.localhost ENV=${PLATFORM_ENV}"
+echo "  make admin-pass HOST=taconazo.${PILOT_DOMAIN} ENV=${PLATFORM_ENV}"
+echo "  make admin-pass HOST=pizza-rin.${PILOT_DOMAIN} ENV=${PLATFORM_ENV}"

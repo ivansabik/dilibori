@@ -6,9 +6,12 @@ Local workspace for the Dilibori stack and related data tools.
 |--------|---------|
 | [`platform/`](platform/) | Multi-tenant PoC: per-env stacks (dev/prod), control plane, runtime agent, pilot seeds |
 | [`app/`](app/) | TastyIgniter 4 image, shared extensions, legacy single-tenant compose |
+| [`infra/`](infra/) | AWS Terraform + box scripts (PR-driven deploy to dev/prod) |
 | [`docs/product/`](docs/product/) | Sales-facing product docs for restaurant owners (features, benefits) |
-| [`cdp/`](cdp/) | Optional RudderStack data plane + event inspector |
+| [`cdp/`](cdp/) | Optional RudderStack data plane + event inspector (local; not on AWS yet) |
 | [`mailpit/`](mailpit/) | Standalone Mailpit (also included under `platform/`) |
+
+Architecture: [`platform/docs/architecture.md`](platform/docs/architecture.md). AWS ops: [`infra/README.md`](infra/README.md).
 
 ## Multi-tenant platform PoC
 

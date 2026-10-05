@@ -1,0 +1,18 @@
+{
+	admin localhost:2019
+}
+
+# Tenant host blocks are written by the runtime agent into this directory.
+import /etc/caddy/tenants/*.caddy
+
+:80 {
+	log {
+		output file /var/log/caddy/access.log
+		format json
+	}
+
+	@health path /healthz
+	respond @health "ok" 200
+
+	respond "dilibori ingress: no tenant matched" 404
+}

@@ -37,6 +37,14 @@ class Settings(BaseSettings):
     minio_root_user: str = Field(default="minioadmin", alias="MINIO_ROOT_USER")
     minio_root_password: str = Field(default="minioadmin", alias="MINIO_ROOT_PASSWORD")
     minio_secure: bool = Field(default=False, alias="MINIO_SECURE")
+    # minio = local mc admin users; iam = AWS IAM users + inline prefix policy.
+    object_store_identity: str = Field(default="minio", alias="OBJECT_STORE_IDENTITY")
+    media_bucket: str = Field(default="dilibori-media", alias="MEDIA_BUCKET")
+    # IAM user path prefix, e.g. dilibori/dev/tenants/
+    object_store_iam_path: str = Field(
+        default="dilibori/local/tenants/",
+        alias="OBJECT_STORE_IAM_PATH",
+    )
 
     host: str = Field(default="0.0.0.0", alias="RUNTIME_AGENT_HOST")
     port: int = Field(default=8100, alias="RUNTIME_AGENT_PORT")
@@ -46,6 +54,14 @@ class Settings(BaseSettings):
     # Rich demo catalog (el-taconazo.php + images) for the taconazo seed bundle.
     host_app_seed_path: str = Field(default="", alias="HOST_APP_SEED_PATH")
     ingress_http_port: str = Field(default="8088", alias="INGRESS_HTTP_PORT")
+    ingress_scheme: str = Field(default="http", alias="INGRESS_SCHEME")
+    cdp_enabled: bool = Field(default=True, alias="CDP_ENABLED")
+
+    tenant_mail_host: str = Field(default="mailpit", alias="TENANT_MAIL_HOST")
+    tenant_mail_port: str = Field(default="1025", alias="TENANT_MAIL_PORT")
+    tenant_mail_username: str = Field(default="", alias="TENANT_MAIL_USERNAME")
+    tenant_mail_password: str = Field(default="", alias="TENANT_MAIL_PASSWORD")
+    tenant_mail_encryption: str = Field(default="", alias="TENANT_MAIL_ENCRYPTION")
 
     @property
     def allowed_image_set(self) -> set[str]:

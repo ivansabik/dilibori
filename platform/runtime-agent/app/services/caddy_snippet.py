@@ -12,13 +12,22 @@ def effective_noindex(tenant_noindex: bool, environment: str) -> bool:
 
 
 def render_tenant_snippet(
-    *, hostname: str, container_name: str, noindex: bool = False
+    *,
+    hostname: str,
+    container_name: str,
+    noindex: bool = False,
+    scheme: str = "http",
 ) -> str:
-    """Pure Caddy site-block text for one tenant hostname."""
+    """Pure Caddy site-block text for one tenant hostname.
+
+    scheme=http keeps the local `http://host {` form.
+    scheme=https uses a bare `host {` block so Caddy auto-HTTPS can issue certs.
+    """
+    site = hostname if scheme == "https" else f"http://{hostname}"
     if noindex:
         robots_body = "User-agent: *\nDisallow: /\n"
         return (
-            f"http://{hostname} {{\n"
+            f"{site} {{\n"
             f'\theader X-Robots-Tag "noindex, nofollow"\n'
             f"\thandle /robots.txt {{\n"
             f'\t\theader Content-Type "text/plain; charset=utf-8"\n'
@@ -30,4 +39,4 @@ def render_tenant_snippet(
             f"}}\n"
         )
 
-    return f"http://{hostname} {{\n\treverse_proxy {container_name}:80\n}}\n"
+    return f"{site} {{\n\treverse_proxy {container_name}:80\n}}\n"

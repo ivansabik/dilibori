@@ -1,0 +1,104 @@
+# AWS single-box override. Merged via COMPOSE_EXTRA_FILE=docker-compose.aws.yml.
+# Publishes 443, persists Caddy certs, binds admin UIs to localhost, awslogs.
+
+x-awslogs: &awslogs
+  logging:
+    driver: awslogs
+    options:
+      awslogs-region: ${AWS_REGION:-us-east-1}
+      awslogs-group: /dilibori/${PLATFORM_ENV:-dev}/platform
+      awslogs-stream: ${COMPOSE_PROJECT_NAME:-dilibori}/${PLATFORM_ENV:-dev}
+      awslogs-create-group: "true"
+  restart: always
+
+services:
+  ingress:
+    <<: *awslogs
+    ports:
+      - "${INGRESS_HTTP_PORT:-80}:80"
+      - "${INGRESS_HTTPS_PORT:-443}:443"
+    volumes:
+      - ./ingress/Caddyfile.aws:/etc/caddy/Caddyfile:ro
+      - ./data/${PLATFORM_ENV:-dev}/ingress/tenants:/etc/caddy/tenants:ro
+      - caddy_data:/data
+      - /opt/dilibori/caddy-data/logs:/var/log/caddy
+
+  mariadb:
+    <<: *awslogs
+
+  proxysql:
+    <<: *awslogs
+    ports:
+      - "${PROXYSQL_ADMIN_PORT:-127.0.0.1:6032}:6032"
+
+  minio:
+    <<: *awslogs
+    ports:
+      - "${MINIO_CONSOLE_PORT:-127.0.0.1:9001}:9001"
+
+  postgres:
+    <<: *awslogs
+    environment:
+      POSTGRES_DB: controlplane
+      POSTGRES_USER: controlplane
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-platform-pg-change-me}
+      PLATFORM_ENV: ${PLATFORM_ENV:-dev}
+      INGRESS_HTTP_PORT: ${INGRESS_HTTP_PORT:-80}
+      INGRESS_BASE_URL: ${INGRESS_BASE_URL:-}
+
+  pgbouncer:
+    <<: *awslogs
+
+  mailpit:
+    <<: *awslogs
+    ports:
+      - "${MAILPIT_UI_PORT:-127.0.0.1:8026}:8025"
+
+  control-plane:
+    <<: *awslogs
+    image: ${CONTROL_PLANE_IMAGE:-dilibori/control-plane:local}
+    ports:
+      - "${CONTROL_PLANE_PORT:-127.0.0.1:8099}:8080"
+
+  runtime-agent:
+    <<: *awslogs
+    image: ${RUNTIME_AGENT_IMAGE:-dilibori/runtime-agent:local}
+    ports:
+      - "${RUNTIME_AGENT_PORT:-127.0.0.1:8100}:8100"
+    environment:
+      RUNTIME_AGENT_TOKEN: ${RUNTIME_AGENT_TOKEN:-platform-agent-token-change-me}
+      MARIADB_HOST: mariadb
+      MARIADB_ADMIN_USER: root
+      MARIADB_ADMIN_PASSWORD: ${MARIADB_ROOT_PASSWORD:-platform-root-change-me}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT:-s3.us-east-1.amazonaws.com}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-}
+      MINIO_SECURE: ${MINIO_SECURE:-true}
+      OBJECT_STORE_IDENTITY: ${OBJECT_STORE_IDENTITY:-iam}
+      MEDIA_BUCKET: ${MEDIA_BUCKET:-}
+      TENANT_IMAGE: ${TENANT_IMAGE:-dilibori/tastyigniter:poc}
+      ALLOWED_IMAGES: ${ALLOWED_IMAGES:-dilibori/tastyigniter:poc}
+      DATA_DIR: /var/lib/dilibori
+      SHARED_NETWORK: dilibori-${PLATFORM_ENV:-dev}-shared
+      CADDY_CONTAINER_NAME: dilibori-${PLATFORM_ENV:-dev}-caddy
+      PROXYSQL_HOST: proxysql
+      PROXYSQL_MYSQL_PORT: "6033"
+      PROXYSQL_ADMIN_HOST: proxysql
+      PROXYSQL_ADMIN_PORT: "6032"
+      PROXYSQL_ADMIN_USER: radmin
+      PROXYSQL_ADMIN_PASSWORD: ${PROXYSQL_ADMIN_PASSWORD:-platform-proxysql-admin}
+      HOST_SEEDS_PATH: ${HOST_SEEDS_PATH:-}
+      HOST_EXTENSIONS_PATH: ${HOST_EXTENSIONS_PATH:-}
+      HOST_DATA_PATH: ${HOST_DATA_PATH:-}
+      HOST_APP_SEED_PATH: ${HOST_APP_SEED_PATH:-}
+      INGRESS_HTTP_PORT: ${INGRESS_HTTP_PORT:-80}
+      INGRESS_SCHEME: ${INGRESS_SCHEME:-https}
+      CDP_ENABLED: ${CDP_ENABLED:-false}
+      TENANT_MAIL_HOST: ${TENANT_MAIL_HOST:-mailpit}
+      TENANT_MAIL_PORT: ${TENANT_MAIL_PORT:-1025}
+      TENANT_MAIL_USERNAME: ${TENANT_MAIL_USERNAME:-}
+      TENANT_MAIL_PASSWORD: ${TENANT_MAIL_PASSWORD:-}
+      TENANT_MAIL_ENCRYPTION: ${TENANT_MAIL_ENCRYPTION:-}
+
+volumes:
+  caddy_data:

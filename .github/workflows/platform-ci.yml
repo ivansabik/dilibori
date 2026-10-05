@@ -5,6 +5,7 @@ on:
     paths:
       - "platform/**"
       - "cdp/event-sink/**"
+      - "infra/**"
       - "ruff.toml"
       - "**/*.py"
       - "app/Dockerfile"
@@ -16,6 +17,7 @@ on:
     paths:
       - "platform/**"
       - "cdp/event-sink/**"
+      - "infra/**"
       - "ruff.toml"
       - "**/*.py"
       - "app/Dockerfile"
@@ -49,6 +51,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Install runtime-agent deps for unit tests
+        run: pip install -r runtime-agent/requirements.txt
       - name: Run contract and policy tests
         run: |
           chmod +x scripts/run-tests.sh
@@ -81,3 +85,44 @@ jobs:
       - name: PHP lint
         run: |
           find src public -name '*.php' -print0 | xargs -0 -n1 php -l
+
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.5.7"
+      - name: terraform fmt
+        run: terraform fmt -check -recursive infra/terraform
+      - name: Validate bootstrap
+        working-directory: infra/terraform/bootstrap
+        run: |
+          terraform init -backend=false -input=false
+          terraform validate
+      - name: Validate envs/dev
+        working-directory: infra/terraform/envs/dev
+        run: |
+          terraform init -backend=false -input=false
+          terraform validate
+      - name: Validate envs/prod
+        working-directory: infra/terraform/envs/prod
+        run: |
+          terraform init -backend=false -input=false
+          terraform validate
+
+  box-scripts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install shellcheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+      - name: shellcheck infra/box
+        run: shellcheck infra/box/*.sh
+      - name: Compose config (aws override)
+        run: |
+          docker compose \
+            -f platform/docker-compose.yml \
+            -f platform/docker-compose.aws.yml \
+            --env-file platform/envs/aws-dev.env \
+            config -q

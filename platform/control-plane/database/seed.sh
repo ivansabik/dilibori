@@ -1,12 +1,12 @@
 #!/bin/bash
-# Seed the local cell row. Reads PLATFORM_ENV and INGRESS_HTTP_PORT from the
+# Seed the local cell row. Reads PLATFORM_ENV and ingress URL from the
 # postgres container environment (set by docker-compose).
 set -euo pipefail
 
 PLATFORM_ENV="${PLATFORM_ENV:-dev}"
 INGRESS_HTTP_PORT="${INGRESS_HTTP_PORT:-8088}"
 CELL_NAME="local-${PLATFORM_ENV}"
-INGRESS_BASE_URL="http://127.0.0.1:${INGRESS_HTTP_PORT}"
+INGRESS_BASE_URL="${INGRESS_BASE_URL:-http://127.0.0.1:${INGRESS_HTTP_PORT}}"
 
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<EOSQL
 INSERT INTO cells (id, name, provider, capacity_metadata, agent_url, schedulable)

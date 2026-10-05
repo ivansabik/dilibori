@@ -13,3 +13,9 @@ platform/data/
 platform/data-cell-b/
 !platform/data/**/.gitkeep
 .tmp/
+# Terraform local plugin caches (keep *.lock.hcl)
+**/.terraform/
+infra/terraform/**/terraform.tfvars
+infra/terraform/bootstrap/terraform.tfvars
+*.tfstate
+*.tfstate.*

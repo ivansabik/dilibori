@@ -10,16 +10,24 @@ export
 TENANT_IMAGE ?= dilibori/tastyigniter:poc
 HOST_SEEDS_PATH ?= $(PLATFORM_DIR)/seeds
 HOST_EXTENSIONS_PATH ?= $(REPO_ROOT)/app/extensions
-# Force per-env data dir so switching ENV= does not reuse a stale .env path.
-HOST_DATA_PATH := $(PLATFORM_DIR)/data/$(ENV)
 HOST_APP_SEED_PATH ?= $(REPO_ROOT)/app/seed
+# aws-dev/aws-prod env files set PLATFORM_ENV=dev|prod so compose paths stay stable.
 PLATFORM_ENV ?= $(ENV)
+# Data dir follows PLATFORM_ENV (matches compose ./data/${PLATFORM_ENV}).
+HOST_DATA_PATH := $(PLATFORM_DIR)/data/$(PLATFORM_ENV)
 CELL_NAME := local-$(PLATFORM_ENV)
 # Compose v2.7 breaks ${VAR} in top-level `name:`; set the project via env instead.
 COMPOSE_PROJECT_NAME := dilibori-$(ENV)
 export COMPOSE_PROJECT_NAME
 
-COMPOSE := docker compose -p $(COMPOSE_PROJECT_NAME) -f $(PLATFORM_DIR)/docker-compose.yml --env-file $(PLATFORM_DIR)/.env --env-file $(PLATFORM_DIR)/envs/$(ENV).env
+COMPOSE_EXTRA_FILE ?=
+COMPOSE_UP_FLAGS ?= --build
+COMPOSE_FILE_ARGS := -f $(PLATFORM_DIR)/docker-compose.yml
+ifneq ($(strip $(COMPOSE_EXTRA_FILE)),)
+COMPOSE_FILE_ARGS += -f $(PLATFORM_DIR)/$(COMPOSE_EXTRA_FILE)
+endif
+# envs/*.env first, then .env so deploy-time secrets/domain values win on AWS.
+COMPOSE := docker compose -p $(COMPOSE_PROJECT_NAME) $(COMPOSE_FILE_ARGS) --env-file $(PLATFORM_DIR)/envs/$(ENV).env --env-file $(PLATFORM_DIR)/.env
 
 .PHONY: help build-app up down logs ps test lint pilots capacity env-copy reconcile cell-b-up cell-b-down migrate-schema install-hooks ensure-cdp admin-pass
 
@@ -28,7 +36,7 @@ help:
 	@echo ""
 	@echo "Dilibori multi-tenant platform (local PoC)"
 	@echo ""
-	@echo "  ENV=dev|prod selects a full stack (default: dev)."
+	@echo "  ENV=dev|prod|aws-dev|aws-prod selects a full stack (default: dev)."
 	@echo ""
 	@echo "  make env-copy     Copy .env.example to .env"
 	@echo "  make build-app    Build immutable TastyIgniter image"
@@ -72,7 +80,7 @@ build-app:
 	docker build -t $(TENANT_IMAGE) -f $(REPO_ROOT)/app/Dockerfile $(REPO_ROOT)
 
 up: env-copy
-	@test -f $(PLATFORM_DIR)/envs/$(ENV).env || (echo "Unknown ENV=$(ENV); expected envs/dev.env or envs/prod.env" >&2; exit 1)
+	@test -f $(PLATFORM_DIR)/envs/$(ENV).env || (echo "Unknown ENV=$(ENV); expected envs/{dev,prod,aws-dev,aws-prod}.env" >&2; exit 1)
 	@mkdir -p $(HOST_DATA_PATH)/ingress/tenants $(HOST_DATA_PATH)/minio $(HOST_DATA_PATH)/secrets $(HOST_DATA_PATH)/tenants $(HOST_DATA_PATH)/snapshots
 	@set -e; \
 	HOST_SEEDS_PATH=$(HOST_SEEDS_PATH) \
@@ -80,7 +88,7 @@ up: env-copy
 	HOST_DATA_PATH=$(HOST_DATA_PATH) \
 	HOST_APP_SEED_PATH=$(HOST_APP_SEED_PATH) \
 	TENANT_IMAGE=$(TENANT_IMAGE) \
-	$(COMPOSE) up -d --build \
+	$(COMPOSE) up -d $(COMPOSE_UP_FLAGS) \
 	|| ( \
 		echo "Compose rename quirk (fixed container_name); recreating ingress and retrying..."; \
 		docker rm -f dilibori-$(PLATFORM_ENV)-caddy >/dev/null 2>&1 || true; \
@@ -89,7 +97,7 @@ up: env-copy
 		HOST_DATA_PATH=$(HOST_DATA_PATH) \
 		HOST_APP_SEED_PATH=$(HOST_APP_SEED_PATH) \
 		TENANT_IMAGE=$(TENANT_IMAGE) \
-		$(COMPOSE) up -d --build; \
+		$(COMPOSE) up -d $(COMPOSE_UP_FLAGS); \
 	)
 	@echo "Reconciling active tenants..."
 	@for i in 1 2 3 4 5 6 7 8 9 10; do \
@@ -132,11 +140,12 @@ capacity:
 
 pilots:
 	chmod +x $(PLATFORM_DIR)/scripts/provision-pilots.sh
-	CONTROL_PLANE_URL=http://127.0.0.1:$${CONTROL_PLANE_PORT:-8099} \
-	RUNTIME_AGENT_URL=http://127.0.0.1:$${RUNTIME_AGENT_PORT:-8100} \
+	CONTROL_PLANE_URL=http://127.0.0.1:$${CONTROL_PLANE_PORT##*:} \
+	RUNTIME_AGENT_URL=http://127.0.0.1:$${RUNTIME_AGENT_PORT##*:} \
 	PLATFORM_ENV=$(PLATFORM_ENV) \
 	DEPLOYMENT_ENVIRONMENT=$(DEPLOYMENT_ENVIRONMENT) \
 	INGRESS_HTTP_PORT=$(INGRESS_HTTP_PORT) \
+	PILOT_DOMAIN=$(PILOT_DOMAIN) \
 	$(PLATFORM_DIR)/scripts/provision-pilots.sh
 
 admin-pass:
@@ -176,6 +185,7 @@ migrate-schema:
 	@echo "Applying control-plane migrations for ENV=$(ENV)..."
 	@$(COMPOSE) exec -T postgres \
 		psql -U controlplane -d controlplane < $(PLATFORM_DIR)/control-plane/database/migrations/002_cell_migrate.sql
-	@$(COMPOSE) exec -T postgres \
-		psql -U controlplane -d controlplane -c "UPDATE cells SET agent_url = COALESCE(NULLIF(agent_url, ''), 'http://runtime-agent:8100'), name = '$(CELL_NAME)', capacity_metadata = capacity_metadata || '{\"ingress_base_url\":\"http://127.0.0.1:$(INGRESS_HTTP_PORT)\"}'::jsonb WHERE id = '11111111-1111-4111-8111-111111111111' OR name LIKE 'local-%';"
+	@INGRESS_URL="$(if $(INGRESS_BASE_URL),$(INGRESS_BASE_URL),http://127.0.0.1:$(INGRESS_HTTP_PORT))"; \
+	$(COMPOSE) exec -T postgres \
+		psql -U controlplane -d controlplane -c "UPDATE cells SET agent_url = COALESCE(NULLIF(agent_url, ''), 'http://runtime-agent:8100'), name = '$(CELL_NAME)', capacity_metadata = capacity_metadata || jsonb_build_object('ingress_base_url', '$${INGRESS_URL}') WHERE id = '11111111-1111-4111-8111-111111111111' OR name LIKE 'local-%';"
 	@echo "Done."

@@ -1,0 +1,6 @@
+aws_region    = "us-east-1"
+domain        = "example.com"
+# zone_id     = "Z..."
+alert_email   = "you@example.com"
+budget_usd    = 100
+instance_type = "t3a.medium"

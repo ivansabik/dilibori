@@ -63,6 +63,19 @@ def main() -> int:
     assert dev["DEPLOYMENT_ENVIRONMENT"] == "development"
     assert prod["DEPLOYMENT_ENVIRONMENT"] == "production"
 
+    aws_dev = _parse_env(ROOT / "envs" / "aws-dev.env")
+    aws_prod = _parse_env(ROOT / "envs" / "aws-prod.env")
+    assert aws_dev["PLATFORM_ENV"] == "dev"
+    assert aws_prod["PLATFORM_ENV"] == "prod"
+    assert aws_dev["COMPOSE_EXTRA_FILE"] == "docker-compose.aws.yml"
+    assert aws_prod["COMPOSE_EXTRA_FILE"] == "docker-compose.aws.yml"
+    assert aws_dev["CDP_ENABLED"] == "false"
+    assert (ROOT / "docker-compose.aws.yml").is_file()
+    assert (ROOT / "ingress" / "Caddyfile.aws").is_file()
+    makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+    assert "COMPOSE_EXTRA_FILE" in makefile
+    assert "COMPOSE_UP_FLAGS" in makefile
+
     port_keys = [
         "INGRESS_HTTP_PORT",
         "CONTROL_PLANE_PORT",

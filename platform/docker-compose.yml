@@ -101,6 +101,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-platform-pg-change-me}
       PLATFORM_ENV: ${PLATFORM_ENV:-dev}
       INGRESS_HTTP_PORT: ${INGRESS_HTTP_PORT:-8088}
+      INGRESS_BASE_URL: ${INGRESS_BASE_URL:-}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./control-plane/database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
@@ -143,6 +144,7 @@ services:
     restart: unless-stopped
 
   control-plane:
+    image: ${CONTROL_PLANE_IMAGE:-dilibori/control-plane:local}
     build: ./control-plane
     environment:
       APP_ENV: local
@@ -174,6 +176,7 @@ services:
     restart: unless-stopped
 
   runtime-agent:
+    image: ${RUNTIME_AGENT_IMAGE:-dilibori/runtime-agent:local}
     build: ./runtime-agent
     environment:
       RUNTIME_AGENT_TOKEN: ${RUNTIME_AGENT_TOKEN:-platform-agent-token-change-me}
@@ -200,6 +203,15 @@ services:
       HOST_DATA_PATH: ${HOST_DATA_PATH:-}
       HOST_APP_SEED_PATH: ${HOST_APP_SEED_PATH:-}
       INGRESS_HTTP_PORT: ${INGRESS_HTTP_PORT:-8088}
+      INGRESS_SCHEME: ${INGRESS_SCHEME:-http}
+      CDP_ENABLED: ${CDP_ENABLED:-true}
+      OBJECT_STORE_IDENTITY: ${OBJECT_STORE_IDENTITY:-minio}
+      MEDIA_BUCKET: ${MEDIA_BUCKET:-dilibori-media}
+      TENANT_MAIL_HOST: ${TENANT_MAIL_HOST:-mailpit}
+      TENANT_MAIL_PORT: ${TENANT_MAIL_PORT:-1025}
+      TENANT_MAIL_USERNAME: ${TENANT_MAIL_USERNAME:-}
+      TENANT_MAIL_PASSWORD: ${TENANT_MAIL_PASSWORD:-}
+      TENANT_MAIL_ENCRYPTION: ${TENANT_MAIL_ENCRYPTION:-}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data/${PLATFORM_ENV:-dev}:/var/lib/dilibori
@@ -228,3 +240,4 @@ networks:
 volumes:
   mariadb_data:
   postgres_data:
+  caddy_data:

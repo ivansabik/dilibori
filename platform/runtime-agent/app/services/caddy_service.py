@@ -48,11 +48,15 @@ class CaddyService:
             if text.lstrip().startswith(f"{hostname} ") or text.lstrip().startswith(f"{hostname}{{") or f"{hostname} {{" in text:
                 stale.unlink(missing_ok=True)
 
+        scheme = (self._settings.ingress_scheme or "http").strip().lower()
+        if scheme not in {"http", "https"}:
+            scheme = "http"
         snippet_path.write_text(
             render_tenant_snippet(
                 hostname=hostname,
                 container_name=container_name,
                 noindex=noindex,
+                scheme=scheme,
             ),
             encoding="utf-8",
         )

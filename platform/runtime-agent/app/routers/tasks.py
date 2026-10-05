@@ -52,11 +52,19 @@ def _map_profile(environment: str) -> str:
 
 def _public_app_url(hostname: str) -> str:
     hostname = hostname.strip() or "localhost"
-    # Browser hits ingress on a non-80 port; absolute asset URLs must include it.
-    port = (get_settings().ingress_http_port or "").strip()
+    settings = get_settings()
+    scheme = (settings.ingress_scheme or "http").strip().lower()
+    if scheme not in {"http", "https"}:
+        scheme = "http"
+    # Browser hits ingress on a non-80/443 port; absolute asset URLs must include it.
+    port = (settings.ingress_http_port or "").strip()
+    if scheme == "https" and port in {"", "443"}:
+        return f"https://{hostname}"
+    if scheme == "http" and port in {"", "80"}:
+        return f"http://{hostname}"
     if port and port not in {"80", "443"}:
-        return f"http://{hostname}:{port}"
-    return f"http://{hostname}"
+        return f"{scheme}://{hostname}:{port}"
+    return f"{scheme}://{hostname}"
 
 
 @router.post("/{deployment_id}/tasks")
@@ -126,18 +134,20 @@ def enqueue_task(
                 payload.get("MINIO_PREFIX")
                 or f"tenants/{payload.get('tenant_id', deployment_id)}/"
             )
-            MinioService(settings).create_tenant_credentials(
+            bucket = settings.media_bucket or "dilibori-media"
+            created = MinioService(settings).create_tenant_credentials(
                 deployment_id=deployment_id,
                 access_key=access_key,
                 secret_key=secret_key,
-                bucket="dilibori-media",
+                bucket=bucket,
                 prefix=media_prefix,
             )
             return {
                 "ok": True,
-                "minio_access_key": access_key,
-                "minio_secret_key": secret_key,
+                "minio_access_key": created.get("access_key", access_key),
+                "minio_secret_key": created.get("secret_key", secret_key),
                 "minio_prefix": media_prefix,
+                "minio_bucket": bucket,
             }
 
         if action == "install_release":
@@ -332,13 +342,19 @@ def _tenant_env(
         "SEED_MODE": "initial",
         "EXPECTED_HOST": str(payload.get("hostname") or ""),
         "APP_URL": _public_app_url(str(payload.get("hostname") or "localhost")),
-        "MAIL_HOST": "mailpit",
-        "MAIL_PORT": "1025",
+        "MAIL_HOST": settings.tenant_mail_host or "mailpit",
+        "MAIL_PORT": settings.tenant_mail_port or "1025",
         "FORBID_MARKETPLACE_INSTALL": "true",
         "FORBID_SELF_UPDATE": "true",
         "CACHE_DRIVER": "file",
         "QUEUE_CONNECTION": "database",
     }
+    if settings.tenant_mail_username:
+        env["MAIL_USERNAME"] = settings.tenant_mail_username
+    if settings.tenant_mail_password:
+        env["MAIL_PASSWORD"] = settings.tenant_mail_password
+    if settings.tenant_mail_encryption:
+        env["MAIL_ENCRYPTION"] = settings.tenant_mail_encryption
 
     for key, value in cfg.items():
         if isinstance(value, bool):
@@ -354,13 +370,16 @@ def _tenant_env(
         if payload.get(key):
             env[key] = str(payload[key])
 
-    # Always last: every tenant (new and recreated) ships CDP to the local plane.
-    env.update(_cdp_env())
+    # Always last so CDP_ENABLED from the agent wins over profile defaults.
+    env.update(_cdp_env(settings))
 
     return env
 
 
-def _cdp_env() -> dict[str, str]:
+def _cdp_env(settings: Settings | None = None) -> dict[str, str]:
+    settings = settings or get_settings()
+    if not settings.cdp_enabled:
+        return {"CDP_ENABLED": "false"}
     return {
         "EVENT_CLIENT_DRIVER": "rudderstack",
         "CDP_ENABLED": "true",
