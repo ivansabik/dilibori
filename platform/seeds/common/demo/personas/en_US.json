@@ -1,0 +1,76 @@
+{
+  "first_names": [
+    "María", "José", "Ana", "Carlos", "Sofía", "Luis", "Elena", "Diego",
+    "Isabel", "Miguel", "Carmen", "Roberto", "Laura", "Pedro", "Gabriela",
+    "Antonio", "Patricia", "Fernando", "Lucia", "Ricardo", "Valeria", "Javier",
+    "Daniela", "Manuel", "Rosa", "Alejandro", "Natalia", "Héctor", "Claudia", "Raúl"
+  ],
+  "last_names": [
+    "González", "Ramírez", "Torres", "Hernández", "López", "Martínez", "García",
+    "Rodríguez", "Pérez", "Sánchez", "Flores", "Rivera", "Morales", "Cruz",
+    "Ortiz", "Reyes", "Gutiérrez", "Castillo", "Vargas", "Mendoza", "Ruiz",
+    "Jiménez", "Díaz", "Romero", "Álvarez", "Navarro", "Silva", "Ramos", "Guerrero", "Medina"
+  ],
+  "street_names": [
+    "Magoffin Ave", "S El Paso St", "N Piedras St", "Alameda Ave", "Montana Ave",
+    "Mesa St", "Yarbrough Dr", "Zaragoza Rd", "Paisano Dr", "Dyer St",
+    "Copia St", "Pershing Dr", "Fort Blvd", "Airway Blvd", "Lee Trevino Dr",
+    "Viscount Blvd", "George Dieter Dr", "Hawkins Blvd", "McRae Blvd", "Lomaland Dr"
+  ],
+  "order_comments": [
+    "Extra salsa verde on the pastor.",
+    "No onion on the suadero.",
+    "Leave at the door if no one answers.",
+    "Please include napkins and forks.",
+    "Mild salsa only, kids eating.",
+    "Ring the doorbell twice.",
+    "Extra lime wedges if you have them.",
+    "Make it spicy.",
+    "No cilantro please.",
+    "Call when you arrive.",
+    "Park in the driveway.",
+    "Double-check the drink order.",
+    "We are celebrating — thanks!",
+    "Running late, hold if ready early.",
+    "Allergies: no dairy on anything."
+  ],
+  "reservation_comments": [
+    "Window table if possible.",
+    "High chair needed for a toddler.",
+    "Quiet corner preferred.",
+    "Birthday dinner for four.",
+    "Patio seating if available.",
+    "We may arrive a few minutes late.",
+    "Large party — keep tables together.",
+    "Anniversary — any nice spot works."
+  ],
+  "reviews": {
+    "5": [
+      "Best trompo al pastor in town — the spit is on point.",
+      "Food came hot and fast. We will be back.",
+      "Everything tasted fresh. Kids loved it.",
+      "Great portions and friendly staff."
+    ],
+    "4": [
+      "Really good. Waited a bit on delivery but worth it.",
+      "Solid pickup order. Salsas were excellent.",
+      "Almost perfect — forgot the chips once, fixed it next time."
+    ],
+    "3": [
+      "Decent meal. A bit cold when it arrived.",
+      "Ok for a weeknight. Nothing fancy.",
+      "Food was fine, delivery took longer than expected."
+    ]
+  },
+  "subscriber_locals": [
+    "fan", "elpaso.eats", "tacolover", "hungry.local", "friday.night",
+    "border.bites", "lunch.crew", "family.orders", "weekend.eats", "demo.subscriber"
+  ],
+  "guest": {
+    "first_name": "Guest",
+    "last_name": "Checkout",
+    "email": "guest.checkout@demo.example",
+    "telephone": "(915) 555-0199"
+  },
+  "customer_password": "customer123!"
+}

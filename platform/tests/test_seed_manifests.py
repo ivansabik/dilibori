@@ -43,9 +43,42 @@ def validate_translations(manifest: dict) -> None:
                 )
 
 
+def validate_demo(manifest: dict) -> None:
+    demo = manifest.get("demo")
+    if not demo:
+        raise AssertionError(f"{manifest['slug']} missing demo block")
+    assert demo.get("enabled") is True, f"{manifest['slug']} demo.enabled"
+    persona = demo.get("persona")
+    assert persona, f"{manifest['slug']} demo.persona"
+    persona_path = SEEDS / "common" / "demo" / "personas" / f"{persona}.json"
+    assert persona_path.is_file(), f"missing persona pack {persona_path}"
+    pack = json.loads(persona_path.read_text())
+    for key in (
+        "first_names",
+        "last_names",
+        "street_names",
+        "order_comments",
+        "reservation_comments",
+    ):
+        assert pack.get(key), f"{persona} missing {key}"
+    reviews = pack.get("reviews") or {}
+    for rating in ("3", "4", "5"):
+        assert reviews.get(rating), f"{persona} missing reviews[{rating}]"
+
+    loc_slugs = {loc["slug"] for loc in manifest["locations"]}
+    for coupon in demo.get("coupons") or []:
+        for slug in coupon.get("locations") or []:
+            if slug not in loc_slugs:
+                raise AssertionError(
+                    f"{manifest['slug']} coupon {coupon.get('code')} "
+                    f"unknown location {slug}"
+                )
+
+
 def main() -> int:
     schema = json.loads(SCHEMA.read_text())
     assert schema["title"]
+    assert "demo" in schema.get("properties", {})
 
     taconazo = load_manifest("taconazo")
     pizza = load_manifest("pizza-rin")
@@ -54,12 +87,16 @@ def main() -> int:
     validate_required(pizza)
     validate_translations(taconazo)
     validate_translations(pizza)
+    validate_demo(taconazo)
+    validate_demo(pizza)
 
     assert taconazo["show_language_picker"] is True
     assert {loc["currency"] for loc in taconazo["locations"]} == {"USD", "MXN"}
     assert {loc["code"] for loc in taconazo["locales"]} == {"en", "es_MX"}
     assert (SEEDS / "taconazo" / "seed-menu.php").is_file()
     assert taconazo.get("catalog", {}).get("rich_seed") == "el-taconazo.php"
+    assert taconazo["demo"]["persona"] == "en_US"
+    assert any(c["code"] == "BIENVENIDO" for c in taconazo["demo"]["coupons"])
 
     assert pizza["slug"] == "pizza-rin"
     assert pizza["name"] == "Pizza Rin"
@@ -67,6 +104,8 @@ def main() -> int:
     assert all(loc["currency"] == "MXN" for loc in pizza["locations"])
     assert [loc["code"] for loc in pizza["locales"]] == ["es_MX"]
     assert pizza["theme"]["color_primary"] == "#DA442E"
+    assert pizza["demo"]["persona"] == "es_MX"
+    assert any(c["code"] == "PRIMERAPIZZA" for c in pizza["demo"]["coupons"])
     social = pizza["theme"].get("social") or []
     assert [item["title"] for item in social] == [
         "Instagram",
@@ -78,6 +117,8 @@ def main() -> int:
     for loc in pizza["locations"]:
         assert loc.get("photo"), f"{loc['slug']} missing photo"
         assert (seed_dir / loc["photo"]).is_file()
+
+    assert (SEEDS / "common" / "seed-demo-activity.php").is_file()
 
     # Slugs must not collide across pilots
     t_slugs = {loc["slug"] for loc in taconazo["locations"]}

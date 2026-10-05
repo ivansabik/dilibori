@@ -103,7 +103,58 @@
     }
   },
   "catalog": {
-    "require_translations": ["es_MX"],
-    "include_demo_orders": false
+    "require_translations": ["es_MX"]
+  },
+  "demo": {
+    "enabled": true,
+    "persona": "es_MX",
+    "history_days": 60,
+    "orders_per_day": [2, 6],
+    "customers": 40,
+    "featured_customer": {
+      "email": "demo@pizzarin.example",
+      "first_name": "Laura",
+      "last_name": "Méndez",
+      "telephone": "+52 656 555 1100"
+    },
+    "coupons": [
+      {
+        "name": "Primera pizza",
+        "code": "PRIMERAPIZZA",
+        "type": "P",
+        "discount": 15,
+        "min_total": 200,
+        "description": "15% de descuento en tu primer pedido de $200+",
+        "customer_redemptions": 1,
+        "validity": "forever",
+        "locations": ["pizza-rin-centro", "pizza-rin-pradera"]
+      },
+      {
+        "name": "Martes 2x1",
+        "code": "MARTES2X1",
+        "type": "F",
+        "discount": 50,
+        "min_total": 250,
+        "description": "$50 de descuento en $250+ los martes",
+        "customer_redemptions": 0,
+        "validity": "recurring",
+        "recurring_every": ["2"],
+        "recurring_from_time": "12:00:00",
+        "recurring_to_time": "22:00:00",
+        "locations": ["pizza-rin-centro", "pizza-rin-pradera"]
+      },
+      {
+        "name": "Envío gratis",
+        "code": "ENVIOGRATIS",
+        "type": "F",
+        "discount": 45,
+        "min_total": 300,
+        "description": "Cubre el envío en pedidos de $300+",
+        "customer_redemptions": 0,
+        "validity": "forever",
+        "apply_coupon_on": "delivery_fee",
+        "locations": ["pizza-rin-centro", "pizza-rin-pradera"]
+      }
+    ]
   }
 }

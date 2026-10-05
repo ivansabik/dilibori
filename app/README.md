@@ -43,6 +43,8 @@ Hosts and tenant differences: [`../platform/README.md`](../platform/README.md#pi
 
 ## What `make seed` loads (legacy Taconazo)
 
+`make seed` runs the tenant manifest seeder (`platform/seeds/common/seed-from-manifest.php`) with the Taconazo manifest. That loads the rich catalog from `seed/el-taconazo.php`, then shared demo activity from `platform/seeds/common/seed-demo-activity.php`.
+
 Locations & ops
 - **El Taconazo - Alameda Ave** @ 4500 Alameda Ave, El Paso, TX 79905. **USD**. Storefront photo + homepage slider; wordmark as header logo; black primary buttons
 - **El Taconazo - Tecnológico** @ Av. Tecnológico 1545, Ciudad Juárez, Chihuahua. **MXN**. Same menu items, peso prices; night storefront photo
@@ -61,17 +63,15 @@ Menu (separate EN + ES translations; duplicated per location for currency)
 - Options, mealtimes, specials, allergens. One language at a time via the header picker
 - CMS pages share slugs; About / Privacy / Terms switch with the locale
 
-Marketing & guests
-- Coupons: El Paso `BIENVENIDO` / `TACOMIERCOLES` / `ENVIOGRATIS`; Juárez `BIENVENIDOJUAREZ` / `TACOMIERCOLESJRZ` / `ENVIOGRATISJRZ`
-- 3 customers with El Paso addresses
-- 4 sample orders (received, in kitchen, completed, canceled)
-- 3 published reviews
-- About / Privacy / Terms pages
-- Homepage banners + newsletter subscribers
-- Dining floor + Patio section + sample reservation
+Marketing & guests (shared demo activity)
+- Coupons from the manifest: El Paso `BIENVENIDO` / `TACOMIERCOLES` / `ENVIOGRATIS`; Juárez `BIENVENIDOJUAREZ` / `TACOMIERCOLESJRZ` / `ENVIOGRATISJRZ`
+- ~40 demo customers (featured login `juanagallo@gmail.com` / `customer123!`)
+- Curated edge-case orders plus ~60 days of history per location (delivery/pickup, every status, coupons, guest checkout)
+- Reviews, newsletter subscribers, dining floor + Patio, reservations across statuses
+- About / Privacy / Terms pages + homepage banners
 - Mail SMTP → Mailpit (`mailpit:1025`); From **El Taconazo Taqueria** `<hola@eltaconazo.example>`
 
-Re-run anytime: `make seed` (safe to repeat).
+Re-run anytime: `make seed` (safe to repeat; `SEED_MODE=initial` rebuilds demo activity).
 
 ### Multilingual notes
 
@@ -177,7 +177,7 @@ WHERE m.menu_id = 9;
 ├── Dockerfile
 ├── docker-compose.yml
 ├── docker-entrypoint.sh
-├── seed/el-taconazo.php    # legacy Taconazo demo data
+├── seed/el-taconazo.php    # Taconazo catalog (menus/pages); activity via platform seeds
 ├── extensions/             # locale packs + CDP (mounted into platform tenants)
 ├── db/                     # MariaDB (gitignored)
 └── media/                  # uploads (gitignored)

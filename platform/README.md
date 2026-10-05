@@ -68,6 +68,8 @@ Use the ingress port for that env (`:8088` for dev, `:8188` for prod). URLs with
 
 Taconazo reuses the rich catalog from `app/seed/el-taconazo.php` via the seed bundle. Pizza Rin seeds from `seeds/pizza-rin/menu.json` (flyer catalog, Spanish copy).
 
+Both pilots enable `demo` in their manifest. After the menu seed, `seeds/common/seed-demo-activity.php` builds shared demo activity (customers, coupons, orders, reservations, reviews, subscribers) from the tenant's own menu and a per-locale persona pack under `seeds/common/demo/personas/`. A future French tenant only needs a `fr_FR.json` persona and a `demo` block in its manifest.
+
 Storefront UI chrome translations (`en` / `es_MX` checkout labels, etc.) live in the shared extension `app/extensions/taconazo/locale/`. Every tenant container mounts that tree. Menu and page text stay in each tenant database.
 
 Example URLs after pilots:
@@ -101,7 +103,7 @@ CDP smoke: `make -C ../cdp up`, then browse a pilot storefront and watch http://
 | `control-plane/` | Tenant lifecycle API |
 | `runtime-agent/` | Docker apply agent |
 | `profiles/` | Environment policies |
-| `seeds/` | Tenant manifests + seed runner (`common/seed-from-manifest.php`) |
+| `seeds/` | Tenant manifests, menu seeds, shared demo activity (`common/seed-demo-activity.php`) |
 | `contracts/` | JSON schemas |
 | `scripts/` | Tests, capacity model, pilot provisioning |
 | `tests/` | Contract tests |

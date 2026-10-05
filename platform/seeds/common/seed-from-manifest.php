@@ -403,10 +403,19 @@ if (is_file($menuSeed)) {
     require $menuSeed;
 }
 
+$demoEnabled = !empty($manifest['demo']['enabled']);
+if ($demoEnabled && $mode === 'initial') {
+    require __DIR__.'/seed-demo-activity.php';
+} elseif ($demoEnabled) {
+    say('Demo activity skipped (SEED_MODE='.$mode.')');
+}
+
 // Theme last so rich catalog seeds cannot leave Orange default CSS cached.
 applyTheme($manifest, $manifestPath);
 
-say('Seed complete (orders/customers untouched)');
+say($demoEnabled && $mode === 'initial'
+    ? 'Seed complete (including demo activity)'
+    : 'Seed complete (orders/customers untouched)');
 
 function applyTheme(array $manifest, string $manifestPath): void
 {

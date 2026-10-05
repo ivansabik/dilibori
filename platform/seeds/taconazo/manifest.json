@@ -70,7 +70,95 @@
   ],
   "catalog": {
     "require_translations": ["en", "es_MX"],
-    "include_demo_orders": true,
     "rich_seed": "el-taconazo.php"
+  },
+  "demo": {
+    "enabled": true,
+    "persona": "en_US",
+    "history_days": 60,
+    "orders_per_day": [2, 6],
+    "customers": 40,
+    "featured_customer": {
+      "email": "juanagallo@gmail.com",
+      "first_name": "María",
+      "last_name": "González",
+      "telephone": "(915) 555-1001"
+    },
+    "coupons": [
+      {
+        "name": "Welcome",
+        "code": "BIENVENIDO",
+        "type": "P",
+        "discount": 10,
+        "min_total": 20,
+        "description": "10% off first order over $20 (El Paso)",
+        "customer_redemptions": 1,
+        "validity": "forever",
+        "locations": ["el-taconazo-alameda-ave"]
+      },
+      {
+        "name": "Bienvenido Juárez",
+        "code": "BIENVENIDOJUAREZ",
+        "type": "P",
+        "discount": 10,
+        "min_total": 200,
+        "description": "10% de descuento en pedidos de $200+ (Cd Juárez)",
+        "customer_redemptions": 1,
+        "validity": "forever",
+        "locations": ["el-taconazo-tecnologico"]
+      },
+      {
+        "name": "Taco Wednesday",
+        "code": "TACOMIERCOLES",
+        "type": "F",
+        "discount": 5,
+        "min_total": 15,
+        "description": "$5 off $15+ every Wednesday (El Paso)",
+        "customer_redemptions": 0,
+        "validity": "recurring",
+        "recurring_every": ["3"],
+        "recurring_from_time": "11:00:00",
+        "recurring_to_time": "22:00:00",
+        "locations": ["el-taconazo-alameda-ave"]
+      },
+      {
+        "name": "Taco miércoles Juárez",
+        "code": "TACOMIERCOLESJRZ",
+        "type": "F",
+        "discount": 50,
+        "min_total": 150,
+        "description": "$50 de descuento en $150+ los miércoles (Cd Juárez)",
+        "customer_redemptions": 0,
+        "validity": "recurring",
+        "recurring_every": ["3"],
+        "recurring_from_time": "11:00:00",
+        "recurring_to_time": "22:00:00",
+        "locations": ["el-taconazo-tecnologico"]
+      },
+      {
+        "name": "Free delivery",
+        "code": "ENVIOGRATIS",
+        "type": "F",
+        "discount": 4.99,
+        "min_total": 25,
+        "description": "Covers Central El Paso delivery fee on $25+",
+        "customer_redemptions": 0,
+        "validity": "forever",
+        "apply_coupon_on": "delivery_fee",
+        "locations": ["el-taconazo-alameda-ave"]
+      },
+      {
+        "name": "Envío gratis Juárez",
+        "code": "ENVIOGRATISJRZ",
+        "type": "F",
+        "discount": 55,
+        "min_total": 250,
+        "description": "Cubre envío en Centro Juárez en pedidos de $250+",
+        "customer_redemptions": 0,
+        "validity": "forever",
+        "apply_coupon_on": "delivery_fee",
+        "locations": ["el-taconazo-tecnologico"]
+      }
+    ]
   }
 }

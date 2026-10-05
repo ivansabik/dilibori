@@ -1,7 +1,8 @@
 <?php
 
 /**
- * Run the rich El Taconazo demo catalog (menus, photos, reviews, orders, …).
+ * Run the rich El Taconazo catalog (menus, photos, pages, dining layout).
+ * Demo orders/customers/coupons come from common/seed-demo-activity.php.
  * Catalog + images live under /opt/seed (app/seed mounted by the runtime agent).
  */
 declare(strict_types=1);

@@ -62,8 +62,9 @@ echo "Admin login ready\n"; \
 '
 	@echo "Password set for $(or $(EMAIL),$(ADMIN_EMAIL))"
 
-seed: ## Load El Taconazo demo (El Paso USD + Cd Juárez MXN)
-	docker compose exec -u www-data app php /opt/seed/el-taconazo.php
+seed: ## Load El Taconazo demo via tenant manifest (menu + shared activity)
+	docker compose exec -u www-data -e SEED_MODE=initial app \
+		php /opt/platform/seeds/common/seed-from-manifest.php /opt/seed-manifest/manifest.json
 	@# Root-owned laravel.log from prior exec breaks Apache logging/reservations
 	docker compose exec app bash -lc 'chown -R www-data:www-data /var/www/html/storage/logs && chmod -R ug+rwX /var/www/html/storage/logs'
 

@@ -118,8 +118,63 @@
           "type": "array",
           "items": { "type": "string" }
         },
-        "include_demo_orders": { "type": "boolean" },
         "rich_seed": { "type": "string" }
+      }
+    },
+    "demo": {
+      "type": "object",
+      "required": ["enabled", "persona"],
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "persona": { "type": "string", "minLength": 1 },
+        "history_days": { "type": "integer", "minimum": 1 },
+        "orders_per_day": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": { "type": "integer", "minimum": 0 }
+        },
+        "customers": { "type": "integer", "minimum": 1 },
+        "featured_customer": {
+          "type": "object",
+          "required": ["email", "first_name", "last_name"],
+          "properties": {
+            "email": { "type": "string" },
+            "first_name": { "type": "string" },
+            "last_name": { "type": "string" },
+            "telephone": { "type": "string" }
+          }
+        },
+        "coupons": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["code", "type", "discount", "min_total", "locations"],
+            "properties": {
+              "name": { "type": "string" },
+              "code": { "type": "string" },
+              "type": { "type": "string", "enum": ["P", "F"] },
+              "discount": { "type": "number" },
+              "min_total": { "type": "number" },
+              "description": { "type": "string" },
+              "customer_redemptions": { "type": "integer" },
+              "validity": { "type": "string" },
+              "recurring_every": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "recurring_from_time": { "type": "string" },
+              "recurring_to_time": { "type": "string" },
+              "apply_coupon_on": { "type": "string" },
+              "locations": {
+                "type": "array",
+                "minItems": 1,
+                "items": { "type": "string" }
+              }
+            }
+          }
+        }
       }
     }
   }

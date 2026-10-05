@@ -105,9 +105,6 @@ foreach ([
     'categories',
     'stocks',
     'stock_history',
-    'order_menu_options',
-    'order_menus',
-    'order_totals',
 ] as $table) {
     if (Schema::hasTable($table)) {
         DB::table($table)->truncate();

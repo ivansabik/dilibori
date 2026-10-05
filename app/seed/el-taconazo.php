@@ -2,10 +2,11 @@
 <?php
 
 /**
- * Rich El Taconazo (El Paso, TX) demo seed.
+ * Rich El Taconazo (El Paso, TX) catalog seed.
  * Exercises menus, options, specials, mealtimes, allergens, delivery areas,
- * working hours, location order/reservation settings, coupons, customers,
- * addresses, reviews, pages, banners, subscribers, stocks, and dining.
+ * working hours, location order/reservation settings, pages, banners, stocks,
+ * and dining layout. Customers, orders, reservations, coupons, reviews, and
+ * subscribers come from platform/seeds/common/seed-demo-activity.php.
  *
  * Menu/category/page copy is stored per locale (en + es_MX) via ti-ext-translate.
  * Safe to re-run.
@@ -18,15 +19,11 @@ use Igniter\Cart\Models\Ingredient;
 use Igniter\Cart\Models\Mealtime;
 use Igniter\Cart\Models\Menu;
 use Igniter\Cart\Models\MenuOption;
-use Igniter\Cart\Models\Order;
 use Igniter\Cart\Models\Stock;
-use Igniter\Coupons\Models\Coupon;
 use Igniter\Frontend\Models\Banner;
 use Igniter\Frontend\Models\Slider;
-use Igniter\Frontend\Models\Subscriber;
 use Igniter\Local\Models\Location;
 use Igniter\Local\Models\LocationSettings;
-use Igniter\Local\Models\Review;
 use Igniter\Local\Models\WorkingHour;
 use Igniter\Main\Classes\MediaLibrary;
 use Igniter\Main\Models\Theme;
@@ -35,12 +32,9 @@ use Igniter\System\Facades\Assets;
 use Igniter\Reservation\Models\DiningArea;
 use Igniter\Reservation\Models\DiningSection;
 use Igniter\Reservation\Models\DiningTable;
-use Igniter\Reservation\Models\Reservation;
 use Igniter\System\Models\Currency;
 use Igniter\System\Models\Language;
 use Igniter\User\Facades\AdminAuth;
-use Igniter\User\Models\Address;
-use Igniter\User\Models\Customer;
 use Igniter\User\Models\User;
 use Igniter\User\Models\UserGroup;
 use Igniter\User\Models\UserRole;
@@ -361,22 +355,7 @@ foreach ([
     'stocks',
     'stock_history',
     'location_areas',
-    'igniter_coupon_categories',
-    'igniter_coupon_customer_groups',
-    'igniter_coupon_customers',
-    'igniter_coupon_menus',
-    'igniter_coupons_history',
-    'igniter_coupons',
-    'igniter_reviews',
     'igniter_frontend_banners',
-    'igniter_frontend_subscribers',
-    'reservation_tables',
-    'reservations',
-    'order_menu_options',
-    'order_menus',
-    'order_totals',
-    'orders',
-    'status_history',
     'igniter_translate_attributes',
 ] as $table) {
     if (Schema::hasTable($table)) {
@@ -388,7 +367,7 @@ if (Schema::hasTable('media_attachments')) {
     DB::table('media_attachments')->where('attachment_type', 'menus')->delete();
 }
 DB::table('locationables')
-    ->whereIn('locationable_type', ['menus', 'categories', 'menu_options', 'mealtimes', 'ingredients', 'coupons'])
+    ->whereIn('locationable_type', ['menus', 'categories', 'menu_options', 'mealtimes', 'ingredients'])
     ->delete();
 DB::statement('SET FOREIGN_KEY_CHECKS=1');
 
@@ -1218,310 +1197,9 @@ $seedMenusForLocation = function (
     return $menusByName;
 };
 
-$menusByName = $seedMenusForLocation($menuDefs, $locationId, $optsUsd, 'menu_price', 'special', 'menu_description', 'USD');
+$seedMenusForLocation($menuDefs, $locationId, $optsUsd, 'menu_price', 'special', 'menu_description', 'USD');
 $seedMenusForLocation($menuDefs, $juarezId, $optsMxn, 'menu_price_mxn', 'special_mxn', 'menu_description_mxn', 'MXN');
 
-// ---------------------------------------------------------------------------
-// Coupons (USD thresholds for El Paso; MXN for Cd Juárez)
-// ---------------------------------------------------------------------------
-$coupons = [
-    [
-        'name' => 'Welcome',
-        'code' => 'BIENVENIDO',
-        'type' => 'P',
-        'discount' => 10,
-        'min_total' => 20,
-        'description' => '10% off first order over $20 (El Paso)',
-        'customer_redemptions' => 1,
-        'validity' => 'forever',
-        'locations' => [$locationId],
-    ],
-    [
-        'name' => 'Bienvenido Juárez',
-        'code' => 'BIENVENIDOJUAREZ',
-        'type' => 'P',
-        'discount' => 10,
-        'min_total' => 200,
-        'description' => '10% de descuento en pedidos de $200+ (Cd Juárez)',
-        'customer_redemptions' => 1,
-        'validity' => 'forever',
-        'locations' => [$juarezId],
-    ],
-    [
-        'name' => 'Taco Wednesday',
-        'code' => 'TACOMIERCOLES',
-        'type' => 'F',
-        'discount' => 5,
-        'min_total' => 15,
-        'description' => '$5 off $15+ every Wednesday (El Paso)',
-        'customer_redemptions' => 0,
-        'validity' => 'recurring',
-        'recurring_every' => ['Wed'],
-        'recurring_from_time' => '11:00:00',
-        'recurring_to_time' => '22:00:00',
-        'locations' => [$locationId],
-    ],
-    [
-        'name' => 'Taco miércoles Juárez',
-        'code' => 'TACOMIERCOLESJRZ',
-        'type' => 'F',
-        'discount' => 50,
-        'min_total' => 150,
-        'description' => '$50 de descuento en $150+ los miércoles (Cd Juárez)',
-        'customer_redemptions' => 0,
-        'validity' => 'recurring',
-        'recurring_every' => ['Wed'],
-        'recurring_from_time' => '11:00:00',
-        'recurring_to_time' => '22:00:00',
-        'locations' => [$juarezId],
-    ],
-    [
-        'name' => 'Free delivery',
-        'code' => 'ENVIOGRATIS',
-        'type' => 'F',
-        'discount' => 4.99,
-        'min_total' => 25,
-        'description' => 'Covers Central El Paso delivery fee on $25+',
-        'customer_redemptions' => 0,
-        'validity' => 'forever',
-        'apply_coupon_on' => 'delivery_fee',
-        'locations' => [$locationId],
-    ],
-    [
-        'name' => 'Envío gratis Juárez',
-        'code' => 'ENVIOGRATISJRZ',
-        'type' => 'F',
-        'discount' => 55,
-        'min_total' => 250,
-        'description' => 'Cubre envío en Centro Juárez en pedidos de $250+',
-        'customer_redemptions' => 0,
-        'validity' => 'forever',
-        'apply_coupon_on' => 'delivery_fee',
-        'locations' => [$juarezId],
-    ],
-];
-foreach ($coupons as $couponData) {
-    $locationIds = $couponData['locations'];
-    unset($couponData['locations']);
-    $couponData['status'] = 1;
-    $couponData['redemptions'] = 0;
-    $couponData['min_menu_quantity'] = 0;
-    $couponData['auto_apply'] = 0;
-    $couponData['apply_coupon_on'] = $couponData['apply_coupon_on'] ?? 'whole_cart';
-    $couponData['created_at'] = now();
-    $couponData['updated_at'] = now();
-    $coupon = Coupon::create($couponData);
-    $coupon->locations()->sync($locationIds);
-    say("Coupon: {$coupon->code}");
-}
-
-// ---------------------------------------------------------------------------
-// Customers + addresses
-// ---------------------------------------------------------------------------
-$customerPassword = 'customer123!';
-$customers = [];
-foreach ([
-    ['María', 'González', 'juanagallo@gmail.com', '(915) 555-1001', '1201 Magoffin Ave', '79901'],
-    ['José', 'Ramírez', 'jose@example.com', '(915) 555-1002', '800 S El Paso St', '79901'],
-    ['Ana', 'Torres', 'ana@example.com', '(915) 555-1003', '2200 N Piedras St', '79930'],
-] as [$first, $last, $email, $phone, $street, $zip]) {
-    $customer = Customer::query()->updateOrCreate(
-        ['email' => $email],
-        [
-            'first_name' => $first,
-            'last_name' => $last,
-            'password' => $customerPassword,
-            'telephone' => $phone,
-            'customer_group_id' => 1,
-            'newsletter' => 1,
-            'status' => 1,
-            'is_activated' => 1,
-            'activated_at' => now(),
-            'last_location_area' => '',
-        ],
-    );
-    $address = Address::query()->create([
-        'customer_id' => $customer->getKey(),
-        'address_1' => $street,
-        'city' => 'El Paso',
-        'state' => 'TX',
-        'postcode' => $zip,
-        'country_id' => 223,
-    ]);
-    $customer->address_id = $address->getKey();
-    $customer->save();
-    $customers[] = $customer;
-    say("Customer: {$email} / customer123!");
-}
-
-// ---------------------------------------------------------------------------
-// Reviews
-// ---------------------------------------------------------------------------
-$reviewTexts = [
-    [5, 5, 5, 'Best trompo al pastor in El Paso — the spit is on point.'],
-    [5, 4, 5, 'Suadero suavecito y las salsas caseras. Volveremos.'],
-    [4, 5, 4, 'Fast pickup. The costilla taco is incredible.'],
-];
-foreach ($customers as $i => $customer) {
-    [$q, $d, $s, $text] = $reviewTexts[$i];
-    Review::query()->create([
-        'customer_id' => $customer->getKey(),
-        'reviewable_id' => $locationId,
-        'reviewable_type' => 'locations',
-        'author' => trim($customer->first_name.' '.$customer->last_name),
-        'location_id' => $locationId,
-        'quality' => $q,
-        'delivery' => $d,
-        'service' => $s,
-        'review_text' => $text,
-        'review_status' => 1,
-        'created_at' => now()->subDays(7 - $i),
-        'updated_at' => now()->subDays(7 - $i),
-    ]);
-}
-say('Reviews: 3 customer reviews');
-
-// ---------------------------------------------------------------------------
-// Sample orders (admin Sales → Orders + customer account)
-// ---------------------------------------------------------------------------
-try {
-    $menu = fn(string $name): ?Menu => $menusByName[$name] ?? null;
-    $pastor = $menu('Taco al Pastor (trompo)');
-    $suadero = $menu('Taco de Suadero');
-    $costilla = $menu('Taco de Costilla');
-    $horchata = $menu('Horchata');
-    $jamaica = $menu('Jamaica');
-    $plato = $menu('Plato Taconazo');
-    $guac = $menu('Guacamole & chips');
-    $pambazo = $menu('Pambazo');
-
-    $seedOrder = function (
-        Customer $customer,
-        string $type,
-        int $statusId,
-        Carbon\CarbonInterface $when,
-        string $time,
-        bool $asap,
-        string $comment,
-        array $lines,
-        float $deliveryFee = 0,
-    ) use ($locationId): void {
-        $order = new Order;
-        $order->forceFill([
-            'customer_id' => $customer->getKey(),
-            'first_name' => $customer->first_name,
-            'last_name' => $customer->last_name,
-            'email' => $customer->email,
-            'telephone' => $customer->telephone,
-            'location_id' => $locationId,
-            'address_id' => $type === 'delivery' ? $customer->address_id : null,
-            'comment' => $comment,
-            'payment' => 'cod',
-            'order_type' => $type,
-            'order_date' => $when->toDateString(),
-            'order_time' => $time,
-            'order_time_is_asap' => $asap ? 1 : 0,
-            'status_id' => $statusId,
-            'processed' => $statusId === 9 ? 0 : 1,
-            'hash' => md5(uniqid('eltaconazo', true)),
-            'ip_address' => '127.0.0.1',
-            'user_agent' => 'El Taconazo seeder',
-            'cart' => [],
-            'total_items' => 0,
-            'order_total' => 0,
-            'created_at' => $when,
-            'updated_at' => $when,
-            'status_updated_at' => $when,
-        ]);
-        $order->saveQuietly();
-
-        foreach ($lines as [$item, $qty]) {
-            if (!$item instanceof Menu) {
-                continue;
-            }
-            $price = (float)$item->menu_price;
-            $order->menus()->create([
-                'menu_id' => $item->getKey(),
-                'name' => is_array($item->menu_name) ? ($item->menu_name['en'] ?? 'Menu') : (string)$item->menu_name,
-                'quantity' => $qty,
-                'price' => $price,
-                'subtotal' => round($price * $qty, 2),
-                'comment' => '',
-                'option_values' => [],
-            ]);
-        }
-
-        $subtotal = (float)$order->menus()->sum('subtotal');
-        $order->totals()->create([
-            'code' => 'subtotal',
-            'title' => 'Sub Total',
-            'value' => $subtotal,
-            'priority' => 0,
-            'is_summable' => 0,
-        ]);
-        if ($deliveryFee > 0) {
-            $order->totals()->create([
-                'code' => 'delivery',
-                'title' => 'Delivery',
-                'value' => $deliveryFee,
-                'priority' => 2,
-                'is_summable' => 1,
-            ]);
-        }
-        $order->totals()->create([
-            'code' => 'total',
-            'title' => 'Order Total',
-            'value' => $subtotal + $deliveryFee,
-            'priority' => 99,
-            'is_summable' => 0,
-        ]);
-        $order->calculateTotals();
-
-        $statusRow = DB::table('statuses')->where('status_id', $statusId)->first();
-        DB::table('status_history')->insert([
-            'object_id' => $order->getKey(),
-            'object_type' => 'orders',
-            'user_id' => null,
-            'status_id' => $statusId,
-            'notify' => 0,
-            'comment' => $statusRow->status_comment ?? '',
-            'created_at' => $when,
-            'updated_at' => $when,
-        ]);
-
-        say(sprintf(
-            'Order #%d %s %s $%s (%s)',
-            $order->getKey(),
-            $customer->email,
-            $type,
-            number_format((float)$order->fresh()->order_total, 2),
-            $statusRow->status_name ?? $statusId,
-        ));
-    };
-
-    if ($customers && $pastor && $suadero) {
-        $seedOrder($customers[0], 'delivery', 5, now()->subDays(2)->setTime(19, 10), '19:15:00', false, 'Extra salsa verde on the pastor.', [
-            [$pastor, 4],
-            [$horchata, 2],
-        ], 2.99);
-        $seedOrder($customers[1], 'collection', 3, now()->subHours(3)->setTime(12, 5), '12:20:00', true, 'Para recoger — no cebolla on the suadero.', [
-            [$suadero, 3],
-            [$costilla, 2],
-            [$jamaica, 1],
-        ]);
-        $seedOrder($customers[2], 'delivery', 1, now()->subMinutes(40), '18:45:00', true, 'Leave at the door if no one answers.', [
-            [$plato, 1],
-            [$guac, 1],
-        ], 2.99);
-        $seedOrder($customers[0], 'collection', 9, now()->subDays(6)->setTime(8, 30), '08:45:00', false, 'Canceled — running late for work.', [
-            [$pambazo, 2],
-        ]);
-    } else {
-        say('Orders skipped: menus or customers missing');
-    }
-} catch (Throwable $e) {
-    say('Orders skipped: '.$e->getMessage());
-}
 
 // ---------------------------------------------------------------------------
 // Pages (same slugs; EN/ES via Translate)
@@ -1643,15 +1321,8 @@ if (class_exists(Banner::class)) {
     say('Banners: pastor special + welcome coupon (EN + ES)');
 }
 
-if (class_exists(Subscriber::class)) {
-    foreach (['fan@example.com', 'elpaso.eats@example.com', 'tacolover@example.com'] as $email) {
-        Subscriber::subscribe($email);
-    }
-    say('Newsletter subscribers: 3');
-}
-
 // ---------------------------------------------------------------------------
-// Dining: rename area, add patio section, sample reservation
+// Dining: rename area, add patio section
 // ---------------------------------------------------------------------------
 $diningArea = DiningArea::query()->where('location_id', $locationId)->first();
 if ($diningArea) {
@@ -1679,33 +1350,6 @@ if ($diningArea) {
 }
 
 try {
-    if (class_exists(Reservation::class) && $customers) {
-        $table = DiningTable::query()->where('is_enabled', 1)->first();
-        $confirmedStatus = (int)(setting('confirmed_reservation_status') ?: setting('default_reservation_status') ?: 1);
-        $reservation = new Reservation;
-        $reservation->location_id = $locationId;
-        $reservation->customer_id = $customers[0]->getKey();
-        $reservation->first_name = $customers[0]->first_name;
-        $reservation->last_name = $customers[0]->last_name;
-        $reservation->email = $customers[0]->email;
-        $reservation->telephone = $customers[0]->telephone;
-        $reservation->reserve_date = now()->addDays(2)->toDateString();
-        $reservation->reserve_time = '19:00:00';
-        $reservation->guest_num = 4;
-        $reservation->occasion_id = null;
-        $reservation->comment = 'Window table if possible — celebrating with pastor and aguas.';
-        $reservation->status_id = $confirmedStatus;
-        $reservation->save();
-        if ($table && method_exists($reservation, 'tables')) {
-            $reservation->tables()->sync([$table->getKey()]);
-        }
-        say('Sample reservation for María (party of 4)');
-    }
-} catch (Throwable $e) {
-    say('Reservation skipped: '.$e->getMessage());
-}
-
-try {
     Illuminate\Support\Facades\Artisan::call('cache:clear');
     Illuminate\Support\Facades\Artisan::call('config:clear');
 } catch (Throwable) {
@@ -1714,7 +1358,5 @@ try {
 echo "\nDone. Alameda Ave → http://127.0.0.1:8001/el-taconazo-alameda-ave/menus (USD)\n";
 echo "Tecnológico → http://127.0.0.1:8001/el-taconazo-tecnologico/menus (MXN)\n";
 echo "Admin → http://127.0.0.1:8001/admin  (operations@taconazotaqueria.com / 12345678abc!)\n";
-echo "Customer demo → juanagallo@gmail.com / customer123!\n";
-echo "Coupons → BIENVENIDO, TACOMIERCOLES, ENVIOGRATIS\n";
-echo "Orders → 4 sample orders in Admin → Sales → Orders\n";
+echo "Catalog only — demo orders/customers/coupons come from seed-demo-activity.php\n";
 echo "Language → EN/ES picker in the header (en + es_MX)\n";
