@@ -477,13 +477,10 @@ if ($theme) {
 
     try {
         Assets::buildBundles($theme->getTheme());
+        // Compiled CSS lives under combiner/data/; shallow unlink leaves #ff4900.
         $combiner = storage_path('igniter/combiner');
         if (is_dir($combiner)) {
-            foreach (glob($combiner.'/*') ?: [] as $path) {
-                if (is_file($path)) {
-                    @unlink($path);
-                }
-            }
+            Illuminate\Support\Facades\File::cleanDirectory($combiner);
         }
         say('Theme → black primary + Instagram / Facebook / TikTok');
     } catch (Throwable $e) {

@@ -567,11 +567,10 @@ function clearThemeCombinerCache(): void
     if (!is_dir($combiner)) {
         return;
     }
-    foreach (glob($combiner.'/*') ?: [] as $path) {
-        if (is_file($path)) {
-            @unlink($path);
-        }
-    }
+    // Compiled CSS lives under combiner/data/, not as top-level files. A shallow
+    // unlink leaves Orange default #ff4900 bundles in place after color-primary
+    // is updated in the DB.
+    Illuminate\Support\Facades\File::cleanDirectory($combiner);
 }
 
 function applyPages(array $manifest, string $defaultLocale): void
