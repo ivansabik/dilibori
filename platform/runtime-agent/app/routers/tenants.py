@@ -9,7 +9,6 @@ from app.models.schemas import (
     CreateDatabaseRequest,
     CreateMinioCredsRequest,
     CreateNetworkRequest,
-    CreateRedisAclRequest,
     DeploymentRequest,
     DeployRequest,
     OkResponse,
@@ -23,7 +22,6 @@ from app.services.caddy_snippet import effective_noindex
 from app.services.docker_service import DockerService
 from app.services.mariadb_service import MariaDbService
 from app.services.minio_service import MinioService
-from app.services.redis_service import RedisService
 from app.services.snapshot_service import SnapshotService
 from app.utils.naming import validate_deployment_id
 
@@ -99,26 +97,6 @@ def create_database(
     except Exception as exc:
         raise _server_error(exc) from exc
     return OkResponse(detail="database and user provisioned")
-
-
-@router.post("/create-redis-acl", response_model=OkResponse)
-def create_redis_acl(
-    body: CreateRedisAclRequest,
-    _: None = Depends(require_token),
-    settings: Settings = Depends(get_settings),
-) -> OkResponse:
-    try:
-        validate_deployment_id(body.deployment_id)
-        RedisService(settings).create_acl_user(
-            username=body.username,
-            password=body.password,
-            key_prefix=body.key_prefix,
-        )
-    except ValueError as exc:
-        raise _bad_request(exc) from exc
-    except Exception as exc:
-        raise _server_error(exc) from exc
-    return OkResponse(detail="redis acl user created")
 
 
 @router.post("/create-minio-creds", response_model=OkResponse)

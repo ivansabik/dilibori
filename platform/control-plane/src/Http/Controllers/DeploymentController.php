@@ -486,7 +486,7 @@ final class DeploymentController
     /**
      * Mint a deployment UUID whose 12-char short form (alphanumeric, no hyphens)
      * does not collide with an existing deployment. Short ids name containers,
-     * networks, DB users, Redis ACL users, and MinIO keys and cannot be renamed.
+     * networks, DB users, and MinIO keys and cannot be renamed.
      */
     private function allocateUniqueDeploymentId(): string
     {

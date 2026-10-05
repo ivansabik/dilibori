@@ -18,12 +18,6 @@ class CreateDatabaseRequest(DeploymentRequest):
     max_user_connections: int = Field(default=10, ge=1, le=100)
 
 
-class CreateRedisAclRequest(DeploymentRequest):
-    username: str
-    password: str
-    key_prefix: str
-
-
 class CreateMinioCredsRequest(DeploymentRequest):
     access_key: str
     secret_key: str

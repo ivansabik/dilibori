@@ -55,30 +55,6 @@ services:
       - "${PROXYSQL_ADMIN_PORT:-6032}:6032"
     restart: unless-stopped
 
-  redis:
-    image: redis:7
-    # Seed /data/users.acl once; runtime ACL SAVE writes tenant users there.
-    entrypoint: ["/bin/sh", "-c"]
-    command:
-      - |
-        if [ ! -f /data/users.acl ]; then
-          cp /seed/users.acl /data/users.acl
-        fi
-        exec redis-server /usr/local/etc/redis/redis.conf
-    volumes:
-      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
-      - ./redis/users.acl:/seed/users.acl:ro
-      - ./data/${PLATFORM_ENV:-dev}/redis:/data
-    networks:
-      dilibori-shared:
-        aliases: [redis]
-    healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_ADMIN_PASSWORD:-platform-redis-admin}", "PING"]
-      interval: 5s
-      timeout: 3s
-      retries: 20
-    restart: unless-stopped
-
   minio:
     image: quay.io/minio/minio:RELEASE.2024-12-18T13-15-44Z
     command: server /data --console-address ":9001"
@@ -204,8 +180,6 @@ services:
       MARIADB_HOST: mariadb
       MARIADB_ADMIN_USER: root
       MARIADB_ADMIN_PASSWORD: ${MARIADB_ROOT_PASSWORD:-platform-root-change-me}
-      REDIS_HOST: redis
-      REDIS_ADMIN_PASSWORD: ${REDIS_ADMIN_PASSWORD:-platform-redis-admin}
       MINIO_ENDPOINT: http://minio:9000
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-platformminio}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-platform-minio-change-me}
@@ -235,8 +209,6 @@ services:
       - ../app/seed:/opt/seed:ro
     depends_on:
       mariadb:
-        condition: service_healthy
-      redis:
         condition: service_healthy
     networks:
       - dilibori-control

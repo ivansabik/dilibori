@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -94,9 +95,18 @@ def main() -> int:
     assert local_http["APP_ENV"] == "staging"
     assert local_http["APP_DEBUG"] == "false"
 
-    # Tenant Redis ACL users must land on a writable path (ACL SAVE).
-    redis_conf = (ROOT / "redis" / "redis.conf").read_text(encoding="utf-8")
-    assert "aclfile /data/users.acl" in redis_conf, "redis aclfile must be under /data"
+    # Tenants use file cache + database queue; Redis is gone from the cell.
+    assert not (ROOT / "redis").exists(), "platform/redis must be removed"
+    compose = (ROOT / "docker-compose.yml").read_text(encoding="utf-8")
+    assert "\n  redis:\n" not in compose, "compose must not define a redis service"
+    for profile_name in ("development", "production-like"):
+        path = ROOT / "profiles" / f"{profile_name}.json"
+        cfg = json.loads(path.read_text(encoding="utf-8"))["config"]
+        assert cfg["CACHE_DRIVER"] == "file", profile_name
+        assert cfg["QUEUE_CONNECTION"] == "database", profile_name
+    prod_like = ROOT / "profiles" / "production-like.json"
+    sleep = json.loads(prod_like.read_text(encoding="utf-8"))["config"]
+    assert sleep["QUEUE_WORKER_SLEEP"] == 10
 
     # Demo/noindex tenants get X-Robots-Tag + disallow-all robots.txt at ingress.
     blocked = render_tenant_snippet(

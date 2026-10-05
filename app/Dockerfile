@@ -22,10 +22,6 @@ RUN set -ex; \
     docker-php-ext-configure gd --with-jpeg=/usr; \
     docker-php-ext-install -j$(nproc) pdo_mysql curl xml gd mbstring intl zip exif bcmath
 
-RUN pecl install -o -f redis \
-    && rm -rf /tmp/pear \
-    && docker-php-ext-enable redis
-
 RUN { \
         echo 'opcache.memory_consumption=128'; \
         echo 'opcache.interned_strings_buffer=8'; \

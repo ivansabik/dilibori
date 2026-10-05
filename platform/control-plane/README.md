@@ -143,7 +143,9 @@ Migrate actions (same deployment id, stop-copy-start):
 2. `create_database` / `create_secrets` / `import_snapshot` (dest pulls `GET /tenants/{id}/snapshot?file=...`) / `create_runtime` / `configure_route` / `health_check` on the dest agent
 3. Control plane updates `cell_id`, then `purge` on the source agent
 
-Redis keys are not copied. Sessions and cache reset on the destination.
+Sessions and file cache live on the tenant storage mount; they are not copied
+with the DB snapshot. Destination gets a fresh cache after cutover. Queued jobs
+move with the MariaDB dump (`jobs` table).
 
 The payload includes resolved config (non-secret), checksum, hostname, database name, seed bundle, and desired release when set.
 
@@ -200,7 +202,7 @@ Production rejects `APP_DEBUG=true` and similar flags. Output includes a SHA-256
 
 `POST /reconcile` loads active deployments and:
 
-1. Re-applies each deployment's Redis ACL user from stored secrets (covers Redis restarts before `ACL SAVE` lands on disk).
+1. Re-applies ProxySQL users and ingress noindex from stored state.
 2. Fetches observed state from the agent and flags drift (release mismatch, config checksum mismatch, unhealthy runtime).
 
 Safe repairs enqueue `deploy_release` or `apply_config`. Unhealthy or unreachable runtimes are reported but not auto-healed. `make -C platform up` calls reconcile after compose is up.

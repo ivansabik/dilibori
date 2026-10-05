@@ -26,8 +26,8 @@ services:
       - DB_DATABASE=tastyigniter
       - DB_USERNAME=tastyigniter
       - DB_PASSWORD=tastyigniter
-      - CACHE_DRIVER=redis
-      - REDIS_HOST=redis
+      - CACHE_DRIVER=file
+      - QUEUE_CONNECTION=database
       - ADMIN_EMAIL=operations@taconazotaqueria.com
       # ADMIN_PASSWORD: omitted on purpose. provision.sh generates a random
       # value and writes it to storage/dilibori-admin-password (make admin-pass).
@@ -53,7 +53,6 @@ services:
       - MAIL_FROM_NAME=El Taconazo Taqueria
     depends_on:
       - db
-      - redis
     networks:
       - default
       - dilibori
@@ -70,11 +69,6 @@ services:
       - MYSQL_PASSWORD=tastyigniter
     ports:
       - "3307:3306"
-    restart: unless-stopped
-
-  redis:
-    image: redis:7
-    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
     restart: unless-stopped
 
 networks:

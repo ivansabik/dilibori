@@ -17,7 +17,7 @@ def validate_deployment_id(deployment_id: str) -> str:
 
 
 def deployment_id_short(deployment_id: str) -> str:
-    """Stable 12-char id used for container, network, DB, Redis, and MinIO names.
+    """Stable 12-char id used for container, network, DB, and MinIO names.
 
     Names cannot be renamed after provision, so callers must ensure uniqueness
     (control plane allocates; DockerService asserts no container collision).

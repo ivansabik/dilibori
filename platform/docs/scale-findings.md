@@ -8,8 +8,9 @@ two-way (control plane only, reversible later).
 ## Verdict
 
 The isolation pattern is right: one MariaDB database and user per deployment,
-Redis ACL prefix, MinIO prefix credentials, one container per deployment.
-That pattern can hold at 1000 tenants.
+file cache on the tenant storage mount, database queue in that same DB, MinIO
+prefix credentials, one container per deployment. That pattern can hold at
+1000 tenants.
 
 The implementation cannot. Today it is a single cell with sequential control
 loops and a few isolation gaps. Target shape: many small cells (about 16-30
@@ -41,13 +42,15 @@ Hard blockers on one host (fail around 20-50 tenants):
    the whole state machine inside one HTTP request, including a 900s install
    wait. Migrate is synchronous the same way. No queue, no parallelism across
    tenants.
-3. **Sequential reconcile.** `Reconciler::reconcile()` does 2+ sync HTTP calls
-   per active deployment (ACL ensure + observe), each with a 900s client
-   timeout, plus Redis `ACL SAVE` per tenant per pass. At 1000 actives that is
-   hours per pass.
-4. **Shared Redis `maxmemory 256mb` with `allkeys-lru`.** One noisy tenant
-   evicts everyone else's cache and sessions on that cell. Mitigate by
-   migrating the noisy deployment to another cell.
+3. **Sequential reconcile.** `Reconciler::reconcile()` does sync HTTP calls
+   per active deployment (ProxySQL ensure, ingress, observe), each with a 900s
+   client timeout. At 1000 actives that is hours per pass.
+4. **Database queue worker poll.** Each tenant runs `queue:work database` and
+   holds 1 of 5 budgeted DB connections. Production sets `--sleep=10`
+   (`QUEUE_WORKER_SLEEP`). At 1000 tenants with sleep=3 that would be roughly
+   300 light queries/s against shared MariaDB; sleep=10 keeps it quieter. When
+   that bites, upgrade to per-tenant SQS (same IAM pattern as the S3 identity).
+   ElastiCache stays off the table.
 
 Isolation gaps that get worse with tenant count:
 
@@ -83,6 +86,7 @@ tenant already live.
 | Per-deployment bridge; shared services and ingress join that bridge | Changing networks later means recreating every container | `docker_service.py` |
 | MinIO admin user + policy attach (not disk-only JSON) | Credentials issued at provision; incomplete attach means fleet rotation | `minio_service.py` |
 | Unique short IDs for container/DB/user names | Names are permanent | control-plane allocate + `naming.py` |
+| File cache + database queue (no Redis) | Avoids shared-cache eviction and ACL ops; jobs table created at provision | profiles + `provision.sh` |
 
 ## Two-way doors
 
@@ -97,16 +101,17 @@ Some items below are implemented; the rest stay roadmap so we do not forget.
 - Operator migrate: `POST /deployments/{id}/migrate` (stop-copy-start, same
   deployment id). Drain: `POST /cells/{id}/drain` with a target cell.
 - Local second cell: `make cell-b-up` (`docker-compose.cell-b.yml`).
+- Redis removed from the cell. Cache is file; queue is MariaDB `jobs` with
+  production `--sleep=10`.
 
 **Still roadmap:**
 
 - Replace the 180 MB idle assumption with live RSS from `make pilots` +
   `docker stats`, then re-run `make capacity`.
-- Per-cell Redis sized to tenant count; drop shared 256 MB `allkeys-lru` as a
-  cross-tenant eviction vector (`noeviction` or real per-tenant tracking).
+- Per-tenant SQS when database-queue poll load bites (IAM credentials in the
+  container, same pattern as S3). Not ElastiCache.
 - Queue-backed provisioning worker; API returns `reserved` immediately.
-- Paginated, per-cell reconcile; ACL ensure only on drift; honest timeouts per
-  operation type.
+- Paginated, per-cell reconcile; honest timeouts per operation type.
 - Agent `observe()` returns `release_id` / `config_checksum` in the shape the
   reconciler compares so repair actually fires.
 - Debounced Caddy reloads (or admin API), not N file writes × N full reloads.
@@ -118,8 +123,9 @@ Some items below are implemented; the rest stay roadmap so we do not forget.
 
 - No Kubernetes, service mesh, or multi-region. Cells of compose stay
   debuggable at this size.
-- No per-tenant MariaDB or Redis instances. Per-cell shared instances with
-  user/ACL isolation hold at 16-30 tenants per cell.
+- No per-tenant MariaDB instances. Per-cell shared MariaDB with per-deployment
+  users holds at 16-30 tenants per cell.
+- No ElastiCache / shared Redis. Cache and queue stay local to the tenant.
 - No HA control plane yet. The data plane keeps serving when the control plane
   is down.
 

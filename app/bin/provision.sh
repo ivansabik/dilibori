@@ -44,8 +44,7 @@ apply_runtime_env() {
     [ -f /var/www/html/.env ] || return 0
     for key in APP_ENV APP_DEBUG APP_URL APP_KEY \
         DB_CONNECTION DB_HOST DB_PORT DB_DATABASE DB_USERNAME DB_PASSWORD \
-        CACHE_DRIVER REDIS_HOST REDIS_PASSWORD REDIS_PREFIX \
-        QUEUE_CONNECTION \
+        CACHE_DRIVER QUEUE_CONNECTION \
         MAIL_MAILER MAIL_HOST MAIL_PORT MAIL_USERNAME MAIL_PASSWORD MAIL_ENCRYPTION \
         MAIL_FROM_ADDRESS MAIL_FROM_NAME \
         TENANT_ID DEPLOYMENT_ID CELL_ID DEPLOYMENT_ENVIRONMENT \
@@ -145,6 +144,12 @@ if [ ! -f /var/www/html/storage/dilibori-installed.flag ]; then
     php artisan igniter:install --no-interaction
     touch /var/www/html/storage/dilibori-installed.flag
 fi
+
+# TI ships failed_jobs only; database queue needs the jobs table.
+if ! ls database/migrations/*_create_jobs_table.php >/dev/null 2>&1; then
+    php artisan queue:table
+fi
+php artisan migrate --force --no-interaction
 
 if [ -n "${SEED_MANIFEST:-}" ] && [ -f "${SEED_MANIFEST}" ]; then
     export SEED_MODE="${SEED_MODE:-initial}"

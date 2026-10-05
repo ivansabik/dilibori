@@ -10,7 +10,6 @@ from app.services.caddy_service import CaddyService
 from app.services.docker_service import DockerService
 from app.services.mariadb_service import MariaDbService
 from app.services.minio_service import MinioService
-from app.services.redis_service import RedisService
 from app.utils.naming import deployment_id_short, validate_deployment_id
 
 
@@ -26,7 +25,6 @@ class PurgeService:
         deployment_id: str,
         database_name: str,
         hostname: str = "",
-        redis_username: str = "",
         minio_access_key: str = "",
         minio_prefix: str = "",
         tenant_id: str = "",
@@ -50,13 +48,6 @@ class PurgeService:
                 "username": username,
             }
 
-        redis_user = redis_username or f"r_{short}"
-        try:
-            RedisService(self._settings).delete_acl_user(username=redis_user)
-            steps["redis"] = {"username": redis_user}
-        except Exception as exc:  # noqa: BLE001 — best-effort teardown
-            steps["redis"] = {"error": str(exc)}
-
         access_key = minio_access_key or f"AK{short.upper()}"
         if minio_prefix:
             prefix = minio_prefix
@@ -71,7 +62,7 @@ class PurgeService:
                 bucket="dilibori-media",
                 prefix=prefix,
             )
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:  # noqa: BLE001 — best-effort teardown
             steps["minio"] = {"error": str(exc)}
 
         if hostname:

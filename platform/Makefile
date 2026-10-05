@@ -73,7 +73,7 @@ build-app:
 
 up: env-copy
 	@test -f $(PLATFORM_DIR)/envs/$(ENV).env || (echo "Unknown ENV=$(ENV); expected envs/dev.env or envs/prod.env" >&2; exit 1)
-	@mkdir -p $(HOST_DATA_PATH)/ingress/tenants $(HOST_DATA_PATH)/redis $(HOST_DATA_PATH)/minio $(HOST_DATA_PATH)/secrets $(HOST_DATA_PATH)/tenants $(HOST_DATA_PATH)/snapshots
+	@mkdir -p $(HOST_DATA_PATH)/ingress/tenants $(HOST_DATA_PATH)/minio $(HOST_DATA_PATH)/secrets $(HOST_DATA_PATH)/tenants $(HOST_DATA_PATH)/snapshots
 	@set -e; \
 	HOST_SEEDS_PATH=$(HOST_SEEDS_PATH) \
 	HOST_EXTENSIONS_PATH=$(HOST_EXTENSIONS_PATH) \
@@ -91,8 +91,7 @@ up: env-copy
 		TENANT_IMAGE=$(TENANT_IMAGE) \
 		$(COMPOSE) up -d --build; \
 	)
-	@# Redis ACL users live in memory until SAVE; re-apply from control-plane secrets.
-	@echo "Reconciling Redis ACLs for active tenants..."
+	@echo "Reconciling active tenants..."
 	@for i in 1 2 3 4 5 6 7 8 9 10; do \
 		curl -sf -X POST http://127.0.0.1:$${CONTROL_PLANE_PORT:-8099}/reconcile \
 			-H 'Content-Type: application/json' -d '{}' >/tmp/dilibori-reconcile.json && break; \
@@ -159,7 +158,7 @@ reconcile:
 
 cell-b-up: env-copy
 	@test "$(ENV)" = "dev" || (echo "cell-b is a dev-only migrate fixture; use ENV=dev" >&2; exit 1)
-	mkdir -p $(PLATFORM_DIR)/data-cell-b/ingress/tenants $(PLATFORM_DIR)/data-cell-b/redis $(PLATFORM_DIR)/data-cell-b/minio $(PLATFORM_DIR)/data-cell-b/tenants $(PLATFORM_DIR)/data-cell-b/snapshots
+	mkdir -p $(PLATFORM_DIR)/data-cell-b/ingress/tenants $(PLATFORM_DIR)/data-cell-b/minio $(PLATFORM_DIR)/data-cell-b/tenants $(PLATFORM_DIR)/data-cell-b/snapshots
 	HOST_SEEDS_PATH=$(HOST_SEEDS_PATH) \
 	HOST_EXTENSIONS_PATH=$(HOST_EXTENSIONS_PATH) \
 	HOST_CELL_B_DATA_PATH=$(PLATFORM_DIR)/data-cell-b \

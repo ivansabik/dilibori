@@ -49,10 +49,6 @@ final class Reconciler
 
         foreach ($deployments as $deployment) {
             $cellId = $deployment['cell_id'] ?? null;
-            if ($this->ensureRedisAcl($deployment, $cellId, $actor)) {
-                $repaired++;
-            }
-
             if ($this->ensureProxysqlUser($deployment, $cellId, $actor)) {
                 $repaired++;
             }
@@ -96,36 +92,6 @@ final class Reconciler
             'repaired' => $repaired,
             'drift' => $drift,
         ];
-    }
-
-    /** @param array<string, mixed> $deployment */
-    private function ensureRedisAcl(array $deployment, ?string $cellId, ?string $actor): bool
-    {
-        try {
-            $payload = [
-                'REDIS_USERNAME' => $this->secretStore->decrypt($deployment['id'], 'REDIS_USERNAME'),
-                'REDIS_PASSWORD' => $this->secretStore->decrypt($deployment['id'], 'REDIS_PASSWORD'),
-                'REDIS_PREFIX' => $this->secretStore->decrypt($deployment['id'], 'REDIS_PREFIX'),
-            ];
-        } catch (\Throwable) {
-            return false;
-        }
-
-        $response = $this->agent($cellId)->enqueue('ensure_redis_acl', $deployment['id'], $payload);
-        if (($response['ok'] ?? true) === false) {
-            $this->audit->log(
-                'reconcile.redis_acl_failed',
-                $deployment['tenant_id'],
-                $deployment['id'],
-                (string) ($response['error'] ?? 'ensure_redis_acl failed'),
-                [],
-                $actor,
-            );
-
-            return false;
-        }
-
-        return true;
     }
 
     /** @param array<string, mixed> $deployment */

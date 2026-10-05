@@ -111,7 +111,7 @@ final class ProvisioningStateMachine
                     'noindex' => Tenant::asBool($deployment['tenant_noindex'] ?? false),
                 ];
 
-                foreach (['DB_PASSWORD', 'APP_KEY', 'ADMIN_PASSWORD', 'REDIS_PASSWORD', 'REDIS_PREFIX', 'REDIS_USERNAME'] as $secretKey) {
+                foreach (['DB_PASSWORD', 'APP_KEY', 'ADMIN_PASSWORD'] as $secretKey) {
                     try {
                         $payload[$secretKey] = $this->secretStore->decrypt($deploymentId, $secretKey);
                     } catch (\Throwable) {
@@ -136,9 +136,6 @@ final class ProvisioningStateMachine
                 }
                 if ($action === 'create_secrets') {
                     foreach ([
-                        'redis_password' => 'REDIS_PASSWORD',
-                        'redis_prefix' => 'REDIS_PREFIX',
-                        'redis_user' => 'REDIS_USERNAME',
                         'minio_access_key' => 'MINIO_ACCESS_KEY',
                         'minio_secret_key' => 'MINIO_SECRET_KEY',
                         'minio_prefix' => 'MINIO_PREFIX',

@@ -15,7 +15,7 @@ network: ## Create shared Docker network for CDP (idempotent)
 	@docker network inspect dilibori >/dev/null 2>&1 || docker network create dilibori
 
 up: network ## Build (if needed) and start everything
-	docker compose up db redis -d
+	docker compose up db -d
 	@echo "Waiting for database..."
 	@$(MAKE) --no-print-directory wait
 	docker compose up --build -d
@@ -102,7 +102,7 @@ reset: network ## Wipe DB + recreate containers and reinstall (dev only)
 	rm -rf db
 	mkdir -p db media
 	touch db/.gitkeep media/.gitkeep
-	docker compose up db redis -d
+	docker compose up db -d
 	@echo "Waiting for database..."
 	@$(MAKE) --no-print-directory wait
 	docker compose up --build -d --force-recreate

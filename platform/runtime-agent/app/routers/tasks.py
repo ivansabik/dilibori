@@ -19,7 +19,6 @@ from app.services.mariadb_service import MariaDbService
 from app.services.minio_service import MinioService
 from app.services.proxysql_service import ProxySqlService
 from app.services.purge_service import PurgeService
-from app.services.redis_service import RedisService
 from app.services.snapshot_service import SnapshotService
 from app.utils.naming import (
     default_network_name,
@@ -104,22 +103,6 @@ def enqueue_task(
                 "password": password,
             }
 
-        if action == "ensure_redis_acl":
-            username = str(payload.get("REDIS_USERNAME") or "")
-            password = str(payload.get("REDIS_PASSWORD") or "")
-            prefix = str(payload.get("REDIS_PREFIX") or "")
-            if not username or not password or not prefix:
-                raise HTTPException(
-                    status_code=400,
-                    detail="REDIS_USERNAME, REDIS_PASSWORD, and REDIS_PREFIX are required",
-                )
-            RedisService(settings).create_acl_user(
-                username=username,
-                password=password,
-                key_prefix=prefix,
-            )
-            return {"ok": True}
-
         if action == "ensure_proxysql_user":
             username = str(payload.get("DB_USERNAME") or _db_user(deployment_id))
             password = str(payload.get("DB_PASSWORD") or "")
@@ -134,20 +117,6 @@ def enqueue_task(
             return {"ok": True, "username": username}
 
         if action == "create_secrets":
-            prefix = str(
-                payload.get("REDIS_PREFIX")
-                or f"ti:{deployment_id_short(deployment_id)}:"
-            )
-            redis_user = str(
-                payload.get("REDIS_USERNAME")
-                or f"r_{deployment_id_short(deployment_id)}"
-            )
-            redis_password = str(payload.get("REDIS_PASSWORD") or _password())
-            RedisService(settings).create_acl_user(
-                username=redis_user,
-                password=redis_password,
-                key_prefix=prefix,
-            )
             access_key = str(
                 payload.get("MINIO_ACCESS_KEY")
                 or f"AK{deployment_id_short(deployment_id).upper()}"
@@ -166,9 +135,6 @@ def enqueue_task(
             )
             return {
                 "ok": True,
-                "redis_user": redis_user,
-                "redis_password": redis_password,
-                "redis_prefix": prefix,
                 "minio_access_key": access_key,
                 "minio_secret_key": secret_key,
                 "minio_prefix": media_prefix,
@@ -322,7 +288,6 @@ def enqueue_task(
                 deployment_id=deployment_id,
                 database_name=str(payload.get("database_name") or ""),
                 hostname=str(payload.get("hostname") or ""),
-                redis_username=str(payload.get("REDIS_USERNAME") or ""),
                 minio_access_key=str(payload.get("MINIO_ACCESS_KEY") or ""),
                 minio_prefix=str(payload.get("MINIO_PREFIX") or ""),
                 tenant_id=str(payload.get("tenant_id") or ""),
@@ -371,9 +336,8 @@ def _tenant_env(
         "MAIL_PORT": "1025",
         "FORBID_MARKETPLACE_INSTALL": "true",
         "FORBID_SELF_UPDATE": "true",
-        "CACHE_DRIVER": "redis",
-        "REDIS_HOST": "redis",
-        "QUEUE_CONNECTION": "redis",
+        "CACHE_DRIVER": "file",
+        "QUEUE_CONNECTION": "database",
     }
 
     for key, value in cfg.items():
@@ -385,10 +349,7 @@ def _tenant_env(
     for key in (
         "DB_PASSWORD",
         "APP_KEY",
-        "REDIS_PASSWORD",
         "ADMIN_PASSWORD",
-        "REDIS_PREFIX",
-        "REDIS_USERNAME",
     ):
         if payload.get(key):
             env[key] = str(payload[key])

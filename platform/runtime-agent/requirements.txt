@@ -4,6 +4,5 @@ docker==7.1.0
 pydantic==2.10.3
 pydantic-settings==2.6.1
 PyMySQL==1.1.1
-redis==5.2.1
 minio==7.2.12
 httpx==0.28.1

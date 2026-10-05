@@ -1,10 +1,10 @@
 # Multi-tenant platform PoC
 
-Local Docker stacks that provision isolated TastyIgniter tenants. Each environment (dev, prod) is a full stack: control plane, Postgres, runtime agent, MariaDB/ProxySQL, Redis, MinIO, Caddy, and Mailpit. One immutable app image is shared.
+Local Docker stacks that provision isolated TastyIgniter tenants. Each environment (dev, prod) is a full stack: control plane, Postgres, runtime agent, MariaDB/ProxySQL, MinIO, Caddy, and Mailpit. One immutable app image is shared.
 
 ## What you get
 
-- Per-env stack: Caddy ingress, MariaDB, ProxySQL, Redis ACLs, MinIO, PostgreSQL, PgBouncer, Mailpit, control plane, runtime agent
+- Per-env stack: Caddy ingress, MariaDB, ProxySQL, MinIO, PostgreSQL, PgBouncer, Mailpit, control plane, runtime agent
 - Control plane API/UI for tenants, deployments, releases, backup, support access, reconcile
 - Privileged runtime agent (Docker socket) that applies desired state with allowlisted operations
 - Two pilot seed profiles (see Pilots below)
@@ -145,7 +145,7 @@ Production-like forbids `APP_DEBUG`, source mounts, and marketplace installs.
 
 - One MariaDB database and least-privilege user per deployment
 - Tenant DB traffic through ProxySQL (connection budgets enforced)
-- Redis ACL user limited to a key prefix
+- File cache and database queue inside the tenant container (no shared Redis)
 - MinIO user limited to a tenant prefix (policy attached at provision)
 - Isolated Docker bridge per deployment (`10.200.0.0/16`); shared services and ingress attach to that bridge
 - Runtime agent requires a bearer token and rejects non-allowlisted images/env/mounts

@@ -49,7 +49,6 @@ def host_bind_ready(host_path: str, agent_mirror: Path) -> bool:
 # Tenants stay off dilibori-shared so they cannot reach each other by name.
 _SHARED_SERVICE_ALIASES: tuple[tuple[str, list[str]], ...] = (
     ("proxysql", ["proxysql", "mysql"]),
-    ("redis", ["redis"]),
     ("minio", ["minio"]),
     ("mailpit", ["mailpit"]),
 )
@@ -191,7 +190,7 @@ class DockerService:
         if on_shared:
             return on_shared[0]
         # No fallback: with multiple env stacks on one daemon, picking any match
-        # can wire a tenant into the wrong MariaDB / Redis / Caddy.
+        # can wire a tenant into the wrong MariaDB / Caddy.
         return None
 
     def _assert_short_id_available(self, deployment_id: str) -> None:

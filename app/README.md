@@ -1,6 +1,6 @@
 # Dilibori app
 
-TastyIgniter v4.0.1 on Docker: PHP 8.3 + Apache, MariaDB, Redis.
+TastyIgniter v4.0.1 on Docker: PHP 8.3 + Apache, MariaDB (file cache, database queue).
 
 This folder is the **immutable application image** (`Dockerfile`) plus extensions and the legacy **single-tenant** compose stack. For the multi-tenant control plane and the two pilots (El Taconazo + Pizza Rin), use [`../platform/`](../platform/).
 

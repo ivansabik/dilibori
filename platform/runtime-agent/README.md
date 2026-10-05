@@ -5,7 +5,7 @@ Privileged sidecar for the Dilibori multi-tenant TastyIgniter PoC. The control p
 ## What it does
 
 - Creates per-deployment Docker networks and tenant containers
-- Provisions MariaDB databases, Redis ACL users, and MinIO prefix policies
+- Provisions MariaDB databases and MinIO prefix policies
 - Writes Caddy tenant snippets under `DATA_DIR/ingress/tenants/`
 - Runs mysqldump backups to `DATA_DIR/backups/{deployment_id}/`
 - Exposes observe and capacity endpoints for the control plane
@@ -21,7 +21,7 @@ platform/runtime-agent/
     config.py
     auth.py
     routers/      # HTTP routes
-    services/     # Docker, MariaDB, Redis, MinIO, Caddy, backups
+    services/     # Docker, MariaDB, MinIO, Caddy, backups
     models/       # Pydantic request bodies
   Dockerfile
   requirements.txt
@@ -29,8 +29,8 @@ platform/runtime-agent/
 
 Tenant containers are named `dilibori-tenant-{deployment_id_short}`. Each tenant
 gets its own bridge (`dilibori-net-{short}` in `10.200.0.0/16`). Ingress, ProxySQL,
-Redis, MinIO, and Mailpit are attached to that bridge with DNS aliases. Tenants
-never join `dilibori-shared` with each other, and never attach to the control-plane
+MinIO, and Mailpit are attached to that bridge with DNS aliases. Tenants never
+join `dilibori-shared` with each other, and never attach to the control-plane
 network. Failed installs remove the bridge so the address pool does not leak.
 
 ## Security model
@@ -54,7 +54,6 @@ Production profile: read-only rootfs, tmpfs on `/tmp`, bind mounts for storage, 
 | GET | `/capacity` | Tenant container counts and memory sum |
 | POST | `/tenants/create-network` | Deployment bridge network |
 | POST | `/tenants/create-database` | MariaDB DDL (direct to MariaDB, not ProxySQL) |
-| POST | `/tenants/create-redis-acl` | Redis ACL user scoped to a key prefix |
 | POST | `/tenants/create-minio-creds` | Create MinIO user + attach prefix policy |
 | POST | `/tenants/provision-install` | One-off install container, then remove |
 | POST | `/tenants/deploy` | Long-running tenant container |
@@ -83,7 +82,6 @@ Copy `.env.example` and set at least `RUNTIME_AGENT_TOKEN`. Shared service hosts
 | `TENANT_IMAGE` / `ALLOWED_IMAGES` | Tenant image allowlist |
 | `SHARED_NETWORK` | Shared services network (default `dilibori-shared`; compose sets `dilibori-{env}-shared`). Used to pick the right compose services when multiple stacks share a Docker daemon. |
 | `MARIADB_*` | Admin connection for DDL and backups |
-| `REDIS_*` | Admin Redis for ACL |
 | `MINIO_*` | Root MinIO credentials |
 | `CADDY_CONTAINER_NAME` | Container to signal after snippet write |
 
@@ -127,8 +125,8 @@ for audit. The runtime-agent image includes the MinIO client (`mc`).
 ## Typical provision flow
 
 1. `create-network`
-2. `create-database`, `create-redis-acl`, `create-minio-creds`
-3. `provision-install` with tenant env (DB, Redis, S3, mail)
+2. `create-database`, `create-minio-creds` (or task `create_secrets` for MinIO)
+3. `provision-install` with tenant env (DB, file cache, database queue, S3, mail)
 4. `deploy` with resource limits and hostname label
 5. `configure-route` with public hostname and container name
 

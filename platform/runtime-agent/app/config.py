@@ -33,10 +33,6 @@ class Settings(BaseSettings):
         alias="PROXYSQL_ADMIN_PASSWORD",
     )
 
-    redis_host: str = Field(default="redis", alias="REDIS_HOST")
-    redis_port: int = Field(default=6379, alias="REDIS_PORT")
-    redis_admin_password: str = Field(default="", alias="REDIS_ADMIN_PASSWORD")
-
     minio_endpoint: str = Field(default="minio:9000", alias="MINIO_ENDPOINT")
     minio_root_user: str = Field(default="minioadmin", alias="MINIO_ROOT_USER")
     minio_root_password: str = Field(default="minioadmin", alias="MINIO_ROOT_PASSWORD")
