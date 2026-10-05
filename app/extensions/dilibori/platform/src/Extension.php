@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Dilibori\Platform;
 
+use Dilibori\Platform\Dashboard\ConfigureDashboard;
 use Dilibori\Platform\Health\TenantPhpExecutionProbe;
 use Dilibori\Platform\Health\TenantWebServerSecurityProbes;
 use Dilibori\Platform\Http\Middleware\BlockTenantCodeInstall;
@@ -31,13 +32,16 @@ class Extension extends BaseExtension
     #[Override]
     public function boot(): void
     {
+        config(['igniter-system.sendPoweredByHeader' => false]);
+        ConfigureDashboard::boot();
+
         $path = storage_path('expected-host');
-        if (!is_readable($path)) {
+        if (! is_readable($path)) {
             return;
         }
 
         $host = strtolower(trim((string) file_get_contents($path)));
-        if ($host === '' || !preg_match('/^[a-z0-9.-]+$/', $host)) {
+        if ($host === '' || ! preg_match('/^[a-z0-9.-]+$/', $host)) {
             return;
         }
 
