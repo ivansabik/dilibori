@@ -22,7 +22,9 @@ make build-app
 make up              # ENV=dev (default): ports 8099 / 8088 / 8100
 make up ENV=prod     # separate stack: ports 8199 / 8188 / 8200
 make test
-make pilots          # pilots on the current ENV
+make pilots          # default: taconazo only
+make pilots PILOTS=pizza-rin
+make pilots PILOTS=taconazo,pizza-rin
 make pilots ENV=prod
 ```
 
@@ -50,7 +52,7 @@ Add pilot hosts (required so the names resolve to this machine):
 
 Use the ingress port for that env (`:8088` for dev, `:8188` for prod). URLs without the port refuse to connect.
 
-`make pilots` (or `make pilots ENV=prod`) creates both tenants with one deployment on that stack. The Host header selects the tenant.
+`make pilots` (or `make pilots ENV=prod`) provisions Taconazo by default. Pass `PILOTS=pizza-rin` or `PILOTS=taconazo,pizza-rin` to opt into more; re-runs are idempotent. The Host header selects the tenant.
 
 ## Pilots
 

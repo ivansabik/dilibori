@@ -19,7 +19,7 @@ help:
 	@echo "  make platform-build   Build immutable TI image"
 	@echo "  make platform-up      Start shared cell + control plane"
 	@echo "  make platform-test    Run contract tests"
-	@echo "  make platform-pilots  Provision Taconazo + Pizza Rin pilots"
+	@echo "  make platform-pilots  Provision pilots (default: taconazo; PILOTS=pizza-rin or comma-list)"
 	@echo ""
 	@$(MAKE) -C app help
 

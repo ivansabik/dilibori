@@ -22,7 +22,9 @@ make build-app
 make up              # ENV=dev (default)
 make up ENV=prod     # separate full stack
 make test
-make pilots
+make pilots                              # default: taconazo only
+make pilots PILOTS=pizza-rin             # add Pizza Rin later
+make pilots PILOTS=taconazo,pizza-rin
 make pilots ENV=prod
 ```
 

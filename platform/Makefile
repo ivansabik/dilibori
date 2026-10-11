@@ -3,6 +3,7 @@ PLATFORM_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 REPO_ROOT := $(abspath $(PLATFORM_DIR)/..)
 
 ENV ?= dev
+PILOTS ?= taconazo
 -include $(PLATFORM_DIR)/.env
 -include $(PLATFORM_DIR)/envs/$(ENV).env
 export
@@ -48,7 +49,7 @@ help:
 	@echo "  make test         Run contract and policy tests"
 	@echo "  make lint         Ruff check + format --check (platform + cdp)"
 	@echo "  make install-hooks  Point git core.hooksPath at scripts/git-hooks"
-	@echo "  make pilots       Provision pilot tenants on the ENV stack"
+	@echo "  make pilots       Provision pilots (default: taconazo; PILOTS=pizza-rin or comma-list)"
 	@echo "  make admin-pass HOST=taconazo.dev.localhost   # print random admin password"
 	@echo "  make ensure-cdp   Recreate active runtimes so CDP env is present"
 	@echo "  make reconcile    Ask control plane to reconcile desired vs actual"
@@ -146,6 +147,7 @@ pilots:
 	DEPLOYMENT_ENVIRONMENT=$(DEPLOYMENT_ENVIRONMENT) \
 	INGRESS_HTTP_PORT=$(INGRESS_HTTP_PORT) \
 	PILOT_DOMAIN=$(PILOT_DOMAIN) \
+	PILOTS="$(PILOTS)" \
 	$(PLATFORM_DIR)/scripts/provision-pilots.sh
 
 admin-pass:

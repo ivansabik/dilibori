@@ -105,22 +105,59 @@ provision_deployment() {
   echo "Active: ${hostname} -> ${dep_id}"
 }
 
-TACONAZO_ID="$(ensure_tenant taconazo 'El Taconazo')"
-PIZZA_ID="$(ensure_tenant pizza-rin 'Pizza Rin')"
+# slug|display name|seed_bundle|host prefix
+KNOWN_PILOTS=(
+  "taconazo|El Taconazo|taconazo|taconazo"
+  "pizza-rin|Pizza Rin|pizza-rin|pizza-rin"
+)
 
-provision_deployment "$TACONAZO_ID" "$DEPLOYMENT_ENVIRONMENT" taconazo "taconazo.${PILOT_DOMAIN}"
-provision_deployment "$PIZZA_ID" "$DEPLOYMENT_ENVIRONMENT" pizza-rin "pizza-rin.${PILOT_DOMAIN}"
+PILOTS="${PILOTS:-taconazo}"
+REQUESTED=()
+HOSTS=()
+IFS=',' read -r -a _pilot_parts <<< "${PILOTS}"
+for raw in "${_pilot_parts[@]}"; do
+  slug="$(echo "${raw}" | tr -d '[:space:]')"
+  [ -z "${slug}" ] && continue
+  found=""
+  for entry in "${KNOWN_PILOTS[@]}"; do
+    IFS='|' read -r known_slug name seed host_prefix <<< "${entry}"
+    if [ "${slug}" = "${known_slug}" ]; then
+      found=1
+      tenant_id="$(ensure_tenant "${known_slug}" "${name}")"
+      hostname="${host_prefix}.${PILOT_DOMAIN}"
+      provision_deployment "${tenant_id}" "${DEPLOYMENT_ENVIRONMENT}" "${seed}" "${hostname}"
+      REQUESTED+=("${known_slug}")
+      HOSTS+=("${hostname}")
+      break
+    fi
+  done
+  if [ -z "${found}" ]; then
+    known_list="$(printf '%s\n' "${KNOWN_PILOTS[@]}" | cut -d'|' -f1 | paste -sd', ' -)"
+    echo "Unknown pilot slug: ${slug} (known: ${known_list})" >&2
+    exit 1
+  fi
+done
+
+if [ "${#REQUESTED[@]}" -eq 0 ]; then
+  echo "PILOTS is empty; set PILOTS=taconazo or PILOTS=taconazo,pizza-rin" >&2
+  exit 1
+fi
 
 echo ""
-echo "Pilots requested for ${DEPLOYMENT_ENVIRONMENT} (domain=${PILOT_DOMAIN})."
+echo "Pilots requested for ${DEPLOYMENT_ENVIRONMENT} (domain=${PILOT_DOMAIN}): ${REQUESTED[*]}"
 if [[ "${PILOT_DOMAIN}" == *.localhost ]]; then
   echo "Add to /etc/hosts if needed:"
-  echo "  127.0.0.1 taconazo.${PILOT_DOMAIN} pizza-rin.${PILOT_DOMAIN}"
+  echo "  127.0.0.1 ${HOSTS[*]}"
   echo "Ingress: http://127.0.0.1:${INGRESS_HTTP_PORT} (Host header selects tenant)"
 else
-  echo "Storefronts: https://taconazo.${PILOT_DOMAIN}/ https://pizza-rin.${PILOT_DOMAIN}/"
+  storefronts=""
+  for h in "${HOSTS[@]}"; do
+    storefronts+=" https://${h}/"
+  done
+  echo "Storefronts:${storefronts}"
 fi
 echo "Control plane: ${CP_URL}"
 echo "Admin passwords (random per deployment):"
-echo "  make admin-pass HOST=taconazo.${PILOT_DOMAIN} ENV=${PLATFORM_ENV}"
-echo "  make admin-pass HOST=pizza-rin.${PILOT_DOMAIN} ENV=${PLATFORM_ENV}"
+for h in "${HOSTS[@]}"; do
+  echo "  make admin-pass HOST=${h} ENV=${PLATFORM_ENV}"
+done
