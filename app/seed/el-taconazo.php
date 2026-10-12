@@ -482,6 +482,8 @@ if ($theme) {
         if (is_dir($combiner)) {
             Illuminate\Support\Facades\File::cleanDirectory($combiner);
         }
+        // Combiner URL payloads are also cached forever as ti.combiner.* keys.
+        Illuminate\Support\Facades\Artisan::call('cache:clear');
         say('Theme → black primary + Instagram / Facebook / TikTok');
     } catch (Throwable $e) {
         say('Theme CSS rebuild skipped: '.$e->getMessage());

@@ -72,8 +72,10 @@ RUN mkdir -p /var/www/html \
 
 COPY app/supervisor/dilibori.conf /etc/supervisor/conf.d/dilibori.conf
 COPY app/bin/provision.sh /usr/local/bin/provision.sh
+COPY app/bin/rebuild-theme-css.php /usr/local/bin/rebuild-theme-css.php
 COPY app/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh /usr/local/bin/provision.sh \
+        /usr/local/bin/rebuild-theme-css.php \
     && mkdir -p /var/log/supervisor \
     && chown -R www-data:www-data /usr/src/tastyigniter/storage /usr/src/tastyigniter/bootstrap/cache 2>/dev/null || true
 

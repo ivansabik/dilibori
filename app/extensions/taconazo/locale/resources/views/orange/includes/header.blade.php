@@ -1,6 +1,18 @@
 @php($headerAccent = $theme->{'header-accent'} ?? setting('header_accent'))
+@php($colorPrimary = $theme->{'color-primary'} ?? null)
+{{-- Fonts/buttons follow brand color even when header_accent is unset (Taconazo). --}}
+@php($brandChrome = $headerAccent ?: $colorPrimary)
 @php($logoHeight = $theme->logo_height ?: '72px')
-@if($headerAccent)
+@php($footerOnBrand = (bool) $headerAccent)
+@php($footerFg = '#000')
+@if($footerOnBrand && is_string($headerAccent))
+    @php($hex = ltrim($headerAccent, '#'))
+    @if(strlen($hex) === 6)
+        @php($lum = 0.299 * hexdec(substr($hex, 0, 2)) + 0.587 * hexdec(substr($hex, 2, 2)) + 0.114 * hexdec(substr($hex, 4, 2)))
+        @php($footerFg = $lum < 128 ? '#FFF' : '#000')
+    @endif
+@endif
+@if($brandChrome)
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Jost:wght@700;800&display=swap');
         body,
@@ -17,16 +29,17 @@
             font-family: Futura, "Futura PT", "Futura Display", "Century Gothic", Jost, sans-serif;
             font-weight: 800;
         }
-        .navbar-top { border-bottom: 3px solid {{ $headerAccent }}; }
         .btn-primary,
         .btn-primary:hover,
         .btn-primary:focus {
-            background-color: {{ $headerAccent }};
-            border-color: {{ $headerAccent }};
+            background-color: {{ $brandChrome }};
+            border-color: {{ $brandChrome }};
         }
+        @if($footerOnBrand)
+        .navbar-top { border-bottom: 3px solid {{ $headerAccent }}; }
         .footer {
             background-color: {{ $headerAccent }} !important;
-            color: #000 !important;
+            color: {{ $footerFg }} !important;
         }
         .footer a,
         .footer h5,
@@ -36,34 +49,34 @@
         .footer li,
         .footer .footer-title,
         .footer .text-muted {
-            color: #000 !important;
+            color: {{ $footerFg }} !important;
         }
         .footer a:hover,
         .footer a:focus {
-            color: #000 !important;
+            color: {{ $footerFg }} !important;
         }
         .footer .footer-links i {
-            color: #000 !important;
+            color: {{ $footerFg }} !important;
         }
         .footer hr {
-            border-color: #000;
+            border-color: {{ $footerFg }};
             opacity: 0.35;
         }
+        @endif
         /* Cookie bar sits on the footer; keep site footer readable above it. */
         body:has(#euCookieBanner[style*="display: block"]) .footer,
         body:has(#euCookieBanner:not([style*="display: none"])) .footer {
             padding-bottom: 6rem;
         }
     </style>
-@endif
-@unless($headerAccent)
+@else
     <style>
         body:has(#euCookieBanner[style*="display: block"]) .footer,
         body:has(#euCookieBanner:not([style*="display: none"])) .footer {
             padding-bottom: 6rem;
         }
     </style>
-@endunless
+@endif
 <nav class="navbar navbar-light navbar-top navbar-expand-md py-sm-2 py-md-0 position-relative" style="z-index: 1040; --logo-height: {{ $logoHeight }};">
     <div class="container">
         <a class="navbar-brand" href="{{ page_url('home') }}">
