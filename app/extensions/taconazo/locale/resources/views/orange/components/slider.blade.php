@@ -20,7 +20,10 @@
         <div class="carousel-inner">
             @foreach ($slides as $slide)
                 @php
-                    $thumbSrc = orange_media_src((string) $slide->getThumb());
+                    $thumbSrc = orange_media_src((string) $slide->getThumb([
+                        'width' => 1600,
+                        'height' => 900,
+                    ]));
                 @endphp
                 <div
                     class="carousel-item {{ $loop->first ? 'active' : '' }}"
@@ -32,10 +35,14 @@
                         alt="{{ $slide->getCustomProperty('title') }}"
                     />
 
-                    @if (!$hideCaptions && strlen($slide->getCustomProperty('description')))
-                        <div class="carousel-caption d-none d-md-block">
-                            <h5>{{ $slide->getCustomProperty('title') }}</h5>
-                            <p>{{ $slide->getCustomProperty('description') }}</p>
+                    @if (!$hideCaptions && (strlen((string) $slide->getCustomProperty('title')) || strlen((string) $slide->getCustomProperty('description'))))
+                        <div class="carousel-caption">
+                            @if(strlen((string) $slide->getCustomProperty('title')))
+                                <h5>{{ $slide->getCustomProperty('title') }}</h5>
+                            @endif
+                            @if(strlen((string) $slide->getCustomProperty('description')))
+                                <p class="d-none d-md-block mb-0">{{ $slide->getCustomProperty('description') }}</p>
+                            @endif
                         </div>
                     @endif
                 </div>

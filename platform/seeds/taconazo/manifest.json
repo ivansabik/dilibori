@@ -7,17 +7,18 @@
   "show_language_picker": true,
   "storefront": {
     "hero_title": {
-      "en": "Order tacos for pickup or delivery",
-      "es_MX": "Pide tacos para recoger o a domicilio"
+      "en": "Trompo-carved pastor. Pickup or delivery.",
+      "es_MX": "Pastor del trompo. Para recoger o a domicilio."
     },
     "hero_subtitle": {
-      "en": "El Taconazo · El Paso, TX",
-      "es_MX": "El Taconazo · El Paso, TX"
+      "en": "El Taconazo · El Paso & Ciudad Juárez",
+      "es_MX": "El Taconazo · El Paso y Ciudad Juárez"
     }
   },
   "theme": {
-    "color_primary": "#000000",
-    "heading_color": "#000000"
+    "color_primary": "#C43C2C",
+    "heading_color": "#111111",
+    "header_accent": "#C43C2C"
   },
   "locales": [
     { "code": "en", "name": "English", "default": true },

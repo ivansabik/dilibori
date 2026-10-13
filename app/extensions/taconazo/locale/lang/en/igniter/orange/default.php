@@ -14,4 +14,11 @@ return [
     'newsletter' => [
         'text_subscribe' => 'Leave your email for offers',
     ],
+
+    'gdpr' => [
+        'cookie_message' => 'We use cookies to run the storefront. Keep browsing if that is OK.',
+        'more_info' => 'More information',
+        'accept' => 'OK',
+    ],
 ];
+

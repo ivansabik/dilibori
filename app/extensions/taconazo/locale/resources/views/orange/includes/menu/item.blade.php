@@ -1,8 +1,17 @@
+@php
+    $thumbW = (int) ($menuThumbWidth ?? 180);
+    $thumbH = (int) ($menuThumbHeight ?? 180);
+    $rawThumb = $showThumb
+        ? (string) $menuItemData->getThumb(['width' => $thumbW, 'height' => $thumbH])
+        : '';
+    $thumbSrc = $rawThumb !== '' ? orange_media_src($rawThumb) : '';
+    $hasThumb = $thumbSrc !== '' && !str_starts_with($thumbSrc, 'data:');
+@endphp
 <div
     id="menu{{ $menuItemData->id }}"
     @class([
-        'bg-white h-100 p-3 border rounded shadow-sm',
-        'shadow-hover cursor-pointer' => $menuItemData->mealtimeIsAvailable(),
+        'tz-menu-item h-100 p-3',
+        'tz-menu-item-available cursor-pointer' => $menuItemData->mealtimeIsAvailable(),
         'cursor-no-drop' => !$menuItemData->mealtimeIsAvailable(),
     ])
     @if($menuItemData->mealtimeIsAvailable())
@@ -19,7 +28,7 @@
     @unless($showThumb)
     <button
         type="button"
-        class="btn btn-outline-secondary rounded py-1 px-2 float-end"
+        class="btn btn-outline-secondary rounded py-1 px-2 float-end tz-add-btn"
     >
         <i @class([
             'fa fa-plus' => $menuItemData->mealtimeIsAvailable(),
@@ -29,52 +38,52 @@
         ></i>
     </button>
     @endunless
-    <div class="d-flex flex-row">
+    <div class="d-flex flex-row align-items-start">
         <div class="menu-content flex-grow-1 me-3">
-            <h6 class="menu-name fw-bold">{{ $menuItemData->name }}</h6>
-            <p class="menu-desc text-muted mb-2">
+            <h6 class="menu-name fw-bold mb-1">{{ $menuItemData->name }}</h6>
+            <p class="menu-desc text-muted mb-2 tz-menu-desc">
                 {!! $menuItemData->description !!}
             </p>
+            <div style="--bs-breadcrumb-divider: '·';">
+                <div class="breadcrumb mb-0">
+                    <div class="breadcrumb-item">
+                        <span class="menu-price tz-price">
+                            @if ($menuItemData->specialIsActive())
+                                <s class="text-muted">{!! currency_format($menuItemData->priceBeforeSpecial) !!}</s>
+                                <span class="tz-badge-special ms-1">@lang('taconazo.locale::default.badge_special')</span>
+                            @endif
+                            {!! $menuItemData->price() > 0 ? currency_format($menuItemData->price()) : lang('igniter::main.text_free') !!}
+                        </span>
+                    </div>
+                    @if ($menuItemData->specialIsActive() && $menuItemData->specialDaysRemaining())
+                        <div class="breadcrumb-item menu-meta">
+                            <span class="text-warning">{!! sprintf(lang('igniter.local::default.text_end_elapsed'), $menuItemData->specialDaysRemaining()) !!}</span>
+                        </div>
+                    @endif
+                    @if (!$menuItemData->mealtimeIsAvailable())
+                        <div class="breadcrumb-item">
+                            <i class="far fa-clock text-danger"></i>
+                            <small class="text-danger">@lang('igniter.cart::default.mealtimes.text_available') {{ $menuItemData->mealtimeTitles() }}</small>
+                        </div>
+                    @endif
+                </div>
+            </div>
         </div>
-        @if($showThumb)
-            @php
-                $thumbSrc = orange_media_src((string) $menuItemData->getThumb());
-            @endphp
-            <div
-                class="col-3 p-0 me-3 menu-item-image align-self-center rounded"
-                style="
-                    background: url('{{ $thumbSrc }}') no-repeat center center;
-                    background-size: cover;
-                    width: {{$menuThumbWidth}}px;
-                    height: {{$menuThumbHeight}}px;
-                    ">
+        @if($showThumb && $hasThumb)
+            <div class="tz-menu-thumb-wrap position-relative flex-shrink-0">
+                <img
+                    class="tz-menu-thumb rounded"
+                    src="{{ $thumbSrc }}"
+                    alt="{{ $menuItemData->name }}"
+                    width="{{ $thumbW }}"
+                    height="{{ $thumbH }}"
+                    loading="lazy"
+                />
+                @if($menuItemData->mealtimeIsAvailable())
+                    <span class="tz-thumb-add" aria-hidden="true"><i class="fa fa-plus"></i></span>
+                @endif
             </div>
         @endif
-    </div>
-    <div style="--bs-breadcrumb-divider: '·';">
-        <div class="breadcrumb">
-            <div class="breadcrumb-item">
-                <span class="menu-price">
-                    @if ($menuItemData->specialIsActive())
-                        <s class="text-muted">{!! currency_format($menuItemData->priceBeforeSpecial) !!}</s>
-                    @endif
-                    {!! $menuItemData->price() > 0 ? currency_format($menuItemData->price()) : lang('igniter::main.text_free') !!}
-                </span>
-            </div>
-            @if ($menuItemData->specialIsActive() && $menuItemData->specialDaysRemaining())
-                <div class="breadcrumb-item menu-meta">
-                    <span
-                        class="text-warning"
-                    >{!! sprintf(lang('igniter.local::default.text_end_elapsed'), $menuItemData->specialDaysRemaining()) !!}</span>
-                </div>
-            @endif
-            @if (!$menuItemData->mealtimeIsAvailable())
-                <div class="breadcrumb-item">
-                    <i class="far fa-clock text-danger"></i>
-                    <small class="text-danger">@lang('igniter.cart::default.mealtimes.text_available') {{ $menuItemData->mealtimeTitles() }}</small>
-                </div>
-            @endif
-        </div>
     </div>
     <div class="layout-scrollable w-100">
         @includeWhen($menuItemData->hasIngredients(), 'igniter-orange::includes.menu.ingredients', [
