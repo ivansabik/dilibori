@@ -2,7 +2,7 @@
 # Runtime entrypoint: never installs or seeds. Use /usr/local/bin/provision.sh for that.
 set -euo pipefail
 
-echo "Starting TastyIgniter runtime (TENANT_ID=${TENANT_ID:-unset} ENV=${DEPLOYMENT_ENVIRONMENT:-unset})"
+echo "Starting TastyIgniter runtime"
 
 setup_writable_dirs() {
     mkdir -p /var/www/html/storage/app/public/media/uploads \
@@ -48,19 +48,16 @@ apply_runtime_env() {
         MAIL_MAILER MAIL_HOST MAIL_PORT MAIL_USERNAME MAIL_PASSWORD MAIL_ENCRYPTION \
         MAIL_FROM_ADDRESS MAIL_FROM_NAME \
         SESSION_SECURE_COOKIE SESSION_SAME_SITE \
-        TENANT_ID DEPLOYMENT_ID CELL_ID DEPLOYMENT_ENVIRONMENT \
         CDP_ENABLED EVENT_CLIENT_DRIVER CDP_ANONYMOUS_ID_COOKIE \
         RUDDERSTACK_DATA_PLANE_URL RUDDERSTACK_JS_DATA_PLANE_URL \
-        RUDDERSTACK_JS_CONFIG_URL RUDDERSTACK_HTTP_WRITE_KEY RUDDERSTACK_JS_WRITE_KEY \
-        FORBID_MARKETPLACE_INSTALL FORBID_SELF_UPDATE; do
+        RUDDERSTACK_JS_CONFIG_URL RUDDERSTACK_HTTP_WRITE_KEY RUDDERSTACK_JS_WRITE_KEY; do
         eval "val=\${$key-}"
         if [ -n "${val}" ]; then
             env_upsert "$key" "$val"
         fi
     done
 
-    # Production invariants: never allow debug outside development profiles
-    if [ "${DEPLOYMENT_ENVIRONMENT:-}" = "production" ] || [ "${APP_ENV:-}" = "production" ]; then
+    if [ "${APP_ENV:-}" = "production" ]; then
         env_upsert APP_DEBUG false
         env_upsert APP_ENV production
     fi
@@ -73,7 +70,6 @@ if [ ! -f /var/www/html/public/index.php ]; then
         echo "ERROR: /var/www/html is not writable and app files are missing; re-run provision" >&2
         exit 1
     fi
-    # cap_drop=ALL (tenant containers) cannot preserve timestamps on bind mounts.
     if ! cp -a /usr/src/tastyigniter/. /var/www/html/ 2>/dev/null; then
         cp -R /usr/src/tastyigniter/. /var/www/html/
     fi
@@ -87,7 +83,7 @@ fi
 
 apply_runtime_env
 
-# Overlay platform-approved extensions only.
+# Overlay extensions from /opt/extensions.
 # Never fail the container if a leftover root-owned file blocks the copy
 # (e.g. after a manual docker cp); chown and retry once.
 if [ -d /opt/extensions ]; then
@@ -127,24 +123,12 @@ cat > /etc/apache2/conf-available/dilibori-mpm.conf <<EOF
 EOF
 a2enconf dilibori-mpm >/dev/null || true
 
-# Host header check: reject unexpected Host when EXPECTED_HOST is set
-if [ -n "${EXPECTED_HOST:-}" ]; then
-    cat > /etc/apache2/conf-available/dilibori-host.conf <<EOF
-<IfModule mod_rewrite.c>
-    RewriteEngine On
-    RewriteCond %{HTTP_HOST} !^${EXPECTED_HOST}(:[0-9]+)?\$ [NC]
-    RewriteRule ^ - [F]
-</IfModule>
-EOF
-    a2enconf dilibori-host >/dev/null || true
-fi
-
 if [ "${1:-}" = "provision" ]; then
     shift
     exec /usr/local/bin/provision.sh "$@"
 fi
 
-# Optional legacy single-tenant auto-provision (app/docker-compose only)
+# One-shot install and seed when AUTO_PROVISION=true (compose sets this).
 if [ "${AUTO_PROVISION:-false}" = "true" ] && [ ! -f /var/www/html/storage/dilibori-installed.flag ]; then
     echo "AUTO_PROVISION=true: running one-shot provision..."
     /usr/local/bin/provision.sh

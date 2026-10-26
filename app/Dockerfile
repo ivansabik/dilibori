@@ -63,9 +63,9 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 
 COPY app/extensions/dilibori /usr/src/tastyigniter/extensions/dilibori
 COPY app/extensions/taconazo /usr/src/tastyigniter/extensions/taconazo
-COPY platform/seeds /opt/platform/seeds
+COPY app/seed /opt/seed
 
-# App lives in the image so tenant containers do not copy onto bind mounts.
+# App lives in the image. Compose bind-mounts app/seed over /opt/seed in local dev.
 RUN mkdir -p /var/www/html \
     && cp -a /usr/src/tastyigniter/. /var/www/html/ \
     && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache 2>/dev/null || true
@@ -80,7 +80,7 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh /usr/local/bin/provision.sh \
 USER root
 
 LABEL org.opencontainers.image.title="dilibori-tastyigniter" \
-      org.opencontainers.image.description="Immutable TastyIgniter image for multi-tenant PoC" \
+      org.opencontainers.image.description="TastyIgniter image for El Taconazo" \
       dilibori.tastyigniter.version="${TASTYIGNITER_VERSION}"
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]

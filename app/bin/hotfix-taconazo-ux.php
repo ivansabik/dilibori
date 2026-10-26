@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 /**
  * One-shot hot-fix for El Taconazo UX refresh (theme, pages, media, settings).
- * Run inside a tenant container: php /path/to/hotfix-taconazo-ux.php
+ * Run in the app container: php /path/to/hotfix-taconazo-ux.php
  */
 
 require '/var/www/html/vendor/autoload.php';

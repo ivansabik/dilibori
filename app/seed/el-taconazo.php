@@ -6,7 +6,7 @@
  * Exercises menus, options, specials, mealtimes, allergens, delivery areas,
  * working hours, location order/reservation settings, pages, banners, stocks,
  * and dining layout. Customers, orders, reservations, coupons, reviews, and
- * subscribers come from platform/seeds/common/seed-demo-activity.php.
+ * subscribers come from seed/common/seed-demo-activity.php.
  *
  * Menu/category/page copy is stored per locale (en + es_MX) via ti-ext-translate.
  * Safe to re-run.

@@ -1,9 +1,9 @@
 #!/bin/bash
-# Provisioning job: install TastyIgniter once, then apply a tenant seed manifest.
+# Provisioning job: install TastyIgniter once, then apply the El Taconazo seed.
 # Normal container startup never runs this script.
 set -euo pipefail
 
-echo "Provisioning TastyIgniter for TENANT_ID=${TENANT_ID:-unknown} DEPLOYMENT_ID=${DEPLOYMENT_ID:-unknown}"
+echo "Provisioning TastyIgniter"
 
 setup_writable_dirs() {
     mkdir -p /var/www/html/storage/app/public/media/uploads \
@@ -47,7 +47,6 @@ apply_runtime_env() {
         CACHE_DRIVER QUEUE_CONNECTION \
         MAIL_MAILER MAIL_HOST MAIL_PORT MAIL_USERNAME MAIL_PASSWORD MAIL_ENCRYPTION \
         MAIL_FROM_ADDRESS MAIL_FROM_NAME \
-        TENANT_ID DEPLOYMENT_ID CELL_ID DEPLOYMENT_ENVIRONMENT \
         CDP_ENABLED EVENT_CLIENT_DRIVER \
         RUDDERSTACK_DATA_PLANE_URL RUDDERSTACK_JS_DATA_PLANE_URL \
         RUDDERSTACK_JS_CONFIG_URL RUDDERSTACK_HTTP_WRITE_KEY RUDDERSTACK_JS_WRITE_KEY; do
@@ -58,8 +57,8 @@ apply_runtime_env() {
     done
 }
 
-# Random admin password when unset (platform injects ADMIN_PASSWORD; legacy compose does not).
-# Mirror to persistent-media so legacy container recreates keep the same secret.
+# Random admin password when unset.
+# Mirror to persistent-media so container recreates keep the same secret.
 ensure_admin_password() {
     local persistent="/var/www/persistent-media/.dilibori-admin-password"
     local storage="/var/www/html/storage/dilibori-admin-password"
@@ -155,7 +154,7 @@ if [ -n "${SEED_MANIFEST:-}" ] && [ -f "${SEED_MANIFEST}" ]; then
     export SEED_MODE="${SEED_MODE:-initial}"
     ensure_admin_password
     echo "Applying seed manifest ${SEED_MANIFEST} (mode=${SEED_MODE})..."
-    php /opt/platform/seeds/common/seed-from-manifest.php "$SEED_MANIFEST"
+    php /opt/seed/common/seed-from-manifest.php "$SEED_MANIFEST"
 fi
 
 if [ ! -e /var/www/html/public/storage ]; then

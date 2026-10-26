@@ -1,6 +1,0 @@
-{
-    "APP_DEBUG": "false",
-    "LOG_LEVEL": "info",
-    "CACHE_DRIVER": "file",
-    "QUEUE_CONNECTION": "database"
-}

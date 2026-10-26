@@ -1,4 +1,4 @@
-# Admin email for legacy single-tenant (password is random; see admin-pass).
+# Admin email (password is random; see admin-pass).
 ADMIN_EMAIL ?= operations@taconazotaqueria.com
 APP_URL ?= http://127.0.0.1:8001
 ADMIN_PASSWORD_FILE := /var/www/html/storage/dilibori-admin-password
@@ -82,9 +82,9 @@ echo "Admin login ready\n"; \
 '
 	@echo "Password set for $(or $(EMAIL),$(ADMIN_EMAIL)) (make admin-pass to reprint)"
 
-seed: ## Load El Taconazo demo via tenant manifest (menu + shared activity)
+seed: ## Load El Taconazo demo (menu + shared activity)
 	docker compose exec -u www-data -e SEED_MODE=initial app \
-		php /opt/platform/seeds/common/seed-from-manifest.php /opt/seed-manifest/manifest.json
+		php /opt/seed/common/seed-from-manifest.php /opt/seed/taconazo/manifest.json
 	@# Root-owned laravel.log from prior exec breaks Apache logging/reservations
 	docker compose exec app bash -lc 'chown -R www-data:www-data /var/www/html/storage/logs && chmod -R ug+rwX /var/www/html/storage/logs'
 

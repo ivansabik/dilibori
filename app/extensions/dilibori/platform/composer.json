@@ -1,7 +1,7 @@
 {
   "name": "dilibori/platform",
   "type": "tastyigniter-package",
-  "description": "Multi-tenant platform guards: admin marketplace lockdown and tenant host checks.",
+  "description": "Admin chrome: hide the news widget and the powered-by header.",
   "license": "MIT",
   "authors": [{ "name": "dilibori" }],
   "autoload": {
@@ -12,7 +12,7 @@
   "extra": {
     "tastyigniter-extension": {
       "code": "dilibori.platform",
-      "name": "Platform Guards",
+      "name": "Admin chrome",
       "icon": {
         "class": "fa fa-shield-alt",
         "backgroundColor": "#1B4332",

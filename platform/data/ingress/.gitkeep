@@ -1,2 +1,0 @@
-# Placeholder tenant route files live in data/ingress/
-# The runtime agent writes {deployment_id}.caddy snippets here.
