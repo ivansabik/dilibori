@@ -1,30 +1,26 @@
-name: Platform CI
+name: Python CI
 
 on:
   push:
     paths:
-      - "platform/**"
       - "cdp/event-sink/**"
-      - "infra/**"
       - "ruff.toml"
       - "**/*.py"
-      - "app/Dockerfile"
-      - "app/docker-entrypoint.sh"
-      - "app/bin/**"
-      - "app/extensions/**"
-      - "app/supervisor/**"
+      - "infra/**"
+      - "app/docker-compose.aws.yml"
+      - "app/Caddyfile.aws"
+      - "app/aws.env.example"
+      - ".github/workflows/platform-ci.yml"
   pull_request:
     paths:
-      - "platform/**"
       - "cdp/event-sink/**"
-      - "infra/**"
       - "ruff.toml"
       - "**/*.py"
-      - "app/Dockerfile"
-      - "app/docker-entrypoint.sh"
-      - "app/bin/**"
-      - "app/extensions/**"
-      - "app/supervisor/**"
+      - "infra/**"
+      - "app/docker-compose.aws.yml"
+      - "app/Caddyfile.aws"
+      - "app/aws.env.example"
+      - ".github/workflows/platform-ci.yml"
 
 jobs:
   ruff:
@@ -37,54 +33,9 @@ jobs:
       - name: Install Ruff
         run: pip install ruff
       - name: Ruff check
-        run: python3 -m ruff check platform cdp/event-sink
+        run: python3 -m ruff check cdp/event-sink
       - name: Ruff format
-        run: python3 -m ruff format --check platform cdp/event-sink
-
-  contracts:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: platform
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Install runtime-agent deps for unit tests
-        run: pip install -r runtime-agent/requirements.txt
-      - name: Run contract and policy tests
-        run: |
-          chmod +x scripts/run-tests.sh
-          ./scripts/run-tests.sh
-      - name: Capacity model smoke
-        run: python3 scripts/capacity_model.py --tenants 16 --idle-memory-mb 180 --proxy-budget 80
-
-  runtime-agent-syntax:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: platform/runtime-agent
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Install and compile
-        run: |
-          pip install -r requirements.txt
-          python -m compileall app
-
-  control-plane-syntax:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: platform/control-plane
-    steps:
-      - uses: actions/checkout@v4
-      - name: PHP lint
-        run: |
-          find src public -name '*.php' -print0 | xargs -0 -n1 php -l
+        run: python3 -m ruff format --check cdp/event-sink
 
   terraform:
     runs-on: ubuntu-latest
@@ -119,10 +70,9 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y shellcheck
       - name: shellcheck infra/box
         run: shellcheck infra/box/*.sh
-      - name: Compose config (aws override)
+      - name: Compose config (aws)
         run: |
           docker compose \
-            -f platform/docker-compose.yml \
-            -f platform/docker-compose.aws.yml \
-            --env-file platform/envs/aws-dev.env \
+            -f app/docker-compose.aws.yml \
+            --env-file app/aws.env.example \
             config -q

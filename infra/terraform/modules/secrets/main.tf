@@ -3,28 +3,8 @@ resource "random_password" "mariadb_root" {
   special = false
 }
 
-resource "random_password" "proxysql_admin" {
+resource "random_password" "db" {
   length  = 32
-  special = false
-}
-
-resource "random_password" "postgres" {
-  length  = 32
-  special = false
-}
-
-resource "random_password" "jobsdb" {
-  length  = 32
-  special = false
-}
-
-resource "random_password" "runtime_agent_token" {
-  length  = 48
-  special = false
-}
-
-resource "random_password" "app_secret_key" {
-  length  = 48
   special = false
 }
 
@@ -37,19 +17,16 @@ resource "random_password" "ses_smtp_password" {
 locals {
   secret_value = merge(
     {
-      MARIADB_ROOT_PASSWORD   = random_password.mariadb_root.result
-      PROXYSQL_ADMIN_PASSWORD = random_password.proxysql_admin.result
-      POSTGRES_PASSWORD       = random_password.postgres.result
-      JOBS_DB_PASSWORD        = random_password.jobsdb.result
-      RUNTIME_AGENT_TOKEN     = random_password.runtime_agent_token.result
-      APP_SECRET_KEY          = random_password.app_secret_key.result
+      MARIADB_ROOT_PASSWORD = random_password.mariadb_root.result
+      DB_PASSWORD           = random_password.db.result
     },
     var.enable_ses_smtp ? {
-      TENANT_MAIL_HOST       = "email-smtp.us-east-1.amazonaws.com"
-      TENANT_MAIL_PORT       = "587"
-      TENANT_MAIL_USERNAME   = "REPLACE_AFTER_SES_SETUP"
-      TENANT_MAIL_PASSWORD   = random_password.ses_smtp_password[0].result
-      TENANT_MAIL_ENCRYPTION = "tls"
+      MAIL_MAILER     = "smtp"
+      MAIL_HOST       = "email-smtp.us-east-1.amazonaws.com"
+      MAIL_PORT       = "587"
+      MAIL_USERNAME   = "REPLACE_AFTER_SES_SETUP"
+      MAIL_PASSWORD   = random_password.ses_smtp_password[0].result
+      MAIL_ENCRYPTION = "tls"
     } : {}
   )
 }

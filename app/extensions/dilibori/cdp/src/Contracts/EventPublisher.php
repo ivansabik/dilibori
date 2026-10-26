@@ -13,7 +13,7 @@ namespace Dilibori\Cdp\Contracts;
 interface EventPublisher
 {
     /**
-     * @param  array<string, mixed>  $envelope  Canonical tenant-aware envelope
+     * @param  array<string, mixed>  $envelope  Canonical analytics envelope
      */
     public function publish(array $envelope): void;
 }

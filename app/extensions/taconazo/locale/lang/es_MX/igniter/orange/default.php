@@ -196,4 +196,11 @@ return [
         'alert_success_subscribed' => 'Gracias, tu correo ya está suscrito',
         'alert_success_existing' => 'Gracias, tu correo ya estaba suscrito',
     ],
+
+    'gdpr' => [
+        'cookie_message' => 'Usamos cookies para que la página funcione. Si sigues navegando, está bien.',
+        'more_info' => 'Más información',
+        'accept' => 'OK',
+    ],
 ];
+

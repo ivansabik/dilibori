@@ -1,0 +1,171 @@
+{
+  "slug": "taconazo",
+  "name": "El Taconazo",
+  "seed_version": "1.0.0",
+  "timezone": "America/Denver",
+  "default_currency": "USD",
+  "show_language_picker": true,
+  "storefront": {
+    "hero_title": {
+      "en": "Trompo-carved pastor. Pickup or delivery.",
+      "es_MX": "Pastor del trompo. Para recoger o a domicilio."
+    },
+    "hero_subtitle": {
+      "en": "El Taconazo · El Paso & Ciudad Juárez",
+      "es_MX": "El Taconazo · El Paso y Ciudad Juárez"
+    }
+  },
+  "theme": {
+    "color_primary": "#C43C2C",
+    "heading_color": "#111111",
+    "header_accent": "#C43C2C"
+  },
+  "locales": [
+    { "code": "en", "name": "English", "default": true },
+    { "code": "es_MX", "name": "Español (México)", "default": false }
+  ],
+  "mail": {
+    "from_address": "hola@eltaconazo.example",
+    "from_name": "El Taconazo Taqueria"
+  },
+  "admin": {
+    "email": "operations@taconazotaqueria.com",
+    "name": "Operations",
+    "username": "admin"
+  },
+  "locations": [
+    {
+      "slug": "el-taconazo-alameda-ave",
+      "name": "El Taconazo - Alameda Ave",
+      "currency": "USD",
+      "email": "hola@eltaconazo.example",
+      "address_1": "4500 Alameda Ave",
+      "address_2": "Suite B",
+      "city": "El Paso",
+      "state": "TX",
+      "postcode": "79905",
+      "country_id": 223,
+      "telephone": "(915) 555-0142",
+      "lat": 31.7587,
+      "lng": -106.4431,
+      "is_default": true,
+      "description": {
+        "en": "Taquería on Alameda. Pastor, suadero, breakfast from 7am. Pickup or delivery.",
+        "es_MX": "Taquería en Alameda. Pastor, suadero, desayuno desde las 7am. Para llevar o a domicilio."
+      }
+    },
+    {
+      "slug": "el-taconazo-tecnologico",
+      "name": "El Taconazo - Tecnológico",
+      "currency": "MXN",
+      "email": "juarez@eltaconazo.example",
+      "address_1": "Av. Tecnológico 1545",
+      "address_2": "",
+      "city": "Ciudad Juárez",
+      "state": "Chihuahua",
+      "postcode": "32310",
+      "country_id": 138,
+      "telephone": "+52 656 555 0142",
+      "lat": 31.6904,
+      "lng": -106.4245,
+      "is_default": false,
+      "description": {
+        "en": "Near Tecnológico in Ciudad Juárez. Same trompo kitchen. Prices in pesos.",
+        "es_MX": "Cerca del Tecnológico en Ciudad Juárez. La misma cocina de trompo. Precios en pesos."
+      }
+    }
+  ],
+  "catalog": {
+    "require_translations": ["en", "es_MX"],
+    "rich_seed": "el-taconazo.php"
+  },
+  "demo": {
+    "enabled": true,
+    "persona": "en_US",
+    "history_days": 60,
+    "orders_per_day": [2, 6],
+    "customers": 40,
+    "featured_customer": {
+      "email": "juanagallo@gmail.com",
+      "first_name": "María",
+      "last_name": "González",
+      "telephone": "(915) 555-1001"
+    },
+    "coupons": [
+      {
+        "name": "Welcome",
+        "code": "BIENVENIDO",
+        "type": "P",
+        "discount": 10,
+        "min_total": 20,
+        "description": "10% off your first order of $20+ (El Paso)",
+        "customer_redemptions": 1,
+        "validity": "forever",
+        "locations": ["el-taconazo-alameda-ave"]
+      },
+      {
+        "name": "Bienvenido Juárez",
+        "code": "BIENVENIDOJUAREZ",
+        "type": "P",
+        "discount": 10,
+        "min_total": 200,
+        "description": "10% de descuento en tu primer pedido de $200+ (Cd Juárez)",
+        "customer_redemptions": 1,
+        "validity": "forever",
+        "locations": ["el-taconazo-tecnologico"]
+      },
+      {
+        "name": "Taco Wednesday",
+        "code": "TACOMIERCOLES",
+        "type": "F",
+        "discount": 5,
+        "min_total": 15,
+        "description": "$5 off orders of $15+ every Wednesday (El Paso)",
+        "customer_redemptions": 0,
+        "validity": "recurring",
+        "recurring_every": ["3"],
+        "recurring_from_time": "11:00:00",
+        "recurring_to_time": "22:00:00",
+        "locations": ["el-taconazo-alameda-ave"]
+      },
+      {
+        "name": "Taco miércoles Juárez",
+        "code": "TACOMIERCOLESJRZ",
+        "type": "F",
+        "discount": 50,
+        "min_total": 150,
+        "description": "$50 de descuento en pedidos de $150+ los miércoles (Cd Juárez)",
+        "customer_redemptions": 0,
+        "validity": "recurring",
+        "recurring_every": ["3"],
+        "recurring_from_time": "11:00:00",
+        "recurring_to_time": "22:00:00",
+        "locations": ["el-taconazo-tecnologico"]
+      },
+      {
+        "name": "Free delivery",
+        "code": "ENVIOGRATIS",
+        "type": "F",
+        "discount": 4.99,
+        "min_total": 25,
+        "description": "Covers the Central El Paso delivery fee on orders of $25+",
+        "customer_redemptions": 0,
+        "validity": "forever",
+        "apply_coupon_on": "delivery_fee",
+        "locations": ["el-taconazo-alameda-ave"]
+      },
+      {
+        "name": "Envío gratis Juárez",
+        "code": "ENVIOGRATISJRZ",
+        "type": "F",
+        "discount": 55,
+        "min_total": 250,
+        "description": "Cubre el envío en Centro Juárez en pedidos de $250+",
+        "customer_redemptions": 0,
+        "validity": "forever",
+        "apply_coupon_on": "delivery_fee",
+        "locations": ["el-taconazo-tecnologico"]
+      }
+    ]
+  }
+}

@@ -4,6 +4,6 @@ variable "environment" {
 
 variable "enable_ses_smtp" {
   type        = bool
-  description = "Include placeholder SES SMTP fields in the platform secret (prod)."
+  description = "Include placeholder SES SMTP fields in the app secret (prod)."
   default     = false
 }

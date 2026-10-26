@@ -12,8 +12,8 @@ resource "aws_sns_topic_subscription" "email" {
   endpoint  = var.alert_email
 }
 
-resource "aws_cloudwatch_log_group" "platform" {
-  name              = "/dilibori/${var.environment}/platform"
+resource "aws_cloudwatch_log_group" "box" {
+  name              = "/dilibori/${var.environment}/box"
   retention_in_days = 30
 
   tags = {
@@ -23,6 +23,24 @@ resource "aws_cloudwatch_log_group" "platform" {
 
 resource "aws_cloudwatch_log_group" "caddy" {
   name              = "/dilibori/${var.environment}/caddy"
+  retention_in_days = 30
+
+  tags = {
+    Environment = var.environment
+  }
+}
+
+resource "aws_cloudwatch_log_group" "app" {
+  name              = "/dilibori/${var.environment}/app"
+  retention_in_days = 30
+
+  tags = {
+    Environment = var.environment
+  }
+}
+
+resource "aws_cloudwatch_log_group" "db" {
+  name              = "/dilibori/${var.environment}/db"
   retention_in_days = 30
 
   tags = {
@@ -109,12 +127,9 @@ resource "aws_cloudwatch_metric_alarm" "disk_data" {
 
 locals {
   services = [
-    "mariadb",
-    "proxysql",
-    "postgres",
-    "control-plane",
-    "runtime-agent",
-    "ingress",
+    "app",
+    "db",
+    "caddy",
   ]
 }
 
@@ -166,7 +181,7 @@ resource "aws_cloudwatch_metric_alarm" "caddy_5xx" {
 
 resource "aws_cloudwatch_log_metric_filter" "backup_ok" {
   name           = "dilibori-${var.environment}-backup-ok"
-  log_group_name = aws_cloudwatch_log_group.platform.name
+  log_group_name = aws_cloudwatch_log_group.box.name
   pattern        = "backup-ok"
 
   metric_transformation {

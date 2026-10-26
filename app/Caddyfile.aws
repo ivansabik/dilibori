@@ -1,0 +1,7 @@
+{$DOMAIN} {
+	log {
+		output file /data/logs/access.log
+		format json
+	}
+	reverse_proxy app:80
+}

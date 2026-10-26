@@ -1,8 +1,6 @@
 locals {
   repos = [
     "dilibori/tastyigniter",
-    "dilibori/control-plane",
-    "dilibori/runtime-agent",
   ]
 }
 

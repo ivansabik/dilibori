@@ -1,5 +1,5 @@
 #!/bin/bash
-# Publish 1/0 dilibori/health metrics per compose service.
+# Publish 1/0 dilibori/health metrics for app, db, and caddy.
 set -euo pipefail
 
 # shellcheck disable=SC1091
@@ -10,19 +10,14 @@ set +a
 
 OPT_ROOT=/opt/dilibori
 REPO_ROOT="${OPT_ROOT}/releases/current"
-PLATFORM_DIR="${REPO_ROOT}/platform"
-ENV_NAME="aws-${PLATFORM_BOX_ENV}"
-COMPOSE_PROJECT="dilibori-${ENV_NAME}"
 
-if [ ! -d "${PLATFORM_DIR}" ]; then
+if [ ! -f "${REPO_ROOT}/app/docker-compose.aws.yml" ]; then
   exit 0
 fi
 
-cd "${PLATFORM_DIR}"
+cd "${REPO_ROOT}"
 PS_JSON="$(
-  docker compose -p "${COMPOSE_PROJECT}" \
-    -f docker-compose.yml -f docker-compose.aws.yml \
-    --env-file .env --env-file "envs/${ENV_NAME}.env" \
+  docker compose -f app/docker-compose.aws.yml --env-file "${OPT_ROOT}/app.env" \
     ps --format json 2>/dev/null || echo ""
 )"
 
@@ -46,14 +41,7 @@ if raw:
             if line:
                 items.append(json.loads(line))
 
-wanted = [
-    "mariadb",
-    "proxysql",
-    "postgres",
-    "control-plane",
-    "runtime-agent",
-    "ingress",
-]
+wanted = ["app", "db", "caddy"]
 by_service = {}
 for item in items:
     name = item.get("Service") or ""
@@ -62,13 +50,12 @@ for item in items:
         by_service[name] = 1 if state in ("healthy", "running") else 0
 
 try:
-    urllib.request.urlopen(
-        f"http://127.0.0.1:{os.environ.get('CONTROL_PLANE_PORT', '8099')}/health",
-        timeout=2,
-    )
-    by_service["control-plane"] = 1
+    urllib.request.urlopen("http://127.0.0.1/", timeout=2)
+    by_service["caddy"] = 1
+    by_service["app"] = 1
 except Exception:
-    by_service.setdefault("control-plane", 0)
+    by_service.setdefault("caddy", 0)
+    by_service.setdefault("app", 0)
 
 metric_data = [
     {

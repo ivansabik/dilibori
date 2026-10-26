@@ -12,7 +12,7 @@ return [
     | Backend event driver: rudderstack | null | structured-log
     | Future: segment | kafka | …
     */
-    // Default to local Rudder so tenants send without waiting on env wiring.
+    // Default to local Rudder when env is not set.
     'driver' => env('EVENT_CLIENT_DRIVER', 'rudderstack'),
 
     /*
@@ -22,7 +22,7 @@ return [
 
     'drivers' => [
         'rudderstack' => [
-            // Tenant containers are not on the CDP compose network; hit the host publish.
+            // Publish URL when the app container is not on the CDP network.
             'data_plane_url' => env('RUDDERSTACK_DATA_PLANE_URL', 'http://host.docker.internal:8080'),
             'js_data_plane_url' => env('RUDDERSTACK_JS_DATA_PLANE_URL', 'http://127.0.0.1:8080'),
             // File-based data planes do not serve /sourceConfig; local inspector does.

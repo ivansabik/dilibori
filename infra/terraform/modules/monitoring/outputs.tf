@@ -3,7 +3,7 @@ output "sns_topic_arn" {
 }
 
 output "platform_log_group" {
-  value = aws_cloudwatch_log_group.platform.name
+  value = aws_cloudwatch_log_group.box.name
 }
 
 output "caddy_log_group" {

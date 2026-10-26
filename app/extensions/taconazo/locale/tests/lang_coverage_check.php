@@ -6,7 +6,7 @@ declare(strict_types=1);
  * Fail if es_MX lang coverage slips vs vendor English keys,
  * or if locale override values still contain product brand tokens.
  *
- * Run in a tenant container:
+ * Run in the app container:
  *   php extensions/taconazo/locale/tests/lang_coverage_check.php
  */
 

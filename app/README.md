@@ -1,12 +1,12 @@
 # Dilibori app
 
-TastyIgniter v4.0.1 on Docker: PHP 8.3 + Apache, MariaDB (file cache, database queue).
+TastyIgniter v4.0.1 on Docker: PHP 8.3, Apache, MariaDB 10.11. File cache. Database queue.
 
-This folder is the **immutable application image** (`Dockerfile`) plus extensions and the legacy **single-tenant** compose stack. For the multi-tenant control plane and the two pilots (El Taconazo + Pizza Rin), use [`../platform/`](../platform/).
+This directory is the application image (`Dockerfile`), extensions, and the El Taconazo Compose stack. One app container, one database. Two locations: Alameda Ave (El Paso, USD) and Tecnológico (Ciudad Juárez, MXN).
 
-Legacy single-tenant demo: **El Taconazo** only (El Paso USD + Juárez MXN). Pizza Rin exists only under `platform/seeds/pizza-rin/`.
+What the restaurant gets is in the [product overview](../docs/product/README.md). License, status, and the short start path are in the [root README](../README.md). Analytics and mail each have their own guide: [cdp/README.md](../cdp/README.md), [mailpit/README.md](../mailpit/README.md).
 
-## Install (legacy single-tenant)
+## Install
 
 From this directory (`app/`):
 
@@ -35,7 +35,7 @@ make reset
 
 ### Admin password
 
-First provision generates a random `ADMIN_PASSWORD` (same hex length as platform pilots). It is not in `docker-compose.yml`. The value is stored under `media/.dilibori-admin-password` (persists across container recreates) and mirrored to `storage/dilibori-admin-password` in the container.
+First provision generates a random `ADMIN_PASSWORD`. It is not in `docker-compose.yml`. The value is stored under `media/.dilibori-admin-password` (persists across container recreates) and mirrored to `storage/dilibori-admin-password` in the container.
 
 ```sh
 make admin-pass                 # print email + password
@@ -45,58 +45,56 @@ make passwd PASSWORD='newpass'  # set an explicit password
 
 Re-running `make seed` does not change the password unless you pass `ADMIN_PASSWORD` into the container.
 
-## Multi-tenant (preferred for pilots)
+## What `make seed` loads
 
-```sh
-cd ../platform
-make env-copy && make build-app && make up && make pilots
-```
+`make seed` runs `seed/common/seed-from-manifest.php` with `seed/taconazo/manifest.json`. That loads the catalog from `seed/el-taconazo.php`, then demo activity from `seed/common/seed-demo-activity.php`.
 
-Hosts and tenant differences: [`../platform/README.md`](../platform/README.md#pilots).
+### Locations and hours
 
-## What `make seed` loads (legacy Taconazo)
+- El Taconazo - Alameda Ave, 4500 Alameda Ave, El Paso, TX 79905. USD. Storefront photo and homepage slider. Wordmark as the header logo. Black primary buttons.
+- El Taconazo - Tecnológico, Av. Tecnológico 1545, Ciudad Juárez, Chihuahua. MXN. Same menu items at peso prices. Night storefront photo.
+- Footer social: Instagram, Facebook, TikTok (`@eltaconazo`).
+- Timezone `America/Denver`. Currencies USD (default) and MXN (selected with the Juárez location).
+- Languages: English (default) and Español (México). EN and ES buttons in the header.
+- Opening, delivery, and pickup hours start at 7am at both locations.
+- Delivery, pickup, future orders, and table reservations are on.
+- Delivery zones: El Paso (Central 4mi, Greater 10mi) and Juárez (Centro, Pronaf / Tecnológico).
 
-`make seed` runs the tenant manifest seeder (`platform/seeds/common/seed-from-manifest.php`) with the Taconazo manifest. That loads the rich catalog from `seed/el-taconazo.php`, then shared demo activity from `platform/seeds/common/seed-demo-activity.php`.
+### Menu
 
-Locations & ops
-- **El Taconazo - Alameda Ave** @ 4500 Alameda Ave, El Paso, TX 79905. **USD**. Storefront photo + homepage slider; wordmark as header logo; black primary buttons
-- **El Taconazo - Tecnológico** @ Av. Tecnológico 1545, Ciudad Juárez, Chihuahua. **MXN**. Same menu items, peso prices; night storefront photo
-- Footer social: Instagram, Facebook, TikTok (`@eltaconazo`)
-- Timezone `America/Denver`; currencies **USD** (default) + **MXN** (auto-selected on the Juárez location)
-- Languages: **English** (default) + **Español (México)**; **EN | ES** picker in the header
-- Working hours (opening / delivery / pickup) from 7am at both locations
-- Delivery + pickup + future orders + table reservations enabled
-- Delivery zones: El Paso (Central 4mi, Greater 10mi) + Juárez (Centro, Pronaf / Tecnológico)
+English and Spanish are stored as separate strings. Items are duplicated per location so each currency has its own price.
 
-Menu (separate EN + ES translations; duplicated per location for currency)
-- Categories: Breakfast, Tacos, Combos, Drinks, Sides
-- Breakfast (7-11am): Pambazo, Torta de Chilaquil
-- Tacos: suadero, pastor en trompo, cabeza, costilla (+ combos, drinks, extras)
-- Product photos on breakfast, tacos, and combos (items with options open the photo modal)
-- Options, mealtimes, specials, allergens. One language at a time via the header picker
-- CMS pages share slugs; About / Privacy / Terms switch with the locale
+- Categories: Breakfast, Tacos, Combos, Drinks, Sides.
+- Breakfast (7-11am): Pambazo, Torta de Chilaquil.
+- Tacos: suadero, pastor en trompo, cabeza, costilla, plus combos, drinks, and extras.
+- Photos on breakfast, tacos, and combos. Items with options open the photo modal.
+- Options, mealtimes, specials, and allergens. The header picker shows one language at a time.
+- CMS pages share slugs. About, Privacy, and Terms follow the locale.
 
-Marketing & guests (shared demo activity)
-- Coupons from the manifest: El Paso `BIENVENIDO` / `TACOMIERCOLES` / `ENVIOGRATIS`; Juárez `BIENVENIDOJUAREZ` / `TACOMIERCOLESJRZ` / `ENVIOGRATISJRZ`
-- ~40 demo customers (featured login `juanagallo@gmail.com` / `customer123!`)
-- Curated edge-case orders plus ~60 days of history per location (delivery/pickup, every status, coupons, guest checkout)
-- Reviews, newsletter subscribers, dining floor + Patio, reservations across statuses
-- About / Privacy / Terms pages + homepage banners
-- Mail SMTP → Mailpit (`mailpit:1025`); From **El Taconazo Taqueria** `<hola@eltaconazo.example>`
+### Marketing and guests
+
+Demo activity is shared across the seed, not copied per location file.
+
+- Coupons from the manifest: El Paso `BIENVENIDO`, `TACOMIERCOLES`, `ENVIOGRATIS`. Juárez `BIENVENIDOJUAREZ`, `TACOMIERCOLESJRZ`, `ENVIOGRATISJRZ`.
+- About 40 demo customers. Featured login: `juanagallo@gmail.com` / `customer123!`.
+- A few hand-built orders, plus about 60 days of history per location (delivery and pickup, each status, coupons, guest checkout).
+- Reviews, newsletter subscribers, a dining floor and a patio, reservations in more than one status.
+- About, Privacy, and Terms pages, plus homepage banners.
+- SMTP points at Mailpit (`mailpit:1025`). From: El Taconazo Taqueria `<hola@eltaconazo.example>`. See [mailpit/README.md](../mailpit/README.md).
 
 Re-run anytime: `make seed` (safe to repeat; `SEED_MODE=initial` rebuilds demo activity).
 
 ### Multilingual notes
 
-TastyIgniter Translate (`tastyigniter/ti-ext-translate`) stores **separate** English and Spanish strings for menus, categories, options, mealtimes, ingredients, the location blurb, and CMS pages.
+TastyIgniter Translate (`tastyigniter/ti-ext-translate`) stores separate English and Spanish strings for menus, categories, options, mealtimes, ingredients, the location blurb, and CMS pages.
 
-Storefront chrome (nav, footer, cart, checkout, login, reservation, cookie banner) uses lang packs under `extensions/taconazo/locale/lang/{en,es_MX}/`. Those files are **shared** by every platform tenant (copied from `/opt/extensions` at container start). Menu and CMS copy stay in each tenant DB.
+Storefront chrome (nav, footer, cart, checkout, login, reservation, cookie banner) uses lang packs under `extensions/taconazo/locale/lang/{en,es_MX}/`. The entrypoint copies them from `/opt/extensions` at container start. Menu and CMS copy stay in the database.
 
-Admin UI Spanish (`es_MX`) also lives in that extension (`igniter/admin.php`, `system.php`, plus extension packs). Strings come from the community translation project and are committed here, so no Carte key or `igniter:language-install` is required. Seeded staff language follows the tenant default locale (Pizza Rin → Spanish; El Taconazo → English). Switch later under Profile → My Account → Language.
+Admin UI Spanish (`es_MX`) also lives in that extension (`igniter/admin.php`, `system.php`, plus extension packs). Strings come from the community translation project and are committed here, so no Carte key or `igniter:language-install` is required. Seeded staff language is English, the site default. Switch later under Profile → My Account → Language.
 
-- Storefront: **EN | ES** buttons in the header when the tenant enables both locales (session). Codes: `en` and `es_MX`.
+- Storefront: EN and ES buttons in the header (session). Codes: `en` and `es_MX`.
 - Admin content: edit a menu item and switch locale on the translatable fields (`trltext` / `trltextarea`).
-- Browser auto-detect is **off** so the picker is not overridden (`es` from `Accept-Language` would not match `es_MX`). Turn it on under `Admin → Settings` if you want.
+- Browser language detection is off, so the picker is not overridden (`es` from `Accept-Language` does not match `es_MX`). Turn it on under Manage, then Settings, if you want it.
 
 ## Make commands
 
@@ -121,54 +119,19 @@ make reset                      # wipe DB, reinstall, seed
 | CDP event inspector | http://127.0.0.1:8090 |
 | Mailpit UI | http://127.0.0.1:8025 |
 
-Inside Docker, DB host is `db` (user/pass/db: `tastyigniter`). CDP gateway hostname is `rudder-server`. Mail SMTP hostname is `mailpit:1025` (shared `dilibori` network).
+Inside Docker, the DB host is `db` (user, password, and database name are `tastyigniter`). The CDP gateway hostname is `rudder-server`. Mail SMTP is `mailpit:1025` on the shared `dilibori` network. After seed, the From name is El Taconazo Taqueria and the address is `hola@eltaconazo.example`.
 
-Start CDP separately: `make -C ../cdp up` or from repo root `make cdp-up`.
-
-Start Mailpit, then seed so TastyIgniter stores SMTP (From **El Taconazo Taqueria**):
-
-```sh
-make -C ../mailpit up
-make up
-make seed
-make -C ../mailpit smoke
-```
-
-From the repo root: `make mailpit-up` then `make seed` then `make mailpit-smoke`. See [`../mailpit/README.md`](../mailpit/README.md).
+Start CDP with `make -C ../cdp up`, or `make cdp-up` from the repo root. Start Mailpit first, then seed, so TastyIgniter stores SMTP. The order of commands and the smoke test are in [mailpit/README.md](../mailpit/README.md).
 
 ## Analytics (CDP)
 
-The `dilibori.cdp` extension sends storefront events through `EVENT_CLIENT_DRIVER` (RudderStack locally). Listeners do not call RudderStack APIs; change the driver in env.
+The `dilibori.cdp` extension sends storefront events through `EVENT_CLIENT_DRIVER` (RudderStack locally). Listeners do not call RudderStack APIs. Change the driver in env. Driver status is in the [extension README](extensions/dilibori/cdp/README.md).
 
-Event catalog (names, hooks, properties): [`extensions/dilibori/cdp/EVENTS.md`](extensions/dilibori/cdp/EVENTS.md).
+Names, hooks, and properties: [event catalog](../cdp/README.md#event-catalog). Click-path and the events to expect: [test a track event](../cdp/README.md#test-a-track-event).
 
-### Test events from this app
+### Troubleshooting: "X is currently out of stock"
 
-```sh
-# Terminal 1: data plane + inspector
-make -C ../cdp up
-
-# Terminal 2: storefront (from app/)
-make up
-make seed
-```
-
-Watch http://127.0.0.1:8090 while you use the store:
-
-| Action | Events to look for |
-|--------|--------------------|
-| Open a menus page | `page`, `Product List Viewed` |
-| Add an item to cart | `Product Added` |
-| Open `/cart` | `Cart Viewed` |
-| Log in (`juanagallo@gmail.com` / `customer123!`) | `identify`, `Account Logged In` |
-| Open `/checkout` with items in the cart | `Checkout Started` |
-| Complete an order | `Order Completed` |
-
-More detail: [`../cdp/README.md`](../cdp/README.md).
-
-### Troubleshooting: “X is currently out of stock”
-
-That is an `ApplicationException` from Igniter stock checks (not a CDP wiring failure). With `APP_DEBUG=true` you get a full error page. You should still see **Application Error** in the CDP inspector (`error_source=php`).
+That is an `ApplicationException` from Igniter stock checks. With `APP_DEBUG=true` Laravel shows a full error page. The CDP inspector still records Application Error with `error_source=php`. The longer write-up is in the [CDP guide](../cdp/README.md#debugging-storefront-exceptions).
 
 1. Note the Livewire `menuId` from the request body.
 2. Inspect stock:
@@ -182,7 +145,7 @@ WHERE m.menu_id = 9;
 "
 ```
 
-3. Tracked + `quantity` NULL/`<= 0` → out of stock. Full write-up: [`extensions/dilibori/cdp/EVENTS.md`](extensions/dilibori/cdp/EVENTS.md#debugging-storefront-exceptions).
+3. Tracked with `quantity` NULL or `<= 0` means the item is out of stock.
 
 ## Layout
 
@@ -191,8 +154,8 @@ WHERE m.menu_id = 9;
 ├── Dockerfile
 ├── docker-compose.yml
 ├── docker-entrypoint.sh
-├── seed/el-taconazo.php    # Taconazo catalog (menus/pages); activity via platform seeds
-├── extensions/             # locale packs + CDP (mounted into platform tenants)
+├── seed/                   # manifest, catalog, and demo activity
+├── extensions/             # locale packs + CDP (copied in at container start)
 ├── db/                     # MariaDB (gitignored)
 └── media/                  # uploads (gitignored)
 ```

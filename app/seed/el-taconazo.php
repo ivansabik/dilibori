@@ -6,7 +6,7 @@
  * Exercises menus, options, specials, mealtimes, allergens, delivery areas,
  * working hours, location order/reservation settings, pages, banners, stocks,
  * and dining layout. Customers, orders, reservations, coupons, reviews, and
- * subscribers come from platform/seeds/common/seed-demo-activity.php.
+ * subscribers come from seed/common/seed-demo-activity.php.
  *
  * Menu/category/page copy is stored per locale (en + es_MX) via ti-ext-translate.
  * Safe to re-run.
@@ -57,17 +57,19 @@ function say(string $msg): void
  * Attach a media thumb and ensure the original lands on the persistent media volume.
  * TI can leave DB rows / placeholder thumbs when the attachment file is missing on disk.
  */
-function attachLocationPhoto($model, string $sourcePath, string $tag = 'thumb'): void
+function attachLocationPhoto($model, string $sourcePath, string $tag = 'thumb', bool $clear = true): void
 {
     if (!is_file($sourcePath)) {
         throw new RuntimeException("Missing photo: {$sourcePath}");
     }
 
-    $model->clearMediaTag($tag);
+    if ($clear) {
+        $model->clearMediaTag($tag);
+    }
     $model->newMediaInstance()->addFromFile($sourcePath, $tag);
     $model = $model->fresh() ?? $model;
 
-    $media = $model->getMedia($tag)->first();
+    $media = $model->getMedia($tag)->last();
     if (!$media) {
         throw new RuntimeException("Media attach failed for tag {$tag}");
     }
@@ -397,19 +399,34 @@ $locationJuarez->description = t(
 $locationJuarez->save();
 
 $storePhoto = '/opt/seed/images/el-taconazo.png';
+$platoPhoto = '/opt/seed/images/plato-taconazo.jpg';
+$pastorPhoto = '/opt/seed/images/taco-al-pastor.jpg';
 if (is_file($storePhoto)) {
     attachLocationPhoto($location, $storePhoto, 'thumb');
     say('Store photo → El Paso thumb');
-
-    if (class_exists(Slider::class)) {
-        $slider = Slider::query()->where('code', 'home-slider')->first();
-        if ($slider) {
-            attachLocationPhoto($slider, $storePhoto, 'images');
-            say('Store photo → homepage slider');
-        }
-    }
 } else {
     say('El Paso store photo skipped (missing '.$storePhoto.')');
+}
+// Food-first home slider: plato → pastor → storefront
+if (class_exists(Slider::class)) {
+    $slider = Slider::query()->where('code', 'home-slider')->first();
+    if ($slider) {
+        $slider->clearMediaTag('images');
+        $slideOrder = [
+            [$platoPhoto, 'Plato Taconazo'],
+            [$pastorPhoto, 'Taco al pastor'],
+            [$storePhoto, 'El Taconazo'],
+        ];
+        $first = true;
+        foreach ($slideOrder as [$path, $label]) {
+            if (!is_file($path)) {
+                continue;
+            }
+            attachLocationPhoto($slider, $path, 'images', $first);
+            $first = false;
+            say("Slider ← {$label}");
+        }
+    }
 }
 
 $juarezPhoto = '/opt/seed/images/el-taconazo-juarez.png';
@@ -445,9 +462,19 @@ if ($theme) {
         $data['favicon'] = $logoMediaPath;
         $data['logo_height'] = '72px';
     }
-    // Black buttons / primary actions (replaces Orange default #ff4900)
-    $data['color-primary'] = '#000000';
-    $data['heading-color'] = '#000000';
+    // Chile accent / concrete chrome (replaces Orange default #ff4900)
+    $data['color-primary'] = '#C43C2C';
+    $data['heading-color'] = '#111111';
+    $data['header-accent'] = '#C43C2C';
+    settingSet('header_accent', '#C43C2C');
+    settingSet('hero_heading_color', '#111111');
+    settingSet('hero_title', 'Trompo-carved pastor. Pickup or delivery.');
+    settingSet('hero_subtitle', 'El Taconazo · El Paso & Ciudad Juárez');
+    settingSet('hero_title_en', 'Trompo-carved pastor. Pickup or delivery.');
+    settingSet('hero_subtitle_en', 'El Taconazo · El Paso & Ciudad Juárez');
+    settingSet('hero_title_es_MX', 'Pastor del trompo. Para recoger o a domicilio.');
+    settingSet('hero_subtitle_es_MX', 'El Taconazo · El Paso y Ciudad Juárez');
+
     // Footer “Follow us on”
     $data['social'] = [
         [
@@ -468,9 +495,9 @@ if ($theme) {
     ];
     // GDPR cookie banner (EN defaults; ES via eucookiebanner override + lang pack)
     $data['enable_gdpr'] = true;
-    $data['gdpr_cookie_message'] = 'We use own and third party cookies to improve our services. If you continue to browse, consider accepting its use';
+    $data['gdpr_cookie_message'] = 'We use cookies to run the storefront. Keep browsing if that is OK.';
     $data['gdpr_accept_text'] = 'OK';
-    $data['gdpr_more_info_text'] = 'More Information';
+    $data['gdpr_more_info_text'] = 'More information';
     $theme->data = $data;
     $theme->save();
     Theme::clearThemeInstances();
@@ -482,9 +509,7 @@ if ($theme) {
         if (is_dir($combiner)) {
             Illuminate\Support\Facades\File::cleanDirectory($combiner);
         }
-        // Combiner URL payloads are also cached forever as ti.combiner.* keys.
-        Illuminate\Support\Facades\Artisan::call('cache:clear');
-        say('Theme → black primary + Instagram / Facebook / TikTok');
+        say('Theme → chile primary + Instagram / Facebook / TikTok');
     } catch (Throwable $e) {
         say('Theme CSS rebuild skipped: '.$e->getMessage());
     }
@@ -994,6 +1019,7 @@ $menuDefs = [
         'special' => null,
         'special_mxn' => null,
         'stock' => 50,
+        'photo' => '/opt/seed/images/horchata.jpg',
     ],
     [
         'menu_name' => 'Jamaica',
@@ -1015,6 +1041,7 @@ $menuDefs = [
         'special' => null,
         'special_mxn' => null,
         'stock' => 50,
+        'photo' => '/opt/seed/images/jamaica.jpg',
     ],
     [
         'menu_name' => t('Mexican Coke', 'Coca mexicana'),
@@ -1032,6 +1059,7 @@ $menuDefs = [
         'special' => null,
         'special_mxn' => null,
         'stock' => 100,
+        'photo' => '/opt/seed/images/mexican-coke.jpg',
     ],
     [
         'menu_name' => t('Guacamole & chips', 'Guacamole y totopos'),
@@ -1049,6 +1077,7 @@ $menuDefs = [
         'special' => null,
         'special_mxn' => null,
         'stock' => null,
+        'photo' => '/opt/seed/images/guacamole-chips.jpg',
     ],
     [
         'menu_name' => t('Grilled onions', 'Cebollitas'),
@@ -1066,6 +1095,7 @@ $menuDefs = [
         'special' => null,
         'special_mxn' => null,
         'stock' => null,
+        'photo' => '/opt/seed/images/cebollitas.jpg',
     ],
     [
         'menu_name' => 'Esquites',
@@ -1083,6 +1113,7 @@ $menuDefs = [
         'special' => null,
         'special_mxn' => null,
         'stock' => null,
+        'photo' => '/opt/seed/images/esquites.jpg',
     ],
 ];
 
@@ -1208,6 +1239,24 @@ $seedMenusForLocation = function (
 
 $seedMenusForLocation($menuDefs, $locationId, $optsUsd, 'menu_price', 'special', 'menu_description', 'USD');
 $seedMenusForLocation($menuDefs, $juarezId, $optsMxn, 'menu_price_mxn', 'special_mxn', 'menu_description_mxn', 'MXN');
+
+// Favoritos strip on home (Plato, 3-taco mix, pastor) for default location
+$favoritoIds = Menu::query()
+    ->where('menu_status', 1)
+    ->whereHas('locations', fn ($q) => $q->where('locations.location_id', $locationId))
+    ->where(function ($q) {
+        $q->where('menu_name', 'like', '%Plato Taconazo%')
+            ->orWhere('menu_name', 'like', '%mix%')
+            ->orWhere('menu_name', 'like', '%Pastor%');
+    })
+    ->orderBy('menu_priority')
+    ->limit(3)
+    ->pluck('menu_id')
+    ->all();
+if ($favoritoIds !== []) {
+    settingSet('taconazo_favoritos_ids', implode(',', $favoritoIds));
+    say('Favoritos → menu IDs '.implode(',', $favoritoIds));
+}
 
 
 // ---------------------------------------------------------------------------

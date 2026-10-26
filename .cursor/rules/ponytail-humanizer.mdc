@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Humanizer (docs and comments)
 
-Code changes follow [`ponytail.mdc`](ponytail.mdc). Style under `app/` still follows [`php-coding-guidelines.mdc`](php-coding-guidelines.mdc) and [`js-coding-guidelines.mdc`](js-coding-guidelines.mdc). Python under `platform/` and `cdp/` follows [`python-coding-guidelines.mdc`](python-coding-guidelines.mdc). Do not rewrite required `ponytail:` ceiling comments with humanizer.
+Code changes follow [`ponytail.mdc`](ponytail.mdc). Style under `app/` still follows [`php-coding-guidelines.mdc`](php-coding-guidelines.mdc) and [`js-coding-guidelines.mdc`](js-coding-guidelines.mdc). Python under `cdp/` follows [`python-coding-guidelines.mdc`](python-coding-guidelines.mdc). Do not rewrite required `ponytail:` ceiling comments with humanizer.
 
 ## When to humanize
 

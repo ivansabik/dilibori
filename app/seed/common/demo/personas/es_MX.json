@@ -1,0 +1,77 @@
+{
+  "first_names": [
+    "María", "José", "Ana", "Carlos", "Sofía", "Luis", "Elena", "Diego",
+    "Isabel", "Miguel", "Carmen", "Roberto", "Laura", "Pedro", "Gabriela",
+    "Antonio", "Patricia", "Fernando", "Lucía", "Ricardo", "Valeria", "Javier",
+    "Daniela", "Manuel", "Rosa", "Alejandro", "Natalia", "Héctor", "Claudia", "Raúl"
+  ],
+  "last_names": [
+    "González", "Ramírez", "Torres", "Hernández", "López", "Martínez", "García",
+    "Rodríguez", "Pérez", "Sánchez", "Flores", "Rivera", "Morales", "Cruz",
+    "Ortiz", "Reyes", "Gutiérrez", "Castillo", "Vargas", "Mendoza", "Ruiz",
+    "Jiménez", "Díaz", "Romero", "Álvarez", "Navarro", "Silva", "Ramos", "Guerrero", "Medina"
+  ],
+  "street_names": [
+    "Av. Juárez", "Blvd. Independencia", "Av. Tecnológico", "Calle 16 de Septiembre",
+    "Av. López Mateos", "Blvd. Tomás Fernández", "Av. de las Torres", "Calle Vicente Guerrero",
+    "Blvd. Manuel Gómez Morín", "Av. Tecnológico Sur", "Calle Mejía", "Av. Lincoln",
+    "Blvd. Zaragoza", "Calle Mariscal", "Av. Paseo Triunfo de la República",
+    "Calle Ignacio Mejía", "Blvd. Juan Gabriel", "Av. de la Raza", "Calle Aldama", "Av. Americas"
+  ],
+  "order_comments": [
+    "Sin cebolla en el pastor.",
+    "Extra salsa verde, por favor.",
+    "Déjalo en la puerta si nadie abre.",
+    "Incluye servilletas y tenedores.",
+    "Salsa suave, van niños.",
+    "Toca el timbre dos veces.",
+    "Si traen limón, mándenlo aparte.",
+    "Bien picante.",
+    "Sin cilantro, por favor.",
+    "Márcame cuando llegues.",
+    "Estaciona en la cochera.",
+    "Revisa bien los refrescos.",
+    "Es para celebrar — gracias.",
+    "Voy tarde, guárdalo si sale antes.",
+    "Alergia: sin lácteos en nada."
+  ],
+  "reservation_comments": [
+    "Mesa junto a la ventana si se puede.",
+    "Necesitamos silla alta para un niño.",
+    "Preferimos un rincón más quieto.",
+    "Cumpleaños para cuatro.",
+    "Patio si está libre.",
+    "Quizá llegamos unos minutos tarde.",
+    "Grupo grande — juntas las mesas, porfa.",
+    "Aniversario — cualquier mesa bonita sirve."
+  ],
+  "reviews": {
+    "5": [
+      "Los tacos llegaron calientes y a tiempo. Excelente.",
+      "Muy buena la de pastor. Volveremos.",
+      "Porciones generosas y buen servicio.",
+      "Rápido para recoger. Todo fresco."
+    ],
+    "4": [
+      "Está rica. El envío tardó un poco pero valió la pena.",
+      "Buen pedido para llevar. Las papas salieron bien.",
+      "Casi perfecto — una vez faltó un refresco, la siguiente ok."
+    ],
+    "3": [
+      "Estuvo bien. Llegó un poco tibia.",
+      "Ok para entre semana. Nada del otro mundo.",
+      "La comida bien, el envío más lento de lo esperado."
+    ]
+  },
+  "subscriber_locals": [
+    "fan", "juarez.eats", "tacolover", "hambre.local", "viernes.noche",
+    "borde.comida", "comida.oficina", "familia.pide", "finde.come", "demo.suscriptor"
+  ],
+  "guest": {
+    "first_name": "Invitado",
+    "last_name": "Checkout",
+    "email": "invitado.checkout@demo.example",
+    "telephone": "+52 656 555 0199"
+  },
+  "customer_password": "customer123!"
+}

@@ -1,11 +1,10 @@
-# Ruff config for platform/ and cdp/ Python.
+# Ruff config for cdp/ Python.
 # See .cursor/rules/python-coding-guidelines.mdc
 
 target-version = "py312"
 line-length = 88
 
 extend-exclude = [
-    "platform/data",
     "app",
 ]
 

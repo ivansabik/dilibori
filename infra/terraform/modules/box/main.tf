@@ -91,25 +91,6 @@ data "aws_iam_policy_document" "box" {
   }
 
   statement {
-    sid = "TenantIam"
-    actions = [
-      "iam:CreateUser",
-      "iam:DeleteUser",
-      "iam:GetUser",
-      "iam:TagUser",
-      "iam:CreateAccessKey",
-      "iam:DeleteAccessKey",
-      "iam:ListAccessKeys",
-      "iam:PutUserPolicy",
-      "iam:DeleteUserPolicy",
-      "iam:GetUserPolicy",
-    ]
-    resources = [
-      "arn:aws:iam::*:user/dilibori/${var.environment}/tenants/*",
-    ]
-  }
-
-  statement {
     sid = "EcrPull"
     actions = [
       "ecr:GetAuthorizationToken",
@@ -129,6 +110,19 @@ data "aws_iam_policy_document" "box" {
     ]
     resources = [
       "arn:aws:ssm:${var.aws_region}:*:parameter/dilibori/${var.environment}/*",
+    ]
+  }
+
+  statement {
+    sid = "AppLogs"
+    actions = [
+      "logs:CreateLogStream",
+      "logs:PutLogEvents",
+      "logs:DescribeLogStreams",
+    ]
+    resources = [
+      "arn:aws:logs:${var.aws_region}:*:log-group:/dilibori/${var.environment}/*",
+      "arn:aws:logs:${var.aws_region}:*:log-group:/dilibori/${var.environment}/*:log-stream:*",
     ]
   }
 

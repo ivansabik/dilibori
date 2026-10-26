@@ -9,14 +9,6 @@ locals {
   env_domain = var.domain
 }
 
-resource "aws_route53_record" "wildcard" {
-  zone_id = local.zone_id
-  name    = "*.${local.env_domain}"
-  type    = "A"
-  ttl     = 60
-  records = [var.eip_public_ip]
-}
-
 resource "aws_route53_record" "apex" {
   zone_id = local.zone_id
   name    = local.env_domain

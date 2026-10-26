@@ -1,42 +1,26 @@
-# Proxy common targets into app/ or platform/.
+# Proxy common targets into app/.
 .DEFAULT_GOAL := help
 
 .PHONY: help up down stop start build rebuild logs shell ps passwd admin-pass reset clean wait seed \
 	cdp-up cdp-down cdp-logs cdp-health cdp-ps \
 	mailpit-up mailpit-down mailpit-logs mailpit-ps mailpit-smoke \
-	platform-up platform-down platform-test platform-pilots platform-build
+	install-hooks
 
 help:
 	@echo ""
 	@echo "Dilibori monorepo"
 	@echo ""
-	@echo "  platform/         Multi-tenant PoC (preferred)"
-	@echo "  app/              Single-tenant TastyIgniter storefront"
+	@echo "  app/              El Taconazo storefront"
 	@echo "  cdp/              RudderStack data plane + event inspector"
 	@echo "  mailpit/          Local SMTP catcher"
 	@echo ""
-	@echo "Platform:"
-	@echo "  make platform-build   Build immutable TI image"
-	@echo "  make platform-up      Start shared cell + control plane"
-	@echo "  make platform-test    Run contract tests"
-	@echo "  make platform-pilots  Provision pilots (default: taconazo; PILOTS=pizza-rin or comma-list)"
+	@echo "  make install-hooks  Point git core.hooksPath at scripts/git-hooks"
 	@echo ""
 	@$(MAKE) -C app help
 
-platform-build:
-	@$(MAKE) -C platform build-app
-
-platform-up:
-	@$(MAKE) -C platform up
-
-platform-down:
-	@$(MAKE) -C platform down
-
-platform-test:
-	@$(MAKE) -C platform test
-
-platform-pilots:
-	@$(MAKE) -C platform pilots
+install-hooks:
+	@git config core.hooksPath scripts/git-hooks
+	@echo "git core.hooksPath -> scripts/git-hooks (pre-commit runs ruff on cdp/event-sink)"
 
 up down stop start build rebuild logs shell ps passwd admin-pass reset clean wait seed:
 	@$(MAKE) -C app $@ $(filter-out $@,$(MAKECMDGOALS))

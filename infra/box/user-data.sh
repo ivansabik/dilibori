@@ -17,7 +17,7 @@ DATA_DEVICE="${data_device_name}"
 OPT_ROOT=/opt/dilibori
 
 apt-get update
-apt-get install -y ca-certificates curl gnupg jq unzip make mariadb-client postgresql-client amazon-cloudwatch-agent
+apt-get install -y ca-certificates curl gnupg jq unzip make amazon-cloudwatch-agent
 
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
@@ -54,7 +54,7 @@ if [ -b "$DATA_DEVICE" ]; then
   mount -a || mount "$DATA_DEVICE" "$OPT_ROOT"
 fi
 
-mkdir -p "$OPT_ROOT"/{releases,docker,platform-data,caddy-data,logs}
+mkdir -p "$OPT_ROOT"/{releases,docker,data/media,data/db,caddy-data/logs,logs,backups}
 chmod 755 "$OPT_ROOT"
 
 mkdir -p /etc/docker
