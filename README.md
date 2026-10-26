@@ -75,7 +75,7 @@ make seed
 
 The storefront runs without either service. A test event and the event catalog are in [cdp/README.md](cdp/README.md). SMTP hostnames and the smoke test are in [mailpit/README.md](mailpit/README.md).
 
-## Demo: El Taconazo 😋
+## Demo: El Taconazo 🌮
 
 `make seed` loads a two-location restaurant:
 
