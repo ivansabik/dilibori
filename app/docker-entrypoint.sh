@@ -134,6 +134,24 @@ if [ "${AUTO_PROVISION:-false}" = "true" ] && [ ! -f /var/www/html/storage/dilib
     /usr/local/bin/provision.sh
 fi
 
+# Attachment files live in the container filesystem. A recreate keeps the DB
+# rows and serves placeholder thumbs until the seed originals are copied back.
+if [ -f /var/www/html/storage/dilibori-installed.flag ] \
+    && [ -f /usr/local/bin/restore-missing-media.php ] \
+    && [ -f /var/www/html/artisan ]; then
+    echo "Waiting for database before media restore..."
+    for _i in $(seq 1 30); do
+        if (cd /var/www/html && php artisan db:show >/dev/null 2>&1) \
+            || (cd /var/www/html && php -r 'try{new PDO("mysql:host=".getenv("DB_HOST").";port=".getenv("DB_PORT").";dbname=".getenv("DB_DATABASE"), getenv("DB_USERNAME"), getenv("DB_PASSWORD")); exit(0);}catch(Throwable){exit(1);}'); then
+            break
+        fi
+        sleep 2
+    done
+    echo "Restoring missing media from seed images..."
+    php /usr/local/bin/restore-missing-media.php \
+        || echo "WARN: media restore failed" >&2
+fi
+
 # Root artisan/seed can recreate storage files after the early chown.
 setup_writable_dirs
 
