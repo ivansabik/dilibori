@@ -564,13 +564,18 @@ function applyTheme(array $manifest, string $manifestPath): void
 function clearThemeCombinerCache(): void
 {
     $combiner = storage_path('igniter/combiner');
-    if (!is_dir($combiner)) {
-        return;
+    if (is_dir($combiner)) {
+        // Compiled CSS lives under combiner/data/, not as top-level files. A shallow
+        // unlink leaves Orange default #ff4900 bundles in place after color-primary
+        // is updated in the DB.
+        Illuminate\Support\Facades\File::cleanDirectory($combiner);
     }
-    // Compiled CSS lives under combiner/data/, not as top-level files. A shallow
-    // unlink leaves Orange default #ff4900 bundles in place after color-primary
-    // is updated in the DB.
-    Illuminate\Support\Facades\File::cleanDirectory($combiner);
+    // Combiner URL payloads are also cached forever as ti.combiner.* keys.
+    try {
+        Illuminate\Support\Facades\Artisan::call('cache:clear');
+    } catch (Throwable) {
+        // best-effort
+    }
 }
 
 function applyPages(array $manifest, string $defaultLocale): void

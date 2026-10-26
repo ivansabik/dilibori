@@ -6,7 +6,7 @@ Marketplace apps such as Uber Eats and DoorDash take a commission on every ticke
 
 On a Dilibori site the guest orders from you and sees only your menu. Staff work one queue: accept, reject, or delay. Coupons and table bookings live in the same admin. Optional local [RudderStack](https://www.rudderstack.com/) records browser activity and backend events (order placed, payment started, order completed) on your machine. [Mailpit](https://mailpit.axllent.org/) catches mail during local tests.
 
-> **Project status:** Dilibori runs locally with Docker Compose. AWS deployment is coming soon.
+> **Project status:** Dilibori runs locally with Docker Compose. AWS is one EC2 box per environment, deployed from a pull request. See [infra/README.md](infra/README.md).
 
 ## Who it is for
 
@@ -92,6 +92,7 @@ The storefront is English by default, with Spanish (Mexico) in the header. Guest
 | [`docs/product/`](docs/product/) | Feature guides for customers and owners |
 | [`cdp/`](cdp/) | Optional RudderStack data plane and local event inspector |
 | [`mailpit/`](mailpit/) | Local SMTP catcher |
+| [`infra/`](infra/) | AWS Terraform, box scripts, and the PR deploy |
 
 ## Common commands
 
@@ -113,7 +114,7 @@ The app Makefile has the rest (`make shell`, `make passwd`, and others). See [ap
 
 ### Is Dilibori ready for production?
 
-Not yet. The checked-in deployment runs locally with Docker Compose. AWS deployment is coming soon.
+The local Compose stack is the app. AWS runs that same app and MariaDB on one EC2 box per environment (dev, then prod after approval). Setup is in [infra/README.md](infra/README.md).
 
 ### Does one installation support multiple restaurants?
 
