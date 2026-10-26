@@ -6,7 +6,7 @@ namespace Dilibori\Cdp\Support;
 
 /**
  * Canonical track event names (object-action, Proper Case, past tense).
- * Keep in sync with EVENTS.md.
+ * Keep in sync with cdp/README.md (event catalog).
  */
 class Events
 {
