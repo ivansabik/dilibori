@@ -1,4 +1,4 @@
-FROM php:8.3-apache
+FROM php:8.3.36-apache
 
 ARG TASTYIGNITER_VERSION=4.0.1
 
@@ -73,9 +73,11 @@ RUN mkdir -p /var/www/html \
 COPY app/supervisor/dilibori.conf /etc/supervisor/conf.d/dilibori.conf
 COPY app/bin/provision.sh /usr/local/bin/provision.sh
 COPY app/bin/rebuild-theme-css.php /usr/local/bin/rebuild-theme-css.php
+COPY app/bin/restore-missing-media.php /usr/local/bin/restore-missing-media.php
 COPY app/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh /usr/local/bin/provision.sh \
         /usr/local/bin/rebuild-theme-css.php \
+        /usr/local/bin/restore-missing-media.php \
     && mkdir -p /var/log/supervisor \
     && chown -R www-data:www-data /usr/src/tastyigniter/storage /usr/src/tastyigniter/bootstrap/cache 2>/dev/null || true
 

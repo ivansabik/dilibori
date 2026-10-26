@@ -158,6 +158,13 @@ if [ -f /var/www/html/storage/dilibori-installed.flag ] \
         php /usr/local/bin/rebuild-theme-css.php \
             || echo "WARN: theme CSS rebuild failed (storefront may show default Orange colors)" >&2
     fi
+    # Attachment files live in the container filesystem. A recreate keeps the DB
+    # rows and serves placeholder thumbs until the seed originals are copied back.
+    if [ -f /usr/local/bin/restore-missing-media.php ]; then
+        echo "Restoring missing media from seed images..."
+        php /usr/local/bin/restore-missing-media.php \
+            || echo "WARN: media restore failed" >&2
+    fi
 fi
 
 # Root artisan/seed can recreate storage files after the early chown.

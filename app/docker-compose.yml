@@ -14,6 +14,7 @@ services:
       - ./extensions:/opt/extensions:ro
       - ./docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh:ro
       - ./bin/provision.sh:/usr/local/bin/provision.sh:ro
+      - ./bin/restore-missing-media.php:/usr/local/bin/restore-missing-media.php:ro
     environment:
       - APP_ENV=local
       - APP_DEBUG=true
