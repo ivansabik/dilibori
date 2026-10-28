@@ -1,10 +1,10 @@
-# Dilibori 🍽️
+# Dilibori 🍽️🛵📊
 
-Dilibori is an open-source online ordering site and restaurant back office built on [TastyIgniter](https://tastyigniter.com/), with [RudderStack](https://www.rudderstack.com/) for storefront and order events. One restaurant gets a branded storefront and an admin for orders, menus, pickup and delivery 🛵, reservations, customer accounts, and coupons. Several locations can share that admin and one database. Each location keeps its own hours, delivery zones, and currency.
+Dilibori is an open-source online ordering site and restaurant back office built on [TastyIgniter](https://tastyigniter.com/), with [RudderStack](https://www.rudderstack.com/) for storefront and order events. One restaurant gets a branded storefront and an admin for orders, menus, pickup and delivery, reservations, customer accounts, and coupons. Several locations can share that admin and one database. Each location keeps its own hours, delivery zones, and currency.
 
 Marketplace apps such as Uber Eats and DoorDash take a commission on every ticket and list nearby competitors next to your dishes. Phone and WhatsApp orders get retyped by hand. A menu change at one location misses the other. Friday reservations sit in a notebook and double-book. The customer list stays with the marketplace.
 
-On a Dilibori site the guest orders from you and sees only your menu. Staff work one queue: accept, reject, or delay. Coupons and table bookings live in the same admin. Optional local [RudderStack](https://www.rudderstack.com/) records browser activity and backend events (order placed, payment started, order completed) on your machine. [Mailpit](https://mailpit.axllent.org/) catches mail during local tests.
+On a Dilibori site the guest orders from you and sees only your menu. Staff work one queue: accept, reject, or delay. Coupons and table bookings live in the same admin. It records browser activity and backend events (order placed, payment started, order completed) than can then be used for Reporting and Analytics.
 
 > **Project status:** Dilibori runs locally with Docker Compose. AWS deployment is coming soon.
 
@@ -29,7 +29,7 @@ Engineers and consultants: the app image, analytics, and mail catcher each have 
 | TastyIgniter 4 | Storefront and `/admin` |
 | PHP 8.3 and Apache | Application runtime |
 | MariaDB 10.11 | Restaurant, customer, and order data |
-| RudderStack | Optional event pipeline |
+| RudderStack | Optional but highly encouraged CDP/event pipeline |
 | Mailpit | Local SMTP catcher |
 
 The app uses file caching and a database-backed queue. The storefront, RudderStack, and Mailpit are separate Compose projects on a shared Docker network named `dilibori`.
