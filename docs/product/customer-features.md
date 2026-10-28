@@ -10,7 +10,7 @@ For the owner side of the same product, see [owner and admin features](owner-adm
 
 ![El Taconazo home page with location choices](screenshots/customer/home.png)
 
-**Included.** Each location has its own page and menus URL. The home page points guests at a location so they can start ordering for *para recoger* or *a domicilio*. Opening hours, delivery windows, and pickup windows show per branch. Guests pick a *sucursal* before they dig into the menu.
+**Included.** Each location has its own page and menus URL. The home page points guests at a location so they can start ordering for pickup or delivery. Opening hours, delivery windows, and pickup windows show per branch. Guests pick a location before they dig into the menu.
 
 Why it matters: a two-branch brand does not dump every customer into one kitchen. The diner sees hours and availability for the place they will actually visit or receive from.
 
@@ -36,7 +36,7 @@ Pilot example: El Taconazo has Breakfast, Tacos, Combos, Drinks, and Sides, with
 
 **Included.** Add, update, remove, and clear. Per-line comments and delivery notes. Coupon codes apply in the basket when the owner has created them. Minimum order rules and mealtime or order-type restrictions surface as clear alerts. Signed-in customers can have an abandoned cart restored when they return (when that setting is on).
 
-**Available when configured.** Tip / *propina* at checkout, as a percentage or fixed amount, when tipping is enabled in cart settings.
+**Available when configured.** Tip at checkout, as a percentage or fixed amount, when tipping is enabled in cart settings.
 
 Why it matters: the diner finishes the order without calling the shop to change a salsa, and promotions land in the same place as the total.
 
@@ -48,7 +48,7 @@ Pilot example: El Taconazo coupons such as `BIENVENIDO` (first-order percent off
 
 ![Alameda menu with delivery selected](screenshots/customer/menus.png)
 
-**Included.** Delivery (*a domicilio*) and pickup (*para recoger*) per location, each with lead time, slot interval, minimum order, and cancellation window. Delivery areas use zones with their own fees and minimums. Guests can place ASAP orders or pick a timeslot; future orders can open several days ahead. When "reject orders outside delivery area" is on, checkout requires an address inside a zone. Guest checkout is supported so first-time diners do not have to register.
+**Included.** Delivery and pickup per location, each with lead time, slot interval, minimum order, and cancellation window. Delivery areas use zones with their own fees and minimums. Guests can place ASAP orders or pick a timeslot; future orders can open several days ahead. When "reject orders outside delivery area" is on, checkout requires an address inside a zone. Guest checkout is supported so first-time diners do not have to register.
 
 Why it matters: the diner knows the fee and the window before they pay, and the kitchen is not taking tickets it cannot fulfill.
 
@@ -60,7 +60,7 @@ Pilot example: El Taconazo seeds circular zones for El Paso (Central / Greater) 
 
 ![Checkout with cash on delivery](screenshots/customer/checkout.png)
 
-**Included.** Checkout form, confirmation page, and cash on delivery (*pago contra entrega*). Guest or account checkout. Order status labels the diner sees after placing the order.
+**Included.** Checkout form, confirmation page, and cash on delivery. Guest or account checkout. Order status labels the diner sees after placing the order.
 
 **Available when configured.** Card and wallet gateways: Stripe, PayPal Express, Square, Mollie, and Authorize.Net. Per-location gateway selection. Saved payment profiles when the gateway supports them.
 
@@ -124,13 +124,13 @@ Pilot example: the El Taconazo seed includes demo reviews and newsletter subscri
 
 **Included.** This is how multi-branch Dilibori stays correct for the diner: language is a storefront choice the owner enables; currency follows the selected location.
 
-Storefront languages are whatever the owner turns on. El Taconazo ships English (default) and Español (México) with a header language picker. Menu items, categories, and CMS pages can hold a translation per language, so switching locale updates the dish names and legal pages, not only the buttons.
+Storefront languages are whatever the owner turns on. El Taconazo ships English (default) and Spanish (Mexico) with a header language picker. Menu items, categories, and CMS pages can hold a translation per language, so switching locale updates the dish names and legal pages, not only the buttons.
 
 Currency is per branch. Pick Alameda Ave and the cart is USD; pick Tecnológico and it is MXN. Distance units follow the site setup (miles for the USD location, kilometres for MXN). Coupons and minimums can be scoped per location so a Juárez first-order code does not apply in El Paso with the wrong floor.
 
-Why it matters: a cross-border brand does not need two websites. The diner chooses a *sucursal*, sees the right language and the right money, and the kitchen that receives the ticket matches that branch.
+Why it matters: a cross-border brand does not need two websites. The diner chooses a location, sees the right language and the right money, and the kitchen that receives the ticket matches that branch.
 
-Pilot example: switching to Español (México) updates chrome to wording such as *para recoger*, *a domicilio*, *platillos*, and *sucursal*. Choosing the Juárez location switches the cart to pesos while the same bilingual menu stays available.
+Pilot example: switching to Spanish (Mexico) updates chrome to the Mexican Spanish translations for pickup, delivery, dishes, and location. Choosing the Juárez location switches the cart to Mexican pesos while the same bilingual menu stays available.
 
 ---
 

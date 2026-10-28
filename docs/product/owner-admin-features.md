@@ -70,9 +70,9 @@ Why it matters: selling a sold-out *horchata* creates refunds and angry reviews.
 
 **Included.** Multi-branch is a first-class feature: create and edit locations with address and map coordinates, then run them under one admin. Schedules for opening, delivery, and pickup. Delivery areas (circle or polygon) with fees and minimums. Offer delivery, pickup, future orders, and reservations per branch. Guest checkout, order limits, and payment gateway selection per location. Location gallery. Single-location mode for one-branch shops, or multi-location for chains. Geocoder settings (including Google Maps API key when that provider is selected). Distance unit (mi or km) is a site setting.
 
-Language and currency sit with this model. Enable the storefront languages you need (English and Español México on El Taconazo) and maintain translations on menu and CMS fields in admin. Set a currency per location so Alameda Ave checks out in USD and Tecnológico in MXN without a second site. Coupons, menus, and staff assignment can be scoped to specific branches.
+Language and currency sit with this model. Enable the storefront languages you need (English and Spanish (Mexico) on El Taconazo) and maintain translations on menu and CMS fields in admin. Set a currency per location so Alameda Ave checks out in USD and Tecnológico in MXN without a second site. Coupons, menus, and staff assignment can be scoped to specific branches.
 
-Why it matters: El Paso and Juárez are not the same kitchen, fee table, language mix, or currency. Each *sucursal* keeps its own rules under one login. That is the headline capability for border and multi-city brands.
+Why it matters: El Paso and Juárez are not the same kitchen, fee table, language mix, or currency. Each location keeps its own rules under one login. That is the headline capability for border and multi-city brands.
 
 ---
 

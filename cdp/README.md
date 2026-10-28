@@ -236,7 +236,7 @@ Source of truth for storefront analytics. Canonical names are Proper Case, objec
 | **Producer** | Backend |
 | **Hook** | `location.orderType.updated` |
 | **Properties** | `order_type`, `previous_order_type` |
-| **Question** | Delivery vs pickup (a domicilio / para recoger) |
+| **Question** | Delivery vs pickup |
 
 #### Delivery Area Selected
 

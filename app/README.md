@@ -55,7 +55,7 @@ Re-running `make seed` does not change the password unless you pass `ADMIN_PASSW
 - El Taconazo - Tecnológico, Av. Tecnológico 1545, Ciudad Juárez, Chihuahua. MXN. Same menu items at peso prices. Night storefront photo.
 - Footer social: Instagram, Facebook, TikTok (`@eltaconazo`).
 - Timezone `America/Denver`. Currencies USD (default) and MXN (selected with the Juárez location).
-- Languages: English (default) and Español (México). EN and ES buttons in the header.
+- Languages: English (default) and Spanish (Mexico). EN and ES buttons in the header.
 - Opening, delivery, and pickup hours start at 7am at both locations.
 - Delivery, pickup, future orders, and table reservations are on.
 - Delivery zones: El Paso (Central 4mi, Greater 10mi) and Juárez (Centro, Pronaf / Tecnológico).
